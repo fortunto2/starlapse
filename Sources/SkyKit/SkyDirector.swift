@@ -66,11 +66,34 @@ public enum SkyDirector {
         public let location: GeographicCoordinates
         public let conditions: Conditions
         public let showers: [ShowerActivity]
+        public let planets: [PlanetPosition]
         public let milkyWayCore: HorizontalCoordinates
         public let celestialPole: HorizontalCoordinates
         public let aim: AimPoint
 
         public var headlineShower: ShowerActivity? { showers.first }
+
+        /// Planets currently above the horizon and bright enough to see, brightest first.
+        public func visiblePlanets() -> [PlanetPosition] {
+            planets.filter { planet in
+                planet.isNakedEyeBright
+                    && planet.position.horizontal(at: location, date: date).isAboveHorizon
+            }
+        }
+
+        /// The best thing to focus on. Autofocus is useless against a dark sky, so manual
+        /// focus needs a bright point source — a planet is the brightest one available
+        /// short of the Moon, and unlike the Moon it never blows out the frame.
+        public func focusTarget() -> (name: String, direction: HorizontalCoordinates)? {
+            if let planet = visiblePlanets().first {
+                return (planet.name, planet.position.horizontal(at: location, date: date))
+            }
+            let star = SkyCatalog.brightStars
+                .map { ($0, $0.position.horizontal(at: location, date: date)) }
+                .filter { $0.1.altitude > 15 }
+                .min { $0.0.magnitude < $1.0.magnitude }
+            return star.map { ($0.0.name, $0.1) }
+        }
     }
 
     // MARK: - Entry point
@@ -113,6 +136,7 @@ public enum SkyDirector {
             location: location,
             conditions: conditions,
             showers: showers,
+            planets: PlanetEphemeris.positions(jd: jd),
             milkyWayCore: milkyWay,
             celestialPole: pole,
             aim: aimPoint(

@@ -46,7 +46,14 @@ final class FrameAccumulator: @unchecked Sendable {
     private var textureCache: CVMetalTextureCache?
 
     private var accumulator: MTLTexture?
-    private var display: MTLTexture?
+    /// Two display textures, used alternately.
+    ///
+    /// The first version of this had one, resolved on the capture queue and simultaneously
+    /// read by the view on the main thread. That is a data race on GPU memory, and it
+    /// crashed at the end of a session — exactly when the final render and the next frame
+    /// overlapped. With two, the view always reads the one the GPU is not writing.
+    private var displays: [MTLTexture] = []
+    private var displayIndex = 0
     private var luma: MTLTexture?
 
     private(set) var frameCount: Int = 0
@@ -100,10 +107,12 @@ final class FrameAccumulator: @unchecked Sendable {
                 width: width, height: height, format: .rgba32Float,
                 usage: [.shaderRead, .shaderWrite]
             )
-            display = makeTexture(
-                width: width, height: height, format: .bgra8Unorm,
-                usage: [.shaderRead, .shaderWrite]
-            )
+            displays = (0..<2).compactMap { _ in
+                makeTexture(
+                    width: width, height: height, format: .bgra8Unorm,
+                    usage: [.shaderRead, .shaderWrite]
+                )
+            }
             luma = makeTexture(
                 width: lumaWidth, height: lumaHeight, format: .r32Float,
                 usage: [.shaderRead, .shaderWrite]
@@ -209,9 +218,15 @@ final class FrameAccumulator: @unchecked Sendable {
         frameCount += 1
     }
 
-    /// Render the current stack for display or export.
+    /// Render the current stack. Must be called on the capture queue.
+    ///
+    /// Alternates between the two display textures so the returned one is never the one
+    /// the view is currently reading.
     func resolve(tone: ToneSettings, mode: StackMode) -> MTLTexture? {
-        guard let accumulator, let display else { return nil }
+        guard let accumulator, !displays.isEmpty else { return nil }
+        displayIndex = (displayIndex + 1) % displays.count
+        let display = displays[displayIndex]
+
         guard let buffer = commandQueue.makeCommandBuffer(),
               let encoder = buffer.makeComputeCommandEncoder() else { return nil }
 
@@ -236,6 +251,31 @@ final class FrameAccumulator: @unchecked Sendable {
         buffer.commit()
         buffer.waitUntilCompleted()
         return display
+    }
+
+    /// Copy a rendered texture into plain bytes.
+    ///
+    /// Saving happens on the main actor, and an `MTLTexture` must never travel there —
+    /// GPU memory keeps being written behind it. A `Data` blob is genuinely `Sendable` and
+    /// costs one copy, once, at the end of a session.
+    func snapshot(of texture: MTLTexture) -> RenderedImage {
+        let bytesPerRow = texture.width * 4
+        var pixels = Data(count: bytesPerRow * texture.height)
+        pixels.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            texture.getBytes(
+                base,
+                bytesPerRow: bytesPerRow,
+                from: MTLRegionMake2D(0, 0, texture.width, texture.height),
+                mipmapLevel: 0
+            )
+        }
+        return RenderedImage(
+            pixels: pixels,
+            width: texture.width,
+            height: texture.height,
+            bytesPerRow: bytesPerRow
+        )
     }
 
     private func dispatch(

@@ -158,6 +158,13 @@ struct ManualControlsView: View {
                     .foregroundStyle(NightTheme.primary)
             }
             .tint(NightTheme.secondary)
+
+            Toggle(isOn: $model.dimsScreenDuringCapture) {
+                Text("Dim screen while capturing")
+                    .font(NightTheme.mono(12))
+                    .foregroundStyle(NightTheme.primary)
+            }
+            .tint(NightTheme.secondary)
         }
         .nightPanel()
     }

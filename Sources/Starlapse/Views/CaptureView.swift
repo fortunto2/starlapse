@@ -5,6 +5,10 @@ struct CaptureView: View {
 
     @State private var model = CaptureViewModel()
     @State private var showsControls = false
+    /// The sky overlay is genuinely useful and genuinely in the way — it has to come off
+    /// in one tap, without hunting through a settings sheet in the dark.
+    @State private var showsOverlay = true
+    @State private var themeMode = ThemeMode.bright
 
     var body: some View {
         ZStack {
@@ -13,20 +17,23 @@ struct CaptureView: View {
             MetalPreviewView(texture: model.previewTexture)
                 .ignoresSafeArea()
 
-            SkyOverlayView(
-                plan: model.plan,
-                aim: model.attitude.aim,
-                guidance: model.aimGuidance,
-                hasFix: model.attitude.hasFullFix,
-                fieldOfView: Double(model.settings.lens.fieldOfView)
-            )
-            .ignoresSafeArea()
+            if showsOverlay {
+                SkyOverlayView(
+                    plan: model.plan,
+                    aim: model.attitude.aim,
+                    guidance: model.aimGuidance,
+                    hasFix: model.attitude.hasFullFix,
+                    fieldOfView: Double(model.settings.lens.fieldOfView)
+                )
+                .ignoresSafeArea()
+            }
 
             VStack {
+                topBar
                 Spacer()
                 if model.state.isCapturing {
                     progressPanel
-                } else {
+                } else if showsOverlay {
                     conditionsPanel
                 }
                 controlBar
@@ -53,6 +60,51 @@ struct CaptureView: View {
         .onDisappear { model.stopSkyUpdates() }
     }
 
+    // MARK: - Top bar
+
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            iconButton(showsOverlay ? "sparkles" : "sparkles.slash", active: showsOverlay) {
+                showsOverlay.toggle()
+            }
+
+            iconButton("moon.fill", active: themeMode == .nightVision) {
+                themeMode = themeMode == .bright ? .nightVision : .bright
+                NightTheme.mode = themeMode
+            }
+
+            Spacer()
+
+            if let plan = model.plan, showsOverlay {
+                // The focus hint: autofocus is useless against a dark sky, so you set
+                // infinity by hand and confirm it on the brightest point source available.
+                if let focus = plan.focusTarget(), focus.direction.isAboveHorizon {
+                    Text("FOCUS ON \(focus.name.uppercased())")
+                        .font(NightTheme.mono(10, weight: .semibold))
+                        .foregroundStyle(NightTheme.accent)
+                        .skyLegible()
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func iconButton(
+        _ systemName: String,
+        active: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(active ? NightTheme.primary : NightTheme.dim)
+                .frame(width: 38, height: 38)
+                .background(NightTheme.background.opacity(0.7))
+                .clipShape(Circle())
+                .overlay(Circle().stroke(NightTheme.dim.opacity(0.5), lineWidth: 1))
+        }
+    }
+
     // MARK: - Panels
 
     private var conditionsPanel: some View {
@@ -74,6 +126,14 @@ struct CaptureView: View {
                 Text(plan.aim.reason)
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)
+
+                let planets = plan.visiblePlanets()
+                if !planets.isEmpty {
+                    ReadoutRow(
+                        label: "Planets up",
+                        value: planets.map(\.name).joined(separator: " · ")
+                    )
+                }
             } else {
                 Text(model.attitude.authorizationDenied
                      ? "LOCATION DENIED — SKY GUIDANCE OFF"
@@ -130,7 +190,7 @@ struct CaptureView: View {
                 )
             }
 
-            Text("SCREEN DIMMED — CAPTURE STOPS IF YOU LEAVE THE APP")
+            Text("KEEP THE APP OPEN — iOS STOPS THE CAMERA IN THE BACKGROUND")
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
         }

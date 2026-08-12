@@ -28,6 +28,9 @@ final class CaptureViewModel {
     var mode: CaptureMode = .still
     var tone = FrameAccumulator.ToneSettings()
     var timelapse = TimelapseSettings.default
+    /// Dim the screen while capturing. On by default for battery and dark adaptation,
+    /// off for anyone who wants to watch the stack build.
+    var dimsScreenDuringCapture = true
 
     private(set) var state: SessionState = .idle
     private(set) var progress = StackProgress()
@@ -116,12 +119,13 @@ final class CaptureViewModel {
 
             try await capture.prepare(lens: settings.lens)
             try await capture.apply(aimingSettings)
-            await capture.start()
 
             // Framing happens before the session starts, so the sensor runs short and hot:
             // useless for stars, but it shows the horizon, trees and focus well enough to
-            // compose — which a one-second frame at low ISO would not.
-            startAimingPreview()
+            // compose — which a one-second frame at low ISO would not. The engine has to
+            // be told to display these frames, or it drops them and the screen stays black.
+            stack.beginLivePreview(settings: aimingSettings, tone: .neutral)
+            await capture.start()
             state = .aiming
         } catch {
             logger.error("Prepare failed: \(error.localizedDescription, privacy: .public)")
@@ -141,36 +145,23 @@ final class CaptureViewModel {
         stack.onProgress = { [weak self] progress in
             Task { @MainActor in
                 self?.progress = progress
-                self?.refreshPreview()
             }
         }
 
-        stack.onFinished = { [weak self] in
+        // Frames are pushed as they are rendered. The main actor never reaches into the
+        // GPU pipeline to pull one — doing that raced with the capture queue and crashed
+        // at the end of a session.
+        stack.onPreviewReady = { [weak self] frame in
             Task { @MainActor in
-                await self?.finishSession()
+                self?.previewTexture = frame.texture
             }
         }
-    }
 
-    private func startAimingPreview() {
-        // In aiming mode frames arrive several times a second; refreshing the preview on a
-        // timer keeps the UI steady without a redraw per frame.
-        aimingTimer?.invalidate()
-        aimingTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+        stack.onFinished = { [weak self] image in
             Task { @MainActor in
-                guard let self else { return }
-                guard self.state == .aiming else {
-                    self.aimingTimer?.invalidate()
-                    self.aimingTimer = nil
-                    return
-                }
-                self.refreshPreview(tone: .neutral)
+                await self?.finishSession(final: image)
             }
         }
-    }
-
-    private func refreshPreview(tone overrideTone: FrameAccumulator.ToneSettings? = nil) {
-        previewTexture = stackEngine?.currentPreview(tone: overrideTone ?? tone)
     }
 
     // MARK: - Session
@@ -208,20 +199,25 @@ final class CaptureViewModel {
         state = .capturing
 
         // The screen stays on — iOS force-stops capture in the background, so there is no
-        // such thing as a background astro session. Dimming to near-black is the honest
-        // substitute: the session survives, the battery lasts, and nobody's night vision
-        // is destroyed by a phone glowing on a tripod.
+        // such thing as a background astro session. Dimming is the honest substitute: the
+        // session survives and the battery lasts.
+        //
+        // Not to 0.05, which is where this started. That was dark enough that the progress
+        // readout could not be read outdoors, and a session you cannot monitor is a session
+        // you cannot trust. 0.2 still saves most of the power and stays legible.
         previousBrightness = UIScreen.main.brightness
         UIApplication.shared.isIdleTimerDisabled = true
-        UIScreen.main.brightness = 0.05
+        if dimsScreenDuringCapture {
+            UIScreen.main.brightness = 0.2
+        }
     }
 
     func cancel() async {
+        // The engine finishes on its own queue and calls back into `finishSession`.
         stackEngine?.cancel()
-        await finishSession()
     }
 
-    private func finishSession() async {
+    private func finishSession(final: RenderedImage?) async {
         guard state == .capturing else { return }
         state = .finishing
 
@@ -232,20 +228,14 @@ final class CaptureViewModel {
                 await save(videoAt: url)
             }
             timelapseWriter = nil
-        } else if let finalTexture = stackEngine?.currentPreview(tone: tone) {
-            previewTexture = finalTexture
-            await save(image: finalTexture)
+        } else if let final {
+            await save(image: final)
         }
 
         // Back to framing so the next shot can be composed straight away.
         try? await captureEngine?.apply(aimingSettings)
-        startAimingPreview()
+        stackEngine?.beginLivePreview(settings: aimingSettings, tone: .neutral)
         state = .aiming
-    }
-
-    private func appendTimelapseFrame(_ texture: MTLTexture, index: Int) {
-        timelapseWriter?.append(texture, frameIndex: index)
-        previewTexture = texture
     }
 
     private func restoreScreen() {
@@ -255,8 +245,8 @@ final class CaptureViewModel {
 
     // MARK: - Saving
 
-    private func save(image texture: MTLTexture) async {
-        guard let cgImage = texture.makeCGImage() else {
+    private func save(image rendered: RenderedImage) async {
+        guard let image = rendered.makeUIImage() else {
             lastSavedMessage = "Could not render the stack."
             return
         }
@@ -267,7 +257,7 @@ final class CaptureViewModel {
 
         do {
             try await PHPhotoLibrary.shared().performChanges {
-                PHAssetChangeRequest.creationRequestForAsset(from: UIImage(cgImage: cgImage))
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
             }
             lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
         } catch {

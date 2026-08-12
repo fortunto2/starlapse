@@ -61,10 +61,35 @@ Swift 6 strict mode is on, so this is not optional reading.
   AVFoundation and Metal are queue-confined by design; wrapping them in actors would
   suspend on blocking calls and gain nothing.
 - `CaptureViewModel` and `AttitudeProvider` are `@MainActor @Observable`.
-- **Never send an `MTLTexture` or `CVPixelBuffer` across an isolation boundary.**
-  `onSegmentReady` must consume its texture synchronously — the accumulator is cleared
-  immediately after it returns. `onFinished` deliberately carries no texture; the main
-  actor asks for the final render itself.
+- **Frames are pushed, never pulled.** The main actor must never call into the accumulator
+  to render something. The first version did — `refreshPreview()` resolved on the main
+  thread while the capture queue was mid-frame, sharing one command queue and one display
+  texture — and it crashed at the end of every session. Now `StackEngine` pushes
+  `PreviewFrame` as each render completes, and the accumulator alternates between **two**
+  display textures so the one handed over is never the one being written.
+- **Never send a bare `MTLTexture` or `CVPixelBuffer` across an isolation boundary.**
+  `PreviewFrame` is `@unchecked Sendable` under the double-buffering guarantee documented
+  on the type; `onSegmentReady` must consume its texture synchronously; `onFinished`
+  carries a `RenderedImage` (plain `Data`), not GPU memory.
+
+## Lessons from the first field test
+
+Three failures, all in the layer that no test could reach. They are listed because each
+one has a general form worth remembering:
+
+1. **Black screen.** `StackEngine` dropped every frame until a session began, so the
+   framing preview had nothing to show. A live state was assumed by the view model and
+   never implemented by the engine. → `Activity.live`.
+2. **Crash after capture.** The main/capture-queue race above. Compiling under strict
+   concurrency does not save you when the types are `@unchecked Sendable` — the unchecked
+   part is a promise, and that promise was being broken.
+3. **Unreadable text.** `dim` was `(0.42, 0.09, 0.07)` at screen brightness 0.05. Red-on-
+   black protects dark adaptation, which is real and valuable, but text nobody can read
+   protects nothing. → white by default, red behind a toggle, brightness 0.2.
+
+A `MTLBlitCommandEncoder` does not scale, either — it copied the corner of a 4032px frame
+into the drawable, which looks exactly like a broken camera. Presentation goes through a
+render pass with aspect-fit sampling.
 
 ## Testing
 

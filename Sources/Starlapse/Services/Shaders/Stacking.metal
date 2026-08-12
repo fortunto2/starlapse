@@ -121,6 +121,43 @@ kernel void resolve(texture2d<float, access::read> accumulator [[texture(0)]],
     display.write(float4(saturate(stretched), 1.0), gid);
 }
 
+// MARK: - Presentation
+
+// Drawing the preview needs an actual render pass, not a blit. A blit copies pixel for
+// pixel, so a 4032-wide sensor frame lands in a 1179-wide drawable as its top-left corner —
+// which looks exactly like a broken camera. This scales instead, letterboxing to preserve
+// the aspect ratio of the sky.
+
+struct PresentVertex {
+    float4 position [[position]];
+    float2 uv;
+};
+
+vertex PresentVertex present_vertex(uint vertexID [[vertex_id]])
+{
+    // One oversized triangle covering the viewport — cheaper than a quad and with no seam.
+    float2 positions[3] = { float2(-1.0, -3.0), float2(-1.0, 1.0), float2(3.0, 1.0) };
+    float2 coordinates[3] = { float2(0.0, 2.0), float2(0.0, 0.0), float2(2.0, 0.0) };
+
+    PresentVertex out;
+    out.position = float4(positions[vertexID], 0.0, 1.0);
+    out.uv = coordinates[vertexID];
+    return out;
+}
+
+fragment float4 present_fragment(PresentVertex in [[stage_in]],
+                                 texture2d<float, access::sample> source [[texture(0)]],
+                                 constant float2 &scale [[buffer(0)]])
+{
+    // Aspect-fit: pull the sampling window in on whichever axis is over-wide, and paint
+    // the remainder black rather than stretching the sky.
+    float2 uv = (in.uv - 0.5) * scale + 0.5;
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        return float4(0.0, 0.0, 0.0, 1.0);
+    }
+    return source.sample(linearSampler, uv);
+}
+
 // MARK: - Star detection support
 
 // Luminance, downsampled by a fixed factor. Star finding does not need full resolution —

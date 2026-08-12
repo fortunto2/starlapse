@@ -1,12 +1,11 @@
 import MetalKit
 import SwiftUI
 
-/// Displays the live stack.
+/// Displays the live view and the growing stack.
 ///
-/// The preview is the accumulated result, not the raw camera feed — which is the point.
-/// A single one-second frame of night sky looks like noise; watching stars precipitate out
-/// of that noise as frames pile up is the moment the app earns its keep, and it also tells
-/// you whether focus and framing are right long before the session ends.
+/// Before a session this is the raw sensor frame, for framing and focus. During one it is
+/// the accumulated result — watching stars precipitate out of the noise is how you know
+/// focus and framing are right, minutes before the session ends.
 struct MetalPreviewView: UIViewRepresentable {
 
     /// Latest resolved texture. Changing it triggers a redraw.
@@ -18,16 +17,18 @@ struct MetalPreviewView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MTKView {
         let view = MTKView()
-        view.device = MTLCreateSystemDefaultDevice()
+        let device = MTLCreateSystemDefaultDevice()
+        view.device = device
         view.framebufferOnly = false
-        // Redraw only when a new stack is resolved. At one frame per second, a 60 Hz
-        // display loop would burn battery all night for nothing.
+        view.colorPixelFormat = .bgra8Unorm
+        // Redraw only when a new frame arrives. During a session frames land once a second;
+        // a 60 Hz display loop would burn battery all night to show the same pixels.
         view.isPaused = true
         view.enableSetNeedsDisplay = true
         view.delegate = context.coordinator
-        view.backgroundColor = .black
-        view.contentMode = .scaleAspectFit
-        context.coordinator.commandQueue = view.device?.makeCommandQueue()
+        view.isOpaque = true
+        view.clearColor = MTLClearColorMake(0, 0, 0, 1)
+        context.coordinator.configure(device: device)
         return view
     }
 
@@ -38,34 +39,73 @@ struct MetalPreviewView: UIViewRepresentable {
 
     final class Coordinator: NSObject, MTKViewDelegate {
         var texture: MTLTexture?
-        var commandQueue: MTLCommandQueue?
+        private var commandQueue: MTLCommandQueue?
+        private var pipeline: MTLRenderPipelineState?
+
+        func configure(device: MTLDevice?) {
+            guard let device else { return }
+            commandQueue = device.makeCommandQueue()
+
+            guard let library = device.makeDefaultLibrary(),
+                  let vertexFunction = library.makeFunction(name: "present_vertex"),
+                  let fragmentFunction = library.makeFunction(name: "present_fragment") else {
+                return
+            }
+
+            let descriptor = MTLRenderPipelineDescriptor()
+            descriptor.vertexFunction = vertexFunction
+            descriptor.fragmentFunction = fragmentFunction
+            descriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
+            pipeline = try? device.makeRenderPipelineState(descriptor: descriptor)
+        }
 
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 
         func draw(in view: MTKView) {
             guard let drawable = view.currentDrawable,
+                  let descriptor = view.currentRenderPassDescriptor,
                   let commandQueue,
                   let buffer = commandQueue.makeCommandBuffer() else { return }
 
-            if let texture, let blit = buffer.makeBlitCommandEncoder() {
-                // Letterbox: copy the largest centred region that fits, so the preview
-                // never stretches the sky.
-                let width = min(texture.width, drawable.texture.width)
-                let height = min(texture.height, drawable.texture.height)
-                blit.copy(
-                    from: texture,
-                    sourceSlice: 0, sourceLevel: 0,
-                    sourceOrigin: MTLOrigin(x: 0, y: 0, z: 0),
-                    sourceSize: MTLSize(width: width, height: height, depth: 1),
-                    to: drawable.texture,
-                    destinationSlice: 0, destinationLevel: 0,
-                    destinationOrigin: MTLOrigin(x: 0, y: 0, z: 0)
+            if let texture, let pipeline,
+               let encoder = buffer.makeRenderCommandEncoder(descriptor: descriptor) {
+                encoder.setRenderPipelineState(pipeline)
+                encoder.setFragmentTexture(texture, index: 0)
+
+                // Aspect-fit. A sensor frame is 4:3; a phone screen is roughly 19.5:9, so
+                // without this the sky would be stretched into something that is not the
+                // sky. Scale > 1 on an axis widens the sampling window and letterboxes.
+                var scale = Self.aspectFitScale(
+                    source: CGSize(width: texture.width, height: texture.height),
+                    destination: view.drawableSize
                 )
-                blit.endEncoding()
+                encoder.setFragmentBytes(&scale, length: MemoryLayout<SIMD2<Float>>.stride, index: 0)
+                encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+                encoder.endEncoding()
+            } else if let encoder = buffer.makeRenderCommandEncoder(descriptor: descriptor) {
+                // No frame yet — clear to black rather than showing stale contents.
+                encoder.endEncoding()
             }
 
             buffer.present(drawable)
             buffer.commit()
+        }
+
+        static func aspectFitScale(source: CGSize, destination: CGSize) -> SIMD2<Float> {
+            guard source.width > 0, source.height > 0,
+                  destination.width > 0, destination.height > 0 else {
+                return SIMD2(1, 1)
+            }
+
+            let sourceAspect = source.width / source.height
+            let destinationAspect = destination.width / destination.height
+
+            if sourceAspect > destinationAspect {
+                // Source is wider: it fits across, so pad vertically.
+                return SIMD2(1, Float(sourceAspect / destinationAspect))
+            } else {
+                return SIMD2(Float(destinationAspect / sourceAspect), 1)
+            }
         }
     }
 }

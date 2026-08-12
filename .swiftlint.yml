@@ -53,6 +53,11 @@ identifier_name:
     - z
     - ra
     - ha
+    # Orbital elements: a is the semi-major axis, e the eccentricity. Renaming them to
+    # something "descriptive" would make the formulas harder to check against Meeus, not
+    # easier — these are the names every reference uses.
+    - a
+    - e
 
 cyclomatic_complexity:
   warning: 15
