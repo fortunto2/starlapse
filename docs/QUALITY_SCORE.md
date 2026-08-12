@@ -53,6 +53,22 @@ not when SwiftUI got around to a redraw. If the display holds every texture, `re
 returns nil and the preview frame is skipped: the producer never blocks, because the queue
 it would block is the one carrying the photons.
 
+## Deferred from the detector cleanup
+
+Both are right, both are bigger than a cleanup pass, and neither is load-bearing today:
+
+1. **`SegmentPlan` should be an enum with per-case payloads.** It currently has three
+   overlapping descriptors — `kind`, `segments`, `detector` — so illegal states are
+   representable (`.framing` carrying a detector, `.watching` with a segment count), and on
+   the watching case five of seven fields are dead. `enum { framing, capturing(Recipe),
+   watching(DetectorSettings) }` makes them unrepresentable, and would delete the test that
+   exists purely to defend the current representation.
+2. **One `ReviewSubject` instead of three signals.** "Which result am I looking at" is
+   currently re-derived from `mode.isDetector`, `reviewVideoURL != nil` and
+   `mode.isTimelapse` across eight sites. `enterReview()` knows the answer exactly once;
+   it should publish `enum { stack, video(URL), events([RecordedEvent]) }` and let every
+   caller switch on that.
+
 ## Known gaps
 
 1. **Time-lapse never run to completion.** Ordering is correct by construction; an hour-long
