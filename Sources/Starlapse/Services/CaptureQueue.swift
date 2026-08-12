@@ -35,16 +35,8 @@ final class CaptureQueue: @unchecked Sendable {
         }
     }
 
-    func perform(_ work: @escaping @Sendable () -> Void) async {
-        await withCheckedContinuation { continuation in
-            dispatch.async {
-                work()
-                continuation.resume()
-            }
-        }
-    }
-
-    /// Non-throwing variant that carries a value back off the pipeline.
+    /// Carry a value back off the pipeline. `Void` is `Sendable`, so this covers
+    /// fire-and-wait too.
     func perform<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
         await withCheckedContinuation { continuation in
             dispatch.async {

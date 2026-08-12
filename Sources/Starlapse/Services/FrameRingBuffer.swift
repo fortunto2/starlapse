@@ -28,15 +28,9 @@ final class FrameRingBuffer: @unchecked Sendable {
     private var width = 0
     private var height = 0
 
-    /// Seconds of history this ring holds at a given frame rate.
-    let duration: TimeInterval
-
-    init(seconds: TimeInterval, frameRate: Double) {
-        duration = seconds
-        capacity = max(2, Int((seconds * frameRate).rounded()))
+    init(frames: Int) {
+        capacity = max(2, frames)
     }
-
-    var frameCount: Int { filled }
 
     /// Copy a frame into the ring, evicting the oldest.
     ///
@@ -72,11 +66,6 @@ final class FrameRingBuffer: @unchecked Sendable {
             let index = (start + offset) % capacity
             return Entry(pixelBuffer: buffers[index], timestamp: timestamps[index])
         }
-    }
-
-    func removeAll() {
-        filled = 0
-        writeIndex = 0
     }
 
     // MARK: - Allocation

@@ -1,17 +1,13 @@
 import AVFoundation
 import CoreVideo
 import Foundation
-import os
-import VideoToolbox
 
 /// Writes one short event clip from buffered frames.
 ///
 /// Separate from `TimelapseWriter` because the job is the opposite shape: a time-lapse
 /// receives one frame every so often over an hour, while this receives a burst of frames
 /// that already exist and must be flushed before the next event arrives.
-final class ClipWriter: @unchecked Sendable {
-
-    private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "clip")
+enum ClipWriter {
 
     /// Encode a sequence of frames into a file. Runs on the capture queue.
     static func write(
@@ -21,50 +17,20 @@ final class ClipWriter: @unchecked Sendable {
     ) -> URL? {
         guard let first = frames.first else { return nil }
 
-        let width = CVPixelBufferGetWidth(first.pixelBuffer)
-        let height = CVPixelBufferGetHeight(first.pixelBuffer)
-        let evenWidth = width - (width % 2)
-        let evenHeight = height - (height % 2)
-
-        guard let writer = try? AVAssetWriter(outputURL: url, fileType: .mov) else {
-            return nil
-        }
-
-        let input = AVAssetWriterInput(
-            mediaType: .video,
-            outputSettings: [
-                AVVideoCodecKey: AVVideoCodecType.hevc,
-                AVVideoWidthKey: evenWidth,
-                AVVideoHeightKey: evenHeight,
-                AVVideoCompressionPropertiesKey: [
-                    // A meteor is a thin bright line over near-black. Low bitrates smear
-                    // exactly that away, and the clip is only a couple of seconds long.
-                    AVVideoAverageBitRateKey: evenWidth * evenHeight * 14,
-                    AVVideoProfileLevelKey: kVTProfileLevel_HEVC_Main_AutoLevel,
-                ],
-            ]
-        )
-        input.expectsMediaDataInRealTime = false
-
-        let adaptor = AVAssetWriterInputPixelBufferAdaptor(
-            assetWriterInput: input,
-            sourcePixelBufferAttributes: [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-                kCVPixelBufferWidthKey as String: evenWidth,
-                kCVPixelBufferHeightKey as String: evenHeight,
-            ]
-        )
-
-        guard writer.canAdd(input) else { return nil }
-        writer.add(input)
+        guard let stack = try? VideoWriterFactory.make(
+            width: CVPixelBufferGetWidth(first.pixelBuffer),
+            height: CVPixelBufferGetHeight(first.pixelBuffer),
+            to: url
+        ) else { return nil }
+        let writer = stack.writer
+        let input = stack.input
+        let adaptor = stack.adaptor
 
         writer.startWriting()
         writer.startSession(atSourceTime: .zero)
 
         for (index, entry) in frames.enumerated() {
-            while !input.isReadyForMoreMediaData {
-                Thread.sleep(forTimeInterval: 0.005)
-            }
+            VideoWriterFactory.waitForReady(input)
             let time = CMTime(value: CMTimeValue(index), timescale: CMTimeScale(frameRate))
             adaptor.append(entry.pixelBuffer, withPresentationTime: time)
         }

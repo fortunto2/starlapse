@@ -172,45 +172,9 @@ struct ReviewView: View {
                 .font(NightTheme.mono(11, weight: .bold))
                 .foregroundStyle(NightTheme.secondary)
 
-            NightSlider(
-                label: "Stretch (asinh)",
-                value: Binding(
-                    get: { Double(model.reviewTone.stretch) },
-                    set: { model.reviewTone.stretch = Float($0); model.reviewToneChanged() }
-                ),
-                range: 1...200,
-                format: { String(format: "%.0f", $0) }
-            )
-
-            NightSlider(
-                label: "Black point",
-                value: Binding(
-                    get: { Double(model.reviewTone.blackPoint) },
-                    set: { model.reviewTone.blackPoint = Float($0); model.reviewToneChanged() }
-                ),
-                range: 0...0.3,
-                format: { String(format: "%.3f", $0) }
-            )
-
-            NightSlider(
-                label: "Exposure",
-                value: Binding(
-                    get: { Double(model.reviewTone.exposure) },
-                    set: { model.reviewTone.exposure = Float($0); model.reviewToneChanged() }
-                ),
-                range: 0.1...8,
-                format: { String(format: "%.2f×", $0) }
-            )
-
-            NightSlider(
-                label: "Saturation",
-                value: Binding(
-                    get: { Double(model.reviewTone.saturation) },
-                    set: { model.reviewTone.saturation = Float($0); model.reviewToneChanged() }
-                ),
-                range: 0...2.5,
-                format: { String(format: "%.2f", $0) }
-            )
+            ToneControls(tone: $model.reviewTone) {
+                model.reviewToneChanged()
+            }
 
             Text("Re-developed from the stacked frames, not from the preview — push it as far as you like.")
                 .font(NightTheme.mono(9))

@@ -69,13 +69,6 @@ struct StatusPanels: View {
         .nightPanel()
     }
 
-    private var progressPanel: some View {
-        if model.mode.isDetector {
-            return AnyView(detectorPanel)
-        }
-        return AnyView(stackProgressPanel)
-    }
-
     var detectorPanel: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {

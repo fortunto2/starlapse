@@ -23,6 +23,19 @@ final class CaptureEngine: @unchecked Sendable {
     /// Called on the capture queue for every frame. Must consume the buffer synchronously.
     private let onFrame: @Sendable (SensorFrame) -> Void
 
+    /// Which format to ask the sensor for.
+    ///
+    /// Stacking and watching want opposite things. A stack wants every photon and every
+    /// pixel, once a second. Watching wants a few frames a second, for hours, and every
+    /// frame gets copied into a ring buffer — at 12 MP that is 48 MB a frame, ~300 MB
+    /// resident and 200 MB/s of memcpy for a session meant to run all night.
+    enum FormatPreference: Sendable {
+        /// Longest possible single exposure, highest resolution that allows it.
+        case longExposure
+        /// Modest resolution at a usable frame rate, so a ring buffer is affordable.
+        case detector
+    }
+
     init(queue: CaptureQueue, onFrame: @escaping @Sendable (SensorFrame) -> Void) {
         self.captureQueue = queue
         self.onFrame = onFrame
@@ -86,6 +99,37 @@ final class CaptureEngine: @unchecked Sendable {
     /// This ordering is the entire game. iPhone formats differ in exposure ceiling, and the
     /// binned low-resolution ones usually win — a shorter ceiling would force more, noisier
     /// frames for the same total light.
+    static func bestFormat(
+        for device: AVCaptureDevice,
+        preference: FormatPreference = .longExposure
+    ) -> AVCaptureDevice.Format? {
+        switch preference {
+        case .longExposure: bestLongExposureFormat(for: device)
+        case .detector: bestDetectorFormat(for: device)
+        }
+    }
+
+    /// Around 1080p, still able to hold the shutter open a quarter second.
+    ///
+    /// Resolution is the thing to give up here: a meteor is a bright streak tens of pixels
+    /// long, perfectly visible at 1080p, and dropping from 12 MP cuts the ring buffer and
+    /// its per-frame copy by roughly 6×.
+    private static func bestDetectorFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
+        let usable = device.formats.filter { format in
+            format.maxExposureDuration.seconds >= 0.2
+                && format.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= 4 }
+        }
+        guard !usable.isEmpty else { return bestLongExposureFormat(for: device) }
+
+        // Closest to 1080p from below, then the largest of those.
+        let target = 1920 * 1080
+        return usable.min { left, right in
+            let leftCost = abs(pixelCount(left) - target)
+            let rightCost = abs(pixelCount(right) - target)
+            return leftCost < rightCost
+        }
+    }
+
     private static func bestLongExposureFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
         device.formats
             .filter { format in
@@ -103,31 +147,24 @@ final class CaptureEngine: @unchecked Sendable {
             }
     }
 
-    private static func pixelCount(_ format: AVCaptureDevice.Format) -> Int {
+    static func pixelCount(_ format: AVCaptureDevice.Format) -> Int {
         let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
         return Int(dimensions.width) * Int(dimensions.height)
     }
 
     // MARK: - Configuration
 
-    func prepare(lens: LensOption) async throws {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async { [self] in
-                do {
-                    try configure(lens: lens)
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+    func prepare(lens: LensOption, preference: FormatPreference = .longExposure) async throws {
+        try await captureQueue.perform { [self] in
+            try configure(lens: lens, preference: preference)
         }
     }
 
-    private func configure(lens: LensOption) throws {
+    private func configure(lens: LensOption, preference: FormatPreference) throws {
         guard let device = AVCaptureDevice.default(lens.deviceType, for: .video, position: .back) else {
             throw CameraError.noCameraAvailable
         }
-        guard let format = Self.bestLongExposureFormat(for: device) else {
+        guard let format = Self.bestFormat(for: device, preference: preference) else {
             throw CameraError.noUsableFormat
         }
 
@@ -203,15 +240,8 @@ final class CaptureEngine: @unchecked Sendable {
     // MARK: - Manual exposure
 
     func apply(_ settings: CaptureSettings) async throws {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async { [self] in
-                do {
-                    try applyOnQueue(settings)
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+        try await captureQueue.perform { [self] in
+            try applyOnQueue(settings)
         }
     }
 
@@ -258,20 +288,14 @@ final class CaptureEngine: @unchecked Sendable {
     // MARK: - Running
 
     func start() async {
-        await withCheckedContinuation { continuation in
-            queue.async { [self] in
-                if !session.isRunning { session.startRunning() }
-                continuation.resume()
-            }
+        await captureQueue.perform { [self] in
+            if !session.isRunning { session.startRunning() }
         }
     }
 
     func stop() async {
-        await withCheckedContinuation { continuation in
-            queue.async { [self] in
-                if session.isRunning { session.stopRunning() }
-                continuation.resume()
-            }
+        await captureQueue.perform { [self] in
+            if session.isRunning { session.stopRunning() }
         }
     }
 }

@@ -90,13 +90,18 @@ public struct TransientDetector: Sendable {
         // brightened pixels, which looked exactly like one large event. It also made the
         // centroid meaningless whenever more than one thing changed. An event is one thing
         // in one place, so the detector has to answer "one place" first.
-        guard let region = largestRegion(in: difference, width: width, height: height, cutoff: cutoff) else {
-            return nil
-        }
-
+        // The size cap goes in *before* the search, not after. Checked afterwards, a cloud
+        // or a passing headlight flood-filled half the frame — hundreds of thousands of
+        // pixels, several megabytes of array growth — only to be discarded on the next line.
+        // If any region exceeds the cap the largest one does too, so bailing early returns
+        // the same answer for a fraction of the work, on exactly the frames that cost most.
         let maximumPixels = Int(Double(width * height) * maximumFraction)
-        guard region.pixels.count >= minimumPixels,
-              region.pixels.count <= maximumPixels else { return nil }
+        guard let region = largestRegion(
+            in: difference, width: width, height: height,
+            cutoff: cutoff, abortAbove: maximumPixels
+        ) else { return nil }
+
+        guard region.pixels.count >= minimumPixels else { return nil }
 
         // Did something appear, or did something that was already there merely change?
         var gained = 0.0
@@ -202,7 +207,8 @@ public struct TransientDetector: Sendable {
         in difference: [Float],
         width: Int,
         height: Int,
-        cutoff: Double
+        cutoff: Double,
+        abortAbove limit: Int
     ) -> Region? {
         var visited = [Bool](repeating: false, count: width * height)
         var best: Region?
@@ -218,6 +224,8 @@ public struct TransientDetector: Sendable {
 
             while let index = stack.popLast() {
                 pixels.append(index)
+                // Too big to be an event, so nothing this frame can be.
+                if pixels.count > limit { return nil }
                 let x = index % width
                 let y = index / width
 

@@ -73,10 +73,4 @@ final class TexturePool: @unchecked Sendable {
         available.append(slot)
     }
 
-    /// Reclaim everything — used when tearing down or resizing.
-    func releaseAll() {
-        lock.lock()
-        defer { lock.unlock() }
-        available = Array(0..<textures.count)
-    }
 }

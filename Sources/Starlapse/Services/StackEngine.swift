@@ -68,18 +68,11 @@ final class StackEngine: @unchecked Sendable {
 
     private var progress = StackProgress()
 
-    // MARK: Detector state
-
-    private var ring: FrameRingBuffer?
-    /// Luminance of the previous frame, for frame-to-frame comparison.
-    private var previousLuminance: [Float]?
-    /// Frames still to gather before the current clip is written.
-    private var postRollRemaining = 0
-    private var pendingEvent: Transient?
-    private var eventsRecorded = 0
-    /// Frames to wait before arming again. A bright meteor leaves an afterglow in the next
-    /// frame or two, and without this one event is filmed three times.
-    private var cooldownRemaining = 0
+    /// Show one live frame in this many, while watching. Four frames a second is for the
+    /// detector's benefit, not the viewer's.
+    static let watchPreviewInterval = 4
+    private var previewCountdown = 0
+    private var watcher: SkyWatcher?
 
     /// A clip was written. Called on the capture queue.
     var onEventRecorded: (@Sendable (URL, Transient) -> Void)?
@@ -115,20 +108,9 @@ final class StackEngine: @unchecked Sendable {
     private func beginOnQueue(_ plan: SegmentPlan) {
         self.plan = plan
         completed = nil
-        previousLuminance = nil
-        postRollRemaining = 0
-        cooldownRemaining = 0
-        pendingEvent = nil
 
-        if let detector = plan.detector {
-            ring = FrameRingBuffer(
-                seconds: detector.preRoll,
-                frameRate: detector.captureFrameRate
-            )
-            eventsRecorded = 0
-        } else {
-            ring = nil
-        }
+        previewCountdown = 0
+        watcher = plan.detector.map(SkyWatcher.init(settings:))
         framesInSegment = 0
         resetAlignment()
         progress = StackProgress(
@@ -171,8 +153,8 @@ final class StackEngine: @unchecked Sendable {
     func consume(_ frame: SensorFrame) {
         guard let plan else { return }
 
-        if let detector = plan.detector {
-            watch(frame, settings: detector)
+        if let watcher {
+            watch(frame, watcher: watcher, plan: plan)
             return
         }
 
@@ -223,80 +205,43 @@ final class StackEngine: @unchecked Sendable {
 
     // MARK: - Detector
 
-    /// Keep the last few seconds rolling, and film anything that crosses the sky.
-    private func watch(_ frame: SensorFrame, settings: DetectorSettings) {
+    /// Hand the frame to the watcher, and keep the live view alive at a modest rate.
+    private func watch(_ frame: SensorFrame, watcher: SkyWatcher, plan: SegmentPlan) {
         accumulator.prepare(
             width: CVPixelBufferGetWidth(frame.pixelBuffer),
             height: CVPixelBufferGetHeight(frame.pixelBuffer)
         )
 
-        // Always buffering. The clip has to start before the trigger, because by the time
-        // anything has noticed a meteor it is already over.
-        ring?.append(frame.pixelBuffer, timestamp: frame.timestamp)
-
-        // Show the live view as usual, so the phone is still aimable while it watches.
-        accumulator.add(frame.pixelBuffer, transform: nil, mode: .smooth, replacingContents: true)
-        if let rendered = accumulator.resolve(tone: .neutral, mode: .smooth) {
-            publish(rendered)
+        // The live view, but not every frame. Watching runs for hours at four frames a
+        // second with the screen dimmed and nobody looking; refreshing it each time wrote
+        // and read back the full float32 accumulator — around 500 MB of GPU traffic per
+        // frame — to redraw a picture of an empty sky.
+        previewCountdown -= 1
+        if previewCountdown <= 0 {
+            previewCountdown = Self.watchPreviewInterval
+            accumulator.add(frame.pixelBuffer, transform: nil, mode: plan.stackMode, replacingContents: true)
+            if let rendered = accumulator.resolve(tone: plan.tone, mode: plan.stackMode) {
+                publish(rendered)
+            }
         }
 
         guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer) else { return }
-        defer { previousLuminance = luminance }
 
-        if postRollRemaining > 0 {
-            postRollRemaining -= 1
-            if postRollRemaining == 0 {
-                writeClip(settings: settings)
-            }
-            return
-        }
-
-        if cooldownRemaining > 0 {
-            cooldownRemaining -= 1
-            return
-        }
-
-        guard let previous = previousLuminance else { return }
-
-        guard let event = transientDetector.detect(
-            current: luminance,
-            previous: previous,
+        switch watcher.consume(
+            frame,
+            luminance: luminance,
             width: accumulator.lumaWidth,
             height: accumulator.lumaHeight
-        ) else { return }
-
-        // Streak-only rejects lens flares and distant lamps switching on; turning it off
-        // keeps those, along with satellite glints and lightning.
-        guard !settings.streaksOnly || event.isStreak else { return }
-
-        pendingEvent = event
-        postRollRemaining = settings.postRollFrames
-        progress.eventsDetected += 1
-        report()
-    }
-
-    private func writeClip(settings: DetectorSettings) {
-        guard let ring, let event = pendingEvent else { return }
-        pendingEvent = nil
-        // Afterglow from a bright event lingers a frame or two; without a pause the same
-        // meteor gets filmed several times.
-        cooldownRemaining = 2
-
-        let frames = ring.history()
-        guard !frames.isEmpty else { return }
-
-        let url = ClipWriter.clipURL(index: eventsRecorded, timestamp: frames[0].timestamp)
-        guard let written = ClipWriter.write(
-            frames: frames, frameRate: settings.outputFrameRate, to: url
-        ) else {
-            logger.error("Failed to write event clip")
-            return
+        ) {
+        case .waiting:
+            break
+        case .discarded:
+            progress.eventsDetected += 1
+        case .recorded(let url, let event):
+            progress.eventsDetected += 1
+            progress.eventsRecorded = watcher.eventsRecorded
+            onEventRecorded?(url, event)
         }
-
-        eventsRecorded += 1
-        progress.eventsRecorded = eventsRecorded
-        logger.info("Recorded event \(self.eventsRecorded): \(frames.count) frames")
-        onEventRecorded?(written, event)
         report()
     }
 

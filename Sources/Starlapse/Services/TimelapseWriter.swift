@@ -3,7 +3,6 @@ import CoreVideo
 import Foundation
 import Metal
 import os
-import VideoToolbox
 
 /// Encodes finished stacks into an HEVC time-lapse, one output frame per stack.
 ///
@@ -22,46 +21,15 @@ final class TimelapseWriter: @unchecked Sendable {
     let outputURL: URL
 
     init(width: Int, height: Int, frameRate: Int) throws {
-        // Even dimensions — HEVC will not encode odd ones.
-        let evenWidth = width - (width % 2)
-        let evenHeight = height - (height % 2)
-
         let filename = "starlapse-\(Int(Date().timeIntervalSince1970)).mov"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
         self.outputURL = url
         self.frameRate = frameRate
 
-        writer = try AVAssetWriter(outputURL: url, fileType: .mov)
-
-        let settings: [String: Any] = [
-            AVVideoCodecKey: AVVideoCodecType.hevc,
-            AVVideoWidthKey: evenWidth,
-            AVVideoHeightKey: evenHeight,
-            AVVideoCompressionPropertiesKey: [
-                // Night skies are mostly smooth gradients over near-black, where low
-                // bitrates band badly. This is generous on purpose.
-                AVVideoAverageBitRateKey: evenWidth * evenHeight * 12,
-                AVVideoProfileLevelKey: kVTProfileLevel_HEVC_Main_AutoLevel,
-            ],
-        ]
-
-        input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
-        input.expectsMediaDataInRealTime = false
-
-        adaptor = AVAssetWriterInputPixelBufferAdaptor(
-            assetWriterInput: input,
-            sourcePixelBufferAttributes: [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
-                kCVPixelBufferWidthKey as String: evenWidth,
-                kCVPixelBufferHeightKey as String: evenHeight,
-                kCVPixelBufferMetalCompatibilityKey as String: true,
-            ]
-        )
-
-        guard writer.canAdd(input) else {
-            throw StackError.metalUnavailable
-        }
-        writer.add(input)
+        let stack = try VideoWriterFactory.make(width: width, height: height, to: url)
+        writer = stack.writer
+        input = stack.input
+        adaptor = stack.adaptor
     }
 
     /// Append one rendered stack as the next frame of the clip.
@@ -98,9 +66,7 @@ final class TimelapseWriter: @unchecked Sendable {
         }
 
         // Wait rather than drop: an output frame here cost minutes of sky time.
-        while !input.isReadyForMoreMediaData {
-            Thread.sleep(forTimeInterval: 0.01)
-        }
+        VideoWriterFactory.waitForReady(input)
 
         let time = CMTime(value: CMTimeValue(frameIndex), timescale: CMTimeScale(frameRate))
         adaptor.append(pixelBuffer, withPresentationTime: time)

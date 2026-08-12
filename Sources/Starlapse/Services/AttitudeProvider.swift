@@ -37,6 +37,28 @@ final class AttitudeProvider: NSObject {
         locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
 
+    /// Aiming needs a responsive readout; an unattended session does not.
+    ///
+    /// At 30 Hz every sample invalidates the SwiftUI body that reads `aim`, so the whole
+    /// interface re-evaluates thirty times a second for hours while the phone sits still on
+    /// a tripod with the screen dimmed. Two hertz keeps the overlay honest for free.
+    enum Cadence: Sendable {
+        case interactive
+        case idle
+
+        var interval: TimeInterval {
+            switch self {
+            case .interactive: 1.0 / 30.0
+            case .idle: 1.0 / 2.0
+            }
+        }
+    }
+
+    func setCadence(_ cadence: Cadence) {
+        guard motion.isDeviceMotionActive else { return }
+        motion.deviceMotionUpdateInterval = cadence.interval
+    }
+
     func start() {
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -48,7 +70,7 @@ final class AttitudeProvider: NSObject {
         }
 
         guard motion.isDeviceMotionAvailable else { return }
-        motion.deviceMotionUpdateInterval = 1.0 / 30.0
+        motion.deviceMotionUpdateInterval = Cadence.interactive.interval
         motion.startDeviceMotionUpdates(
             using: .xTrueNorthZVertical,
             to: .main

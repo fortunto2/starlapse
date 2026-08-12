@@ -2,7 +2,6 @@ import AVFoundation
 import Foundation
 import Metal
 import os
-import Photos
 import SkyKit
 import SwiftUI
 
@@ -36,7 +35,20 @@ final class CaptureViewModel {
 
     private(set) var state: SessionState = .idle
     private(set) var progress = StackProgress()
-    private(set) var previewFrame: PreviewFrame?
+    private(set) var previewFrame: PreviewFrame? {
+        didSet {
+            // Hand the displaced frame back. SwiftUI may coalesce two updates into one
+            // render pass, in which case the first never reaches the view — and a pool
+            // texture that is never returned is a slot lost for good. Three of those and
+            // the preview stops for the rest of the session.
+            //
+            // Releasing twice is harmless: the pool ignores a slot that is already free,
+            // and the view releases from its completion handler only for frames it drew.
+            if oldValue?.texture !== previewFrame?.texture {
+                oldValue?.release()
+            }
+        }
+    }
     private(set) var capabilities: CameraCapabilities
     private(set) var plan: SkyDirector.Plan?
     private(set) var lastSavedMessage: String?
@@ -258,8 +270,18 @@ final class CaptureViewModel {
     func start() async {
         guard let captureEngine, let stackEngine else { return }
 
+        // State first, then hardware. `activeSettings` is derived from `state`, so applying
+        // before the transition asked for framing settings and got them — the detector ran
+        // at the still-mode exposure instead of its own, and this line said `settings`
+        // directly, which sidestepped the derivation entirely.
+        state = .capturing
+
         do {
-            try await captureEngine.apply(settings)
+            if mode.isDetector {
+                // Watching needs a format a ring buffer can afford — see FormatPreference.
+                try await captureEngine.prepare(lens: settings.lens, preference: .detector)
+            }
+            try await captureEngine.apply(activeSettings)
         } catch {
             state = .failed(error.localizedDescription)
             return
@@ -290,7 +312,6 @@ final class CaptureViewModel {
         case .detector(let detectorSettings): .watching(detectorSettings)
         }
         stackEngine.begin(plan)
-        state = .capturing
 
         // The screen stays on — iOS force-stops capture in the background, so there is no
         // such thing as a background astro session. Dimming is the honest substitute: the
@@ -301,6 +322,8 @@ final class CaptureViewModel {
         // you cannot trust. 0.2 still saves most of the power and stays legible.
         previousBrightness = UIScreen.main.brightness
         UIApplication.shared.isIdleTimerDisabled = true
+        // Nobody is aiming during a session; stop waking the main thread 30 times a second.
+        attitude.setCadence(.idle)
         if dimsScreenDuringCapture {
             UIScreen.main.brightness = 0.2
         }
@@ -358,11 +381,18 @@ final class CaptureViewModel {
         guard state.isReviewing else { return }
         reviewVideoURL = nil
         stackEngine?.resumeFraming()
-        try? await captureEngine?.apply(settings.forFraming(capabilities))
         state = .aiming
+
+        // A detector watch left the sensor on the small format; framing and stacking want
+        // the long-exposure one back.
+        if mode.isDetector {
+            try? await captureEngine?.prepare(lens: settings.lens, preference: .longExposure)
+        }
+        try? await captureEngine?.apply(activeSettings)
     }
 
     private func restoreScreen() {
+        attitude.setCadence(.interactive)
         UIApplication.shared.isIdleTimerDisabled = false
         UIScreen.main.brightness = previousBrightness
     }
@@ -395,24 +425,4 @@ final class CaptureViewModel {
         }
     }
 
-    // MARK: - Derived readouts
-
-    /// The honest translation of the requested exposure into what the hardware will do.
-    var exposureExplanation: String {
-        let frames = settings.frameCount
-        let total = settings.totalLightSeconds
-        let minutes = total / 60
-        let duration = minutes >= 1
-            ? String(format: "%.0f min", minutes)
-            : String(format: "%.0f s", total)
-        return "\(duration) of light = \(frames) × "
-            + String(format: "%.2fs", settings.frameExposure)
-    }
-
-    var hardwareCeilingNote: String {
-        String(
-            format: "This sensor caps a single frame at %.2fs — longer exposures are stacked, not held.",
-            capabilities.maxFrameExposure
-        )
-    }
 }

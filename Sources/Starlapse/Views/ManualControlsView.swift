@@ -234,35 +234,7 @@ struct ManualControlsView: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionTitle("CURVE")
 
-            NightSlider(
-                label: "Stretch (asinh)",
-                value: Binding(
-                    get: { Double(model.tone.stretch) },
-                    set: { model.tone.stretch = Float($0) }
-                ),
-                range: 1...200,
-                format: { String(format: "%.0f", $0) }
-            )
-
-            NightSlider(
-                label: "Black point",
-                value: Binding(
-                    get: { Double(model.tone.blackPoint) },
-                    set: { model.tone.blackPoint = Float($0) }
-                ),
-                range: 0...0.3,
-                format: { String(format: "%.3f", $0) }
-            )
-
-            NightSlider(
-                label: "Saturation",
-                value: Binding(
-                    get: { Double(model.tone.saturation) },
-                    set: { model.tone.saturation = Float($0) }
-                ),
-                range: 0...2.5,
-                format: { String(format: "%.2f", $0) }
-            )
+            ToneControls(tone: $model.tone)
 
             Text("""
                 asinh, not gamma. Nearly linear in the shadows and logarithmic higher up, \

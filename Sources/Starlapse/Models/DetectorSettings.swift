@@ -31,9 +31,14 @@ struct DetectorSettings: Sendable, Equatable {
 
     var captureFrameRate: Double { 1.0 / max(frameExposure, 0.01) }
 
-    /// How many frames the ring holds.
+    /// Curve for the live view while watching. Nearly linear — this is a viewfinder, and
+    /// stretching it would only make the noise floor look alarming.
+    var previewTone: FrameAccumulator.ToneSettings { .neutral }
+
     var preRollFrames: Int { max(2, Int((preRoll * captureFrameRate).rounded())) }
     var postRollFrames: Int { max(1, Int((postRoll * captureFrameRate).rounded())) }
+    /// Frames the ring must hold: both windows, since it keeps recording after the trigger.
+    var ringFrames: Int { preRollFrames + postRollFrames }
 
     /// Length of the finished clip once sped up.
     var clipDuration: TimeInterval {
