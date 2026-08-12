@@ -19,6 +19,8 @@ struct SegmentPlan: Sendable, Equatable {
     var segments: Int?
     var stackMode: StackMode
     var tone: FrameAccumulator.ToneSettings
+    /// Watch for transients and save a clip around each one, instead of building a picture.
+    var detector: DetectorSettings?
 
     /// Live view for composing the shot: every frame replaces the last, nothing is kept.
     static let framing = SegmentPlan(
@@ -26,8 +28,24 @@ struct SegmentPlan: Sendable, Equatable {
         aligns: false,
         segments: nil,
         stackMode: .smooth,
-        tone: .neutral
+        tone: .neutral,
+        detector: nil
     )
+
+    /// Sit and watch. Like framing — every frame stands alone — but each one is compared
+    /// against the last, and anything that appears gets filmed.
+    static func watching(_ settings: DetectorSettings) -> Self {
+        SegmentPlan(
+            framesPerSegment: 1,
+            aligns: false,
+            segments: nil,
+            stackMode: .smooth,
+            tone: .neutral,
+            detector: settings
+        )
+    }
+
+    var isWatching: Bool { detector != nil }
 
     var isFraming: Bool { segments == nil }
 
@@ -45,7 +63,8 @@ struct SegmentPlan: Sendable, Equatable {
             aligns: settings.stackMode.alignsStars,
             segments: 1,
             stackMode: settings.stackMode,
-            tone: tone
+            tone: tone,
+            detector: nil
         )
     }
 
@@ -59,7 +78,8 @@ struct SegmentPlan: Sendable, Equatable {
             aligns: settings.stackMode.alignsStars,
             segments: timelapse.frameCount,
             stackMode: settings.stackMode,
-            tone: tone
+            tone: tone,
+            detector: nil
         )
     }
 }

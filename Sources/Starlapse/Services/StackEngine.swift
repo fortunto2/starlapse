@@ -15,6 +15,9 @@ struct StackProgress: Sendable, Equatable {
     /// Output frames written, in time-lapse mode.
     var segmentsCompleted: Int = 0
     var segmentsRequested: Int = 0
+    /// Detector mode: transients seen, and clips actually written.
+    var eventsDetected: Int = 0
+    var eventsRecorded: Int = 0
 
     var fraction: Double {
         guard framesRequested > 0 else { return 0 }
@@ -41,6 +44,7 @@ final class StackEngine: @unchecked Sendable {
     private let queue: CaptureQueue
     private let detector = StarDetector()
     private let aligner = StarAligner()
+    private let transientDetector = TransientDetector()
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "stack")
 
     private var plan: SegmentPlan?
@@ -63,6 +67,22 @@ final class StackEngine: @unchecked Sendable {
     private var accumulatedTransform = SimilarityTransform.identity
 
     private var progress = StackProgress()
+
+    // MARK: Detector state
+
+    private var ring: FrameRingBuffer?
+    /// Luminance of the previous frame, for frame-to-frame comparison.
+    private var previousLuminance: [Float]?
+    /// Frames still to gather before the current clip is written.
+    private var postRollRemaining = 0
+    private var pendingEvent: Transient?
+    private var eventsRecorded = 0
+    /// Frames to wait before arming again. A bright meteor leaves an afterglow in the next
+    /// frame or two, and without this one event is filmed three times.
+    private var cooldownRemaining = 0
+
+    /// A clip was written. Called on the capture queue.
+    var onEventRecorded: (@Sendable (URL, Transient) -> Void)?
 
     /// Called on the capture queue after every frame.
     var onProgress: (@Sendable (StackProgress) -> Void)?
@@ -95,6 +115,20 @@ final class StackEngine: @unchecked Sendable {
     private func beginOnQueue(_ plan: SegmentPlan) {
         self.plan = plan
         completed = nil
+        previousLuminance = nil
+        postRollRemaining = 0
+        cooldownRemaining = 0
+        pendingEvent = nil
+
+        if let detector = plan.detector {
+            ring = FrameRingBuffer(
+                seconds: detector.preRoll,
+                frameRate: detector.captureFrameRate
+            )
+            eventsRecorded = 0
+        } else {
+            ring = nil
+        }
         framesInSegment = 0
         resetAlignment()
         progress = StackProgress(
@@ -136,6 +170,11 @@ final class StackEngine: @unchecked Sendable {
     /// escape this call.
     func consume(_ frame: SensorFrame) {
         guard let plan else { return }
+
+        if let detector = plan.detector {
+            watch(frame, settings: detector)
+            return
+        }
 
         accumulator.prepare(
             width: CVPixelBufferGetWidth(frame.pixelBuffer),
@@ -179,6 +218,85 @@ final class StackEngine: @unchecked Sendable {
             publish(rendered)
         }
 
+        report()
+    }
+
+    // MARK: - Detector
+
+    /// Keep the last few seconds rolling, and film anything that crosses the sky.
+    private func watch(_ frame: SensorFrame, settings: DetectorSettings) {
+        accumulator.prepare(
+            width: CVPixelBufferGetWidth(frame.pixelBuffer),
+            height: CVPixelBufferGetHeight(frame.pixelBuffer)
+        )
+
+        // Always buffering. The clip has to start before the trigger, because by the time
+        // anything has noticed a meteor it is already over.
+        ring?.append(frame.pixelBuffer, timestamp: frame.timestamp)
+
+        // Show the live view as usual, so the phone is still aimable while it watches.
+        accumulator.add(frame.pixelBuffer, transform: nil, mode: .smooth, replacingContents: true)
+        if let rendered = accumulator.resolve(tone: .neutral, mode: .smooth) {
+            publish(rendered)
+        }
+
+        guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer) else { return }
+        defer { previousLuminance = luminance }
+
+        if postRollRemaining > 0 {
+            postRollRemaining -= 1
+            if postRollRemaining == 0 {
+                writeClip(settings: settings)
+            }
+            return
+        }
+
+        if cooldownRemaining > 0 {
+            cooldownRemaining -= 1
+            return
+        }
+
+        guard let previous = previousLuminance else { return }
+
+        guard let event = transientDetector.detect(
+            current: luminance,
+            previous: previous,
+            width: accumulator.lumaWidth,
+            height: accumulator.lumaHeight
+        ) else { return }
+
+        // Streak-only rejects lens flares and distant lamps switching on; turning it off
+        // keeps those, along with satellite glints and lightning.
+        guard !settings.streaksOnly || event.isStreak else { return }
+
+        pendingEvent = event
+        postRollRemaining = settings.postRollFrames
+        progress.eventsDetected += 1
+        report()
+    }
+
+    private func writeClip(settings: DetectorSettings) {
+        guard let ring, let event = pendingEvent else { return }
+        pendingEvent = nil
+        // Afterglow from a bright event lingers a frame or two; without a pause the same
+        // meteor gets filmed several times.
+        cooldownRemaining = 2
+
+        let frames = ring.history()
+        guard !frames.isEmpty else { return }
+
+        let url = ClipWriter.clipURL(index: eventsRecorded, timestamp: frames[0].timestamp)
+        guard let written = ClipWriter.write(
+            frames: frames, frameRate: settings.outputFrameRate, to: url
+        ) else {
+            logger.error("Failed to write event clip")
+            return
+        }
+
+        eventsRecorded += 1
+        progress.eventsRecorded = eventsRecorded
+        logger.info("Recorded event \(self.eventsRecorded): \(frames.count) frames")
+        onEventRecorded?(written, event)
         report()
     }
 

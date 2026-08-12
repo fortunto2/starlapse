@@ -47,6 +47,17 @@ final class CaptureViewModel {
     /// Finished time-lapse awaiting a decision. Video cannot be re-toned — the frames are
     /// already encoded — so review is watch-and-keep.
     private(set) var reviewVideoURL: URL?
+    /// Clips saved this session, newest first. Detector mode never interrupts to ask —
+    /// it keeps watching, and these pile up until the session is stopped.
+    private(set) var events: [RecordedEvent] = []
+
+    struct RecordedEvent: Identifiable, Sendable {
+        let id = UUID()
+        let url: URL
+        let date: Date
+        let isStreak: Bool
+        let angle: Double
+    }
 
     let attitude = AttitudeProvider()
 
@@ -150,7 +161,42 @@ final class CaptureViewModel {
     /// transition points. Framing gets short, high-gain frames; a session gets exactly what
     /// the user dialled in.
     private var activeSettings: CaptureSettings {
-        state.isCapturing ? settings : settings.forFraming(capabilities)
+        guard state.isCapturing else { return settings.forFraming(capabilities) }
+        // Watching needs short frames at a usable rate — an exposure long enough for a deep
+        // stack would smear the meteor into the background and give three frames a second.
+        if case .detector(let detector) = mode {
+            var watching = settings
+            watching.frameExposure = detector.frameExposure
+            return watching
+        }
+        return settings
+    }
+
+    var detectorSettings: DetectorSettings {
+        get {
+            if case .detector(let settings) = mode { return settings }
+            return .default
+        }
+        set { mode = .detector(newValue) }
+    }
+
+    /// Save every clip the detector caught.
+    func saveAllEvents() async {
+        guard await PhotoLibraryWriter.requestAccess() else {
+            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
+            return
+        }
+        let saved = await PhotoLibraryWriter.write(videosAt: events.map(\.url))
+        lastSavedMessage = saved == events.count
+            ? "Saved \(saved) clips to Photos."
+            : "Saved \(saved) of \(events.count) clips."
+    }
+
+    func clearEvents() {
+        for event in events {
+            try? FileManager.default.removeItem(at: event.url)
+        }
+        events = []
     }
 
     /// Push the current settings to the sensor.
@@ -187,6 +233,16 @@ final class CaptureViewModel {
                     return
                 }
                 self.previewFrame = frame
+            }
+        }
+
+        stack.onEventRecorded = { [weak self] url, event in
+            Task { @MainActor in
+                guard let self else { return }
+                self.events.insert(
+                    RecordedEvent(url: url, date: Date(), isStreak: event.isStreak, angle: event.angle),
+                    at: 0
+                )
             }
         }
 
@@ -231,6 +287,7 @@ final class CaptureViewModel {
         let plan: SegmentPlan = switch mode {
         case .still: .still(settings, tone: tone)
         case .timelapse(let timelapseSettings): .timelapse(settings, timelapse: timelapseSettings, tone: tone)
+        case .detector(let detectorSettings): .watching(detectorSettings)
         }
         stackEngine.begin(plan)
         state = .capturing
@@ -313,13 +370,12 @@ final class CaptureViewModel {
     // MARK: - Saving
 
     private func save(image rendered: RenderedImage) async {
-        guard await requestPhotoAccess() else {
-            lastSavedMessage = "Photo library access denied."
+        guard await PhotoLibraryWriter.requestAccess() else {
+            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
             return
         }
-
         do {
-            try await Self.writeToLibrary(rendered)
+            try await PhotoLibraryWriter.write(rendered)
             lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
@@ -327,59 +383,16 @@ final class CaptureViewModel {
     }
 
     private func save(videoAt url: URL) async {
-        guard await requestPhotoAccess() else {
-            lastSavedMessage = "Photo library access denied."
+        guard await PhotoLibraryWriter.requestAccess() else {
+            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
             return
         }
-
         do {
-            try await Self.writeToLibrary(videoAt: url)
+            try await PhotoLibraryWriter.write(videoAt: url)
             lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
         }
-    }
-
-    /// Write to the photo library from outside the main actor.
-    ///
-    /// `nonisolated` is load-bearing, and this is the single most expensive lesson in the
-    /// project so far. `PHPhotoLibrary.performChanges` runs its block on its own internal
-    /// queue. Written inline in a `@MainActor` method, the block *inherits main-actor
-    /// isolation*, so Swift 6 emits a runtime executor check inside it — which fires on
-    /// Photos' queue and kills the process with SIGTRAP.
-    ///
-    /// This is what actually crashed the app at the end of every shoot. It survived three
-    /// rounds of fixes aimed at the Metal pipeline, because "crashes when the capture
-    /// finishes" pointed at the renderer and the real culprit was the last line of the save.
-    /// The crash report named it in one frame; guessing never would have.
-    private nonisolated static func writeToLibrary(_ rendered: RenderedImage) async throws {
-        guard let image = rendered.makeUIImage() else {
-            throw SaveError.couldNotRender
-        }
-        try await PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAsset(from: image)
-        }
-    }
-
-    private nonisolated static func writeToLibrary(videoAt url: URL) async throws {
-        try await PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-        }
-    }
-
-    enum SaveError: LocalizedError {
-        case couldNotRender
-
-        var errorDescription: String? {
-            switch self {
-            case .couldNotRender: "Could not render the stack into an image."
-            }
-        }
-    }
-
-    private func requestPhotoAccess() async -> Bool {
-        let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
-        return status == .authorized || status == .limited
     }
 
     // MARK: - Derived readouts

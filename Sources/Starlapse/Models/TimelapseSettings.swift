@@ -84,16 +84,32 @@ enum CaptureMode: Sendable, Equatable {
     case still
     /// A sequence of stacks, assembled into video.
     case timelapse(TimelapseSettings)
+    /// Watch the sky and save a clip whenever something crosses it.
+    case detector(DetectorSettings)
 
     var isTimelapse: Bool {
         if case .timelapse = self { return true }
         return false
     }
 
+    var isDetector: Bool {
+        if case .detector = self { return true }
+        return false
+    }
+
     var title: String {
         switch self {
-        case .still: "Single exposure"
+        case .still: "Exposure"
         case .timelapse: "Time-lapse"
+        case .detector: "Detector"
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case .still: "One deep stack, developed when it finishes."
+        case .timelapse: "Every frame of the video is its own stack."
+        case .detector: "Watches for meteors and saves a clip around each one."
         }
     }
 }

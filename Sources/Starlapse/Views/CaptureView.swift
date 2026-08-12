@@ -41,10 +41,11 @@ struct CaptureView: View {
                 VStack {
                     topBar
                     Spacer()
-                    if model.state.isCapturing {
-                        progressPanel
-                    } else if showsOverlay {
-                        conditionsPanel
+                    if model.state.isCapturing || showsOverlay {
+                        StatusPanels(model: model)
+                    }
+                    if !model.state.isCapturing {
+                        modeSwitcher
                     }
                     controlBar
                 }
@@ -115,97 +116,41 @@ struct CaptureView: View {
         }
     }
 
-    // MARK: - Panels
+    // MARK: - Mode
 
-    private var conditionsPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let plan = model.plan {
-                Text(plan.conditions.summary.uppercased())
-                    .font(NightTheme.mono(11, weight: .bold))
-                    .foregroundStyle(NightTheme.primary)
-
-                if let shower = plan.headlineShower, shower.isWorthShooting {
-                    ReadoutRow(
-                        label: shower.shower.name,
-                        value: String(format: "~%.0f meteors/h", shower.expectedHourlyRate),
-                        highlighted: true
-                    )
+    private var modeSwitcher: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 6) {
+                modeButton("Exposure", isOn: !model.mode.isTimelapse && !model.mode.isDetector) {
+                    model.mode = .still
                 }
-
-                ReadoutRow(label: "Aim", value: "\(plan.aim.compass) · \(plan.aim.subject)")
-                Text(plan.aim.reason)
-                    .font(NightTheme.mono(9))
-                    .foregroundStyle(NightTheme.dim)
-
-                let planets = plan.visiblePlanets
-                if !planets.isEmpty {
-                    ReadoutRow(
-                        label: "Planets up",
-                        value: planets.map(\.name).joined(separator: " · ")
-                    )
+                modeButton("Time-lapse", isOn: model.mode.isTimelapse) {
+                    model.mode = .timelapse(model.timelapse)
                 }
-            } else {
-                Text(model.attitude.authorizationDenied
-                     ? "LOCATION DENIED — SKY GUIDANCE OFF"
-                     : "ACQUIRING LOCATION…")
-                    .font(NightTheme.mono(11))
-                    .foregroundStyle(NightTheme.dim)
+                modeButton("Detector", isOn: model.mode.isDetector) {
+                    model.mode = .detector(model.detectorSettings)
+                }
             }
-
-            if let message = model.lastSavedMessage {
-                Text(message)
-                    .font(NightTheme.mono(10, weight: .semibold))
-                    .foregroundStyle(NightTheme.accent)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .nightPanel()
-    }
-
-    private var progressPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            ProgressView(value: model.progress.fraction)
-                .tint(NightTheme.secondary)
-
-            ReadoutRow(
-                label: "Frames stacked",
-                value: "\(model.progress.framesStacked) / \(model.progress.framesRequested)",
-                highlighted: true
-            )
-            ReadoutRow(
-                label: "Noise reduction",
-                value: String(format: "−%.1f stops", model.progress.noiseReductionStops)
-            )
-
-            if model.settings.stackMode.alignsStars {
-                let tracking = String(
-                    format: "%d stars · %.2f px",
-                    model.progress.starsTracked, model.progress.alignmentResidual
-                )
-                ReadoutRow(
-                    label: model.progress.isTracking ? "Tracking" : "Searching for stars",
-                    value: model.progress.isTracking ? tracking : "\(model.progress.starsTracked) stars",
-                    highlighted: !model.progress.isTracking
-                )
-            }
-
-            if model.progress.framesRejected > 0 {
-                ReadoutRow(label: "Dropped", value: "\(model.progress.framesRejected)")
-            }
-
-            if model.mode.isTimelapse {
-                ReadoutRow(
-                    label: "Video frames",
-                    value: "\(model.progress.segmentsCompleted) / \(model.progress.segmentsRequested)"
-                )
-            }
-
-            Text("KEEP THE APP OPEN — iOS STOPS THE CAMERA IN THE BACKGROUND")
+            Text(model.mode.explanation)
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .nightPanel()
+        .padding(.top, 8)
+    }
+
+    private func modeButton(_ title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(NightTheme.mono(11, weight: isOn ? .bold : .regular))
+                .foregroundStyle(isOn ? Color.black : NightTheme.dim)
+                .frame(maxWidth: .infinity, minHeight: 34)
+                .background(isOn ? NightTheme.primary : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isOn ? Color.clear : NightTheme.dim.opacity(0.5), lineWidth: 1)
+                )
+        }
     }
 
     // MARK: - Controls

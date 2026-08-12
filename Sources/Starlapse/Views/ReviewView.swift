@@ -18,7 +18,9 @@ struct ReviewView: View {
         VStack(spacing: 0) {
             header
 
-            if let url = model.reviewVideoURL {
+            if model.mode.isDetector {
+                eventList
+            } else if let url = model.reviewVideoURL {
                 videoPlayer(url: url)
             } else {
                 Spacer(minLength: 0)
@@ -35,7 +37,7 @@ struct ReviewView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(model.reviewVideoURL == nil ? "STACK COMPLETE" : "TIME-LAPSE COMPLETE")
+                Text(headline)
                     .font(NightTheme.mono(12, weight: .bold))
                     .foregroundStyle(NightTheme.primary)
                 Text(summary)
@@ -49,6 +51,12 @@ struct ReviewView: View {
     }
 
     private var summary: String {
+        if model.mode.isDetector {
+            let clips = model.events.count
+            return clips == 0
+                ? "Nothing crossed the frame"
+                : "\(clips) clip\(clips == 1 ? "" : "s") · \(model.progress.eventsDetected) detected"
+        }
         if model.reviewVideoURL != nil {
             return "\(model.progress.segmentsCompleted) frames · "
                 + String(format: "%.1fs", model.timelapse.videoDuration)
@@ -61,6 +69,72 @@ struct ReviewView: View {
             parts.append("\(model.progress.framesRejected) dropped")
         }
         return parts.joined(separator: " · ")
+    }
+
+    private var headline: String {
+        if model.mode.isDetector { return "WATCH ENDED" }
+        return model.reviewVideoURL == nil ? "STACK COMPLETE" : "TIME-LAPSE COMPLETE"
+    }
+
+    // MARK: - Events
+
+    private var eventList: some View {
+        Group {
+            if model.events.isEmpty {
+                VStack(spacing: 6) {
+                    Text("No events")
+                        .font(NightTheme.mono(13, weight: .semibold))
+                        .foregroundStyle(NightTheme.dim)
+                    Text("A quiet sky, or the threshold is too strict.")
+                        .font(NightTheme.mono(10))
+                        .foregroundStyle(NightTheme.dim)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(model.events) { event in
+                            eventRow(event)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                }
+            }
+        }
+    }
+
+    private func eventRow(_ event: CaptureViewModel.RecordedEvent) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: event.isStreak ? "line.diagonal" : "circle")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(event.isStreak ? NightTheme.accent : NightTheme.dim)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(event.isStreak ? "Streak" : "Flash")
+                    .font(NightTheme.mono(12, weight: .semibold))
+                    .foregroundStyle(NightTheme.primary)
+                Text(event.date.formatted(date: .omitted, time: .standard)
+                     + String(format: " · %.0f° across frame", event.angle))
+                    .font(NightTheme.mono(9))
+                    .foregroundStyle(NightTheme.dim)
+            }
+
+            Spacer()
+
+            ShareLink(item: event.url) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 14))
+                    .foregroundStyle(NightTheme.secondary)
+            }
+        }
+        .padding(10)
+        .background(NightTheme.background.opacity(0.6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(NightTheme.dim.opacity(0.4), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - Video
@@ -157,7 +231,10 @@ struct ReviewView: View {
 
             HStack(spacing: 12) {
                 Button {
-                    Task { await model.dismissReview() }
+                    Task {
+                        if model.mode.isDetector { model.clearEvents() }
+                        await model.dismissReview()
+                    }
                 } label: {
                     Text("Discard")
                         .font(NightTheme.mono(13, weight: .semibold))
@@ -171,11 +248,15 @@ struct ReviewView: View {
 
                 Button {
                     Task {
-                        await model.saveResult()
+                        if model.mode.isDetector {
+                            await model.saveAllEvents()
+                        } else {
+                            await model.saveResult()
+                        }
                         await model.dismissReview()
                     }
                 } label: {
-                    Text("Save to Photos")
+                    Text(model.mode.isDetector ? "Save \(model.events.count) to Photos" : "Save to Photos")
                         .font(NightTheme.mono(13, weight: .bold))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity, minHeight: 48)
