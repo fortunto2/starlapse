@@ -8,8 +8,9 @@ import SwiftUI
 /// focus and framing are right, minutes before the session ends.
 struct MetalPreviewView: UIViewRepresentable {
 
-    /// Latest resolved texture. Changing it triggers a redraw.
-    let texture: MTLTexture?
+    /// Latest rendered frame. Changing it triggers a redraw; the coordinator returns
+    /// each frame to the pool once the GPU has finished reading it.
+    let frame: PreviewFrame?
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -33,14 +34,31 @@ struct MetalPreviewView: UIViewRepresentable {
     }
 
     func updateUIView(_ view: MTKView, context: Context) {
-        context.coordinator.texture = texture
+        context.coordinator.submit(frame)
         view.setNeedsDisplay()
     }
 
     final class Coordinator: NSObject, MTKViewDelegate {
-        var texture: MTLTexture?
+        /// Waiting to be drawn.
+        private var pending: PreviewFrame?
+        /// Currently on screen. Held until the next frame has been drawn, then released —
+        /// the display samples this texture right up to the moment it is replaced.
+        private var onScreen: PreviewFrame?
         private var commandQueue: MTLCommandQueue?
         private var pipeline: MTLRenderPipelineState?
+
+        deinit {
+            pending?.release()
+            onScreen?.release()
+        }
+
+        func submit(_ frame: PreviewFrame?) {
+            guard let frame else { return }
+            // A frame that never made it to the screen still has to go back, or the pool
+            // drains and previews stop for good.
+            pending?.release()
+            pending = frame
+        }
 
         func configure(device: MTLDevice?) {
             guard let device else { return }
@@ -75,7 +93,9 @@ struct MetalPreviewView: UIViewRepresentable {
                 return
             }
 
-            if let texture, let pipeline {
+            let frame = pending ?? onScreen
+            if let frame, let pipeline {
+                let texture = frame.texture
                 encoder.setRenderPipelineState(pipeline)
                 encoder.setFragmentTexture(texture, index: 0)
 
@@ -91,6 +111,16 @@ struct MetalPreviewView: UIViewRepresentable {
             }
 
             encoder.endEncoding()
+
+            if let frame, frame.texture !== onScreen?.texture {
+                // The previous frame is only safe to reuse once this command buffer — the
+                // one that stops sampling it — has actually completed on the GPU.
+                let previous = onScreen
+                buffer.addCompletedHandler { _ in previous?.release() }
+                onScreen = frame
+                pending = nil
+            }
+
             buffer.present(drawable)
             buffer.commit()
         }

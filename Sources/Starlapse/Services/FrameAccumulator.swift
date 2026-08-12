@@ -47,17 +47,14 @@ final class FrameAccumulator: @unchecked Sendable {
 
     /// How many frames may be in flight between the capture queue and the screen.
     ///
-    /// This is a correctness number, not a memory-tuning one. The first version used a
-    /// single display texture, resolved on the capture queue and simultaneously read by the
-    /// view on the main thread — a data race on GPU memory that crashed at the end of a
-    /// session, exactly when the final render and the next frame overlapped. Two means the
-    /// view always reads the one the GPU is not writing. Lowering it to one restores the
-    /// crash; raising it only costs memory.
-    static let displayBufferCount = 2
+    /// Three, because the display genuinely holds one: the view keeps the last frame on
+    /// screen until a new one arrives. One for the GPU to render into, one on screen, one
+    /// in transit. Ownership is tracked by `TexturePool` rather than assumed — with a bare
+    /// rotating pair the producer eventually wrapped around onto the texture being sampled.
+    static let displayBufferCount = 3
 
     private var accumulator: MTLTexture?
-    private var displays: [MTLTexture] = []
-    private var displayIndex = 0
+    let displayPool = TexturePool()
     private var luma: MTLTexture?
 
     private(set) var frameCount: Int = 0
@@ -121,17 +118,16 @@ final class FrameAccumulator: @unchecked Sendable {
                 width: width, height: height, format: .rgba32Float,
                 usage: [.shaderRead, .shaderWrite]
             )
-            // Both, or neither. `compactMap` here would silently accept one texture, which
-            // makes `resolve()` hand back the same texture every call — single-buffered,
-            // i.e. exactly the data race this pair exists to prevent, with no error and no
-            // log to say so.
-            let pair = (0..<Self.displayBufferCount).map { _ in
+            try? displayPool.configure(
+                count: Self.displayBufferCount,
+                width: width,
+                height: height
+            ) { width, height in
                 makeTexture(
                     width: width, height: height, format: .bgra8Unorm,
                     usage: [.shaderRead, .shaderWrite]
                 )
             }
-            displays = pair.contains(where: { $0 == nil }) ? [] : pair.compactMap { $0 }
             luma = makeTexture(
                 width: lumaWidth, height: lumaHeight, format: .r32Float,
                 usage: [.shaderRead, .shaderWrite]
@@ -214,20 +210,20 @@ final class FrameAccumulator: @unchecked Sendable {
     }
 
     /// Add one frame to the stack, optionally warped to cancel the sky's rotation.
-    func add(_ pixelBuffer: CVPixelBuffer, transform: simd_float3x3?, mode: StackMode) {
-        blend(pixelBuffer, transform: transform, shaderMode: mode == .trails ? 1 : 0)
-        frameCount += 1
-    }
-
-    /// Overwrite the buffer with a single frame, for the framing preview.
     ///
-    /// Distinct from `add` because there is nothing to accumulate: this frame replaces the
-    /// last. Going through `reset` + `add` instead would clear a full-resolution
-    /// RGBA32Float texture several times a second to write zeros that the same dispatch
-    /// immediately overwrites.
-    func show(_ pixelBuffer: CVPixelBuffer) {
-        blend(pixelBuffer, transform: nil, shaderMode: 2)
-        frameCount = 1
+    /// `replacingContents` overwrites the buffer instead of accumulating into it — what the
+    /// first frame of every segment does. That removes the need to clear beforehand, which
+    /// at full sensor resolution is a ~200 MB write of zeros the next dispatch overwrites
+    /// anyway, and removes the whole class of "stacked on top of the previous segment" bugs.
+    func add(
+        _ pixelBuffer: CVPixelBuffer,
+        transform: simd_float3x3?,
+        mode: StackMode,
+        replacingContents: Bool = false
+    ) {
+        let shaderMode: UInt32 = replacingContents ? 2 : (mode == .trails ? 1 : 0)
+        blend(pixelBuffer, transform: transform, shaderMode: shaderMode)
+        frameCount = replacingContents ? 1 : frameCount + 1
     }
 
     private func blend(_ pixelBuffer: CVPixelBuffer, transform: simd_float3x3?, shaderMode: UInt32) {
@@ -253,12 +249,11 @@ final class FrameAccumulator: @unchecked Sendable {
 
     /// Render the current stack. Must be called on the capture queue.
     ///
-    /// Alternates between the two display textures so the returned one is never the one
-    /// the view is currently reading.
+    /// Returns nil when the display still holds every pooled texture. Skipping a preview
+    /// frame is the right failure here — blocking would stall the queue that carries the
+    /// actual photons.
     func resolve(tone: ToneSettings, mode: StackMode) -> MTLTexture? {
-        guard let accumulator, !displays.isEmpty else { return nil }
-        displayIndex = (displayIndex + 1) % displays.count
-        let display = displays[displayIndex]
+        guard let accumulator, let display = displayPool.acquire() else { return nil }
 
         guard let buffer = commandQueue.makeCommandBuffer(),
               let encoder = buffer.makeComputeCommandEncoder() else { return nil }

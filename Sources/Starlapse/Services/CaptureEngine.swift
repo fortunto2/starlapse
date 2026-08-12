@@ -11,7 +11,8 @@ import os
 /// mutation runs on `queue`, which is the discipline AVFoundation itself documents.
 final class CaptureEngine: @unchecked Sendable {
 
-    private let queue = DispatchQueue(label: "co.superduperai.starlapse.capture")
+    private let captureQueue: CaptureQueue
+    private var queue: DispatchQueue { captureQueue.dispatch }
     private let session = AVCaptureSession()
     private let output = AVCaptureVideoDataOutput()
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "capture")
@@ -22,7 +23,8 @@ final class CaptureEngine: @unchecked Sendable {
     /// Called on the capture queue for every frame. Must consume the buffer synchronously.
     private let onFrame: @Sendable (SensorFrame) -> Void
 
-    init(onFrame: @escaping @Sendable (SensorFrame) -> Void) {
+    init(queue: CaptureQueue, onFrame: @escaping @Sendable (SensorFrame) -> Void) {
+        self.captureQueue = queue
         self.onFrame = onFrame
     }
 

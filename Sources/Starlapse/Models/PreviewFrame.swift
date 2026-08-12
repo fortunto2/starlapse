@@ -1,17 +1,29 @@
 import Metal
 
-/// A rendered frame on its way to the screen.
+/// A rendered frame on its way to the screen, with its return ticket attached.
 ///
-/// `@unchecked Sendable` under one specific guarantee, and it is worth stating precisely
-/// because the unchecked version of this crashed in the field:
+/// `@unchecked Sendable` is still a promise, but now it is one the code keeps rather than
+/// one the doc comment makes. The texture inside is checked out of a `TexturePool`; the
+/// producer cannot hand out the same one twice, and cannot reuse it until `release()` is
+/// called. Whoever displays the frame is responsible for releasing it — see
+/// `MetalPreviewView`, which does so from the command buffer's completion handler, i.e.
+/// when the GPU is genuinely finished reading.
 ///
-/// `FrameAccumulator` keeps **two** display textures and alternates between them. The one
-/// wrapped here is the one just finished; the next render goes to the other. So while the
-/// view reads this texture on the main thread, the capture queue is writing elsewhere.
-///
-/// What is *not* safe, and what this type does not permit, is the main actor reaching back
-/// into the accumulator to ask for a render — that shared the command queue with the
-/// capture path and crashed at the end of a session. Frames are pushed, never pulled.
+/// The earlier version wrapped a texture from a manually rotated pair and documented that
+/// "the view reads this while the capture queue writes elsewhere". That held only for the
+/// instant of the hand-off, and the view keeps a frame on screen until the next one lands.
 struct PreviewFrame: @unchecked Sendable {
     let texture: MTLTexture
+    private let pool: TexturePool
+
+    init(texture: MTLTexture, pool: TexturePool) {
+        self.texture = texture
+        self.pool = pool
+    }
+
+    /// Give the texture back so the pipeline can render into it again.
+    /// Safe to call more than once; the pool ignores duplicates.
+    func release() {
+        pool.release(texture)
+    }
 }

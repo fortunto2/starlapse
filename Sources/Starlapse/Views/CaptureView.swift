@@ -15,7 +15,7 @@ struct CaptureView: View {
         ZStack {
             NightTheme.background.ignoresSafeArea()
 
-            MetalPreviewView(texture: model.previewTexture)
+            MetalPreviewView(frame: model.previewFrame)
                 .ignoresSafeArea()
 
             if showsOverlay {

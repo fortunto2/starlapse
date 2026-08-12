@@ -34,7 +34,7 @@ final class CaptureViewModel {
 
     private(set) var state: SessionState = .idle
     private(set) var progress = StackProgress()
-    private(set) var previewTexture: MTLTexture?
+    private(set) var previewFrame: PreviewFrame?
     private(set) var capabilities: CameraCapabilities
     private(set) var plan: SkyDirector.Plan?
     private(set) var lastSavedMessage: String?
@@ -43,6 +43,7 @@ final class CaptureViewModel {
 
     // MARK: - Machinery
 
+    private let captureQueue = CaptureQueue()
     private var captureEngine: CaptureEngine?
     private var stackEngine: StackEngine?
     private var accumulator: FrameAccumulator?
@@ -108,8 +109,8 @@ final class CaptureViewModel {
 
         do {
             let accumulator = try FrameAccumulator()
-            let stack = StackEngine(accumulator: accumulator)
-            let capture = CaptureEngine { [weak stack] frame in
+            let stack = StackEngine(accumulator: accumulator, queue: captureQueue)
+            let capture = CaptureEngine(queue: captureQueue) { [weak stack] frame in
                 stack?.consume(frame)
             }
 
@@ -127,7 +128,7 @@ final class CaptureViewModel {
             // useless for stars, but it shows the horizon, trees and focus well enough to
             // compose — which a one-second frame at low ISO would not. The engine has to
             // be told to display these frames, or it drops them and the screen stays black.
-            stack.beginLivePreview(settings: activeSettings, tone: .neutral)
+            stack.begin(.framing)
             await capture.start()
             state = .aiming
         } catch {
@@ -154,7 +155,7 @@ final class CaptureViewModel {
         if settings.lens != appliedLens {
             appliedLens = settings.lens
             try? await captureEngine.prepare(lens: settings.lens)
-            stackEngine?.beginLivePreview(settings: activeSettings, tone: .neutral)
+            stackEngine?.begin(.framing)
         }
         try? await captureEngine.apply(activeSettings)
     }
@@ -171,7 +172,12 @@ final class CaptureViewModel {
         // at the end of a session.
         stack.onPreviewReady = { [weak self] frame in
             Task { @MainActor in
-                self?.previewTexture = frame.texture
+                guard let self else {
+                    // Nobody left to display it — hand the texture straight back.
+                    frame.release()
+                    return
+                }
+                self.previewFrame = frame
             }
         }
 
@@ -213,7 +219,11 @@ final class CaptureViewModel {
         }
 
         lastSavedMessage = nil
-        stackEngine.begin(settings: settings, mode: mode, tone: tone)
+        let plan: SegmentPlan = switch mode {
+        case .still: .still(settings, tone: tone)
+        case .timelapse(let timelapseSettings): .timelapse(settings, timelapse: timelapseSettings, tone: tone)
+        }
+        stackEngine.begin(plan)
         state = .capturing
 
         // The screen stays on — iOS force-stops capture in the background, so there is no
@@ -251,9 +261,7 @@ final class CaptureViewModel {
         }
 
         // Back to framing so the next shot can be composed straight away.
-        let framing = activeSettings
-        try? await captureEngine?.apply(framing)
-        stackEngine?.beginLivePreview(settings: framing, tone: .neutral)
+        try? await captureEngine?.apply(activeSettings)
         state = .aiming
     }
 

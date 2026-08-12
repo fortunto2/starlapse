@@ -30,31 +30,22 @@ struct StackProgress: Sendable, Equatable {
     var isTracking: Bool { starsTracked >= 6 }
 }
 
-/// Drives one capture: detect, align, accumulate, and in time-lapse mode, segment.
+/// Runs one `SegmentPlan`: gather frames, resolve them into a picture, repeat.
 ///
-/// Lives on the capture queue like the rest of the pipeline. The only thing crossing back
-/// to the main actor is the progress struct and the finished textures.
+/// Framing, a single deep exposure and a time-lapse are the same loop with different
+/// numbers — see `SegmentPlan`. Everything here executes on the shared `CaptureQueue`;
+/// public methods that can be called from elsewhere hop onto it themselves.
 final class StackEngine: @unchecked Sendable {
 
     private let accumulator: FrameAccumulator
+    private let queue: CaptureQueue
     private let detector = StarDetector()
     private let aligner = StarAligner()
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "stack")
 
-    /// What the engine is doing with incoming frames.
-    private enum Activity {
-        /// Nothing configured yet.
-        case idle
-        /// Framing: show each frame as it arrives, accumulate nothing.
-        case live
-        /// A real capture is under way.
-        case session
-    }
-
-    private var activity: Activity = .idle
-    private var settings: CaptureSettings?
-    private var mode: CaptureMode = .still
-    private var tone = FrameAccumulator.ToneSettings()
+    private var plan: SegmentPlan?
+    /// Frames gathered into the segment currently being built.
+    private var framesInSegment = 0
 
     /// Stars from the frame everything else is registered onto.
     private var referenceStars: [StarPoint] = []
@@ -65,80 +56,64 @@ final class StackEngine: @unchecked Sendable {
     private var accumulatedTransform = SimilarityTransform.identity
 
     private var progress = StackProgress()
-    private var segmentFrameTarget = 0
-    private var segmentStartTime: TimeInterval = 0
 
     /// Called on the capture queue after every frame.
     var onProgress: (@Sendable (StackProgress) -> Void)?
-    /// Called on the capture queue when a time-lapse segment is resolved.
+    /// Called on the capture queue when a recorded segment is resolved.
     ///
-    /// The handler must consume the texture **synchronously**: the accumulator is cleared
-    /// for the next segment as soon as this returns, and the texture is reused. Handing it
-    /// to another thread would encode whatever the next segment has written into it.
+    /// The handler must consume the texture **synchronously** — it belongs to the display
+    /// pool and is handed back as soon as this returns.
     var onSegmentReady: (@Sendable (MTLTexture, Int) -> Void)?
     /// A newly rendered frame is ready to display. Pushed, never pulled: the main actor
-    /// asking the engine for a render is what caused the end-of-session crash.
+    /// asking the engine for a render is what caused the first end-of-session crash.
     var onPreviewReady: (@Sendable (PreviewFrame) -> Void)?
     /// Session complete, with the final image as plain bytes — safe to send anywhere.
     var onFinished: (@Sendable (RenderedImage?) -> Void)?
 
-    init(accumulator: FrameAccumulator) {
+    init(accumulator: FrameAccumulator, queue: CaptureQueue) {
         self.accumulator = accumulator
+        self.queue = queue
     }
 
     // MARK: - Session control
 
-    /// Start showing frames without recording anything, so the shot can be framed.
-    ///
-    /// Without this the engine silently dropped every frame until a session began, the
-    /// accumulator stayed empty, and the preview was a black screen — which reads as "the
-    /// camera did not turn on".
-    func beginLivePreview(settings: CaptureSettings, tone: FrameAccumulator.ToneSettings) {
-        self.settings = settings
-        self.tone = tone
-        activity = .live
-        resetAlignment()
-        progress = StackProgress()
-    }
-
-    func begin(settings: CaptureSettings, mode: CaptureMode, tone: FrameAccumulator.ToneSettings) {
-        self.settings = settings
-        self.mode = mode
-        self.tone = tone
-        resetAlignment()
-
-        switch mode {
-        case .still:
-            segmentFrameTarget = settings.frameCount
-            progress = StackProgress(
-                framesRequested: settings.frameCount,
-                segmentsRequested: 1
-            )
-        case .timelapse(let timelapse):
-            segmentFrameTarget = max(1, Int(timelapse.lightPerFrame / settings.frameExposure))
-            progress = StackProgress(
-                framesRequested: segmentFrameTarget * timelapse.frameCount,
-                segmentsRequested: timelapse.frameCount
-            )
+    /// Switch to a plan. Safe to call from anywhere — the work hops to the pipeline.
+    func begin(_ plan: SegmentPlan) {
+        queue.run { [weak self] in
+            self?.beginOnQueue(plan)
         }
-
-        // Drop whatever the framing preview left in the buffer, so the first frame of the
-        // session starts from black rather than stacking on top of a live view frame.
-        accumulator.clear()
-        activity = .session
-        logger.info("""
-            Session start: \(self.progress.framesRequested) frames, \
-            \(self.segmentFrameTarget) per segment, mode \(String(describing: mode))
-            """)
     }
 
-    /// Stop a running session and return to framing.
+    private func beginOnQueue(_ plan: SegmentPlan) {
+        self.plan = plan
+        framesInSegment = 0
+        resetAlignment()
+        progress = StackProgress(
+            framesRequested: plan.totalFrames ?? 0,
+            segmentsRequested: plan.segments ?? 0
+        )
+
+        if !plan.isFraming {
+            logger.info("""
+                Session start: \(plan.totalFrames ?? 0) frames, \
+                \(plan.framesPerSegment) per segment, \(plan.segments ?? 0) segments
+                """)
+        }
+    }
+
+    /// Stop a recording and return to framing.
+    ///
+    /// Hops to the pipeline rather than resolving inline. Calling `finish()` straight from
+    /// a button tap ran Metal work on the main thread while the capture queue was mid-frame
+    /// — the app crashed on the stop button.
     func cancel() {
-        guard activity == .session else { return }
-        finish(reporting: true)
+        queue.run { [weak self] in
+            guard let self, let plan, !plan.isFraming else { return }
+            self.finish(cancelled: true, alreadyResolved: nil)
+        }
     }
 
-    /// Forget where the stars were. Every entry and exit from a session goes through here,
+    /// Forget where the stars were. Every entry and exit from a segment goes through here,
     /// so a new piece of tracking state only has to be cleared in one place.
     private func resetAlignment() {
         referenceStars = []
@@ -151,36 +126,16 @@ final class StackEngine: @unchecked Sendable {
     /// Consume one sensor frame. Called on the capture queue; the pixel buffer must not
     /// escape this call.
     func consume(_ frame: SensorFrame) {
-        guard let settings, activity != .idle else { return }
+        guard let plan else { return }
 
-        let width = CVPixelBufferGetWidth(frame.pixelBuffer)
-        let height = CVPixelBufferGetHeight(frame.pixelBuffer)
-
-        if activity == .live {
-            // Framing: each frame replaces the last. No stacking, no alignment — just show
-            // the user what the lens is pointed at.
-            accumulator.prepare(width: width, height: height)
-            accumulator.show(frame.pixelBuffer)
-            if let rendered = accumulator.resolve(tone: tone, mode: .smooth) {
-                onPreviewReady?(PreviewFrame(texture: rendered))
-            }
-            return
-        }
-
-        // First frame of the session: size the textures to it. Keyed on the session's own
-        // progress, not the accumulator's frame count — the framing preview leaves that at
-        // one, which would skip this entirely.
-        if progress.framesStacked == 0 && progress.segmentsCompleted == 0 {
-            accumulator.reset(width: width, height: height)
-            segmentStartTime = frame.timestamp
-        }
+        accumulator.prepare(
+            width: CVPixelBufferGetWidth(frame.pixelBuffer),
+            height: CVPixelBufferGetHeight(frame.pixelBuffer)
+        )
 
         var transform: simd_float3x3?
-
-        if settings.stackMode.alignsStars {
-            if let alignment = track(frame) {
-                transform = alignment
-            } else {
+        if plan.aligns {
+            guard let alignment = track(frame) else {
                 // Tracking lost: clouds, a bumped tripod, or a frame with too few stars.
                 // Stacking it anyway would smear the whole result, so it is dropped —
                 // losing one frame of light costs far less than corrupting the stack.
@@ -188,17 +143,31 @@ final class StackEngine: @unchecked Sendable {
                 report()
                 return
             }
+            transform = alignment
         }
 
-        accumulator.add(frame.pixelBuffer, transform: transform, mode: settings.stackMode)
-        progress.framesStacked += 1
+        // The first frame of a segment *replaces* the buffer instead of adding to it. That
+        // one rule removes every explicit clear: framing gets a fresh frame each time, a
+        // session starts from black rather than from the last framing frame, and each
+        // time-lapse segment starts clean — without a full-resolution write of zeros.
+        accumulator.add(
+            frame.pixelBuffer,
+            transform: transform,
+            mode: plan.stackMode,
+            replacingContents: framesInSegment == 0
+        )
+        framesInSegment += 1
 
-        if accumulator.frameCount >= segmentFrameTarget {
-            completeSegment()
-        } else if let rendered = accumulator.resolve(tone: tone, mode: settings.stackMode) {
+        if !plan.isFraming {
+            progress.framesStacked += 1
+        }
+
+        if framesInSegment >= plan.framesPerSegment {
+            completeSegment(plan)
+        } else if let rendered = accumulator.resolve(tone: plan.tone, mode: plan.stackMode) {
             // Push the growing stack to the screen. Watching stars precipitate out of the
             // noise is how you know focus and framing are right, minutes before the end.
-            onPreviewReady?(PreviewFrame(texture: rendered))
+            publish(rendered)
         }
 
         report()
@@ -253,62 +222,71 @@ final class StackEngine: @unchecked Sendable {
         return scaled.inverted.matrix
     }
 
-    private func completeSegment() {
-        guard let settings else { return }
+    private func completeSegment(_ plan: SegmentPlan) {
+        let resolved = accumulator.resolve(tone: plan.tone, mode: plan.stackMode)
+        framesInSegment = 0
 
-        let resolved = accumulator.resolve(tone: tone, mode: settings.stackMode)
-        progress.segmentsCompleted += 1
-
-        if let resolved {
-            onPreviewReady?(PreviewFrame(texture: resolved))
+        // Framing has no segment count and never completes — the next frame just replaces
+        // this one.
+        guard let total = plan.segments else {
+            resolved.map(publish)
+            return
         }
 
-        switch mode {
-        case .still:
-            finish(reporting: false, alreadyResolved: resolved)
+        progress.segmentsCompleted += 1
 
-        case .timelapse(let timelapse):
-            if let resolved {
-                // Synchronous by contract — see `onSegmentReady`.
-                onSegmentReady?(resolved, progress.segmentsCompleted - 1)
-            }
+        if let resolved, total > 1 {
+            // Time-lapse: encode inline, synchronously, while we still own the texture.
+            onSegmentReady?(resolved, progress.segmentsCompleted - 1)
+        }
 
-            if progress.segmentsCompleted >= timelapse.frameCount {
-                finish(reporting: false, alreadyResolved: resolved)
-            } else {
-                // Start the next segment clean. Alignment restarts too: over a long
-                // time-lapse the sky rotates far past what frame-to-frame tracking should
-                // be asked to carry, and each output frame is its own picture anyway.
-                accumulator.clear()
-                resetAlignment()
-            }
+        if progress.segmentsCompleted >= total {
+            finish(cancelled: false, alreadyResolved: resolved)
+        } else {
+            resolved.map(publish)
+            // Each output frame is its own picture: over a long time-lapse the sky rotates
+            // far past what frame-to-frame tracking should be asked to carry.
+            resetAlignment()
         }
     }
 
-    /// End the session and hand back the final image as bytes.
+    /// End the recording and hand back the final image as bytes.
     ///
     /// The snapshot is taken here, on the capture queue, while nothing else is writing.
     /// This is the difference between saving a photo and crashing on one.
+    ///
     /// `alreadyResolved` is the texture `completeSegment` just produced from an unchanged
-    /// accumulator — resolving a second time would repeat a full-resolution pass and a
-    /// blocking GPU wait to get identical pixels.
-    private func finish(reporting cancelled: Bool, alreadyResolved: MTLTexture? = nil) {
-        guard let settings else { return }
+    /// accumulator — resolving again would repeat a full-resolution pass to get identical
+    /// pixels.
+    private func finish(cancelled: Bool, alreadyResolved: MTLTexture?) {
+        guard let plan else { return }
 
-        let rendered = alreadyResolved ?? accumulator.resolve(tone: tone, mode: settings.stackMode)
+        let rendered = alreadyResolved
+            ?? accumulator.resolve(tone: plan.tone, mode: plan.stackMode)
         let final = rendered.map { accumulator.snapshot(of: $0) }
-
-        // Back to framing, with the framing curve. Leaving the capture curve installed here
-        // tone-mapped the first frames after a session with stretch 12 — a bright flash at
-        // exactly the moment the user looks up at the result.
-        activity = .live
-        tone = .neutral
-        resetAlignment()
+        // The bytes are copied out, so the texture goes straight back to the pool rather
+        // than to the screen — the view is about to be fed framing frames anyway.
+        rendered.map(accumulator.displayPool.release)
 
         if cancelled {
             logger.info("Session cancelled after \(self.progress.framesStacked) frames")
         }
+
+        // Straight back to framing, with the framing curve. Leaving the capture curve in
+        // place tone-mapped the next frames at stretch 12 — a bright flash at exactly the
+        // moment the user looks up at the result.
+        beginOnQueue(.framing)
         onFinished?(final)
+    }
+
+    /// Hand a rendered texture to the screen. Ownership goes with it: whoever displays
+    /// the frame calls `release()` when the GPU has finished reading it.
+    private func publish(_ texture: MTLTexture) {
+        guard let onPreviewReady else {
+            accumulator.displayPool.release(texture)
+            return
+        }
+        onPreviewReady(PreviewFrame(texture: texture, pool: accumulator.displayPool))
     }
 
     private func report() {

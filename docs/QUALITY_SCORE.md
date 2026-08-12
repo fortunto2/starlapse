@@ -27,22 +27,31 @@ Three failures, all above the domain layer, none catchable by the 34 tests:
 Also found: `MTLBlitCommandEncoder` does not scale, so the preview showed the corner of the
 sensor frame. Presentation now goes through a render pass.
 
-## Deferred from the cleanup pass
+## Resolved after the cleanup pass
 
-Two findings were real but larger than a cleanup. Both are safety-by-convention where
-safety-by-construction is available:
+Both deferred findings turned out to be worth doing immediately — the second one because a
+third crash arrived while it was still on the list.
 
-1. **`PreviewFrame`'s borrow is prose, not structure.** The type documents "the view reads
-   this while the capture queue writes elsewhere", then the handler stores the bare texture
-   indefinitely one line after the boundary. Double-buffering bounds the producer at the
-   instant of hand-off, not the consumer's hold time. The structural fixes are a scoped
-   accessor (`withTexture { }`, or `~Copyable`) so the texture cannot be stored, or the
-   standard Metal N-buffering handshake — a semaphore signalled from the consumer's
-   `addCompletedHandler`, which also turns the buffer count into real backpressure.
-2. **`Activity.live` is a branch, not a policy.** Framing is a degenerate session: one frame
-   per segment, no alignment, no terminal condition. Modelled as `SegmentPlan`, `consume()`
-   collapses to a single path and the live branch stops being able to drift from the session
-   one — it already had, hardcoding `.smooth` and skipping `report()`.
+**`Activity.live` → `SegmentPlan`.** Framing is now data, not a branch: one frame per
+segment, no alignment, no segment count. `consume()` has a single path. The unexpected
+payoff was a rule that fell out of it — *the first frame of a segment replaces the buffer
+instead of adding to it* — which removed every explicit `clear()` in the codebase along with
+the whole class of "stacked on top of the previous thing" bugs, and stopped a ~200 MB
+write of zeros per framing frame.
+
+**Crash on the stop button.** `cancel()` ran `finish()` — Metal resolve plus a full-frame
+readback — directly on the main thread from a button tap, while the capture queue was
+mid-frame. The same race as the first crash, entered from the other side. The fix is the one
+the altitude review pointed at: the pipeline queue is now an object (`CaptureQueue`) shared
+by `CaptureEngine` and `StackEngine`, so "run this on the pipeline" is something you write
+rather than something you remember. `cancel()` hops onto it.
+
+**`PreviewFrame` ownership is now structural.** Textures come from a `TexturePool` with
+explicit `acquire`/`release`; `PreviewFrame` carries its return ticket. The view releases
+from the command buffer's completion handler — when the GPU has actually finished sampling,
+not when SwiftUI got around to a redraw. If the display holds every texture, `resolve()`
+returns nil and the preview frame is skipped: the producer never blocks, because the queue
+it would block is the one carrying the photons.
 
 ## Known gaps
 
