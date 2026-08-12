@@ -27,6 +27,23 @@ Three failures, all above the domain layer, none catchable by the 34 tests:
 Also found: `MTLBlitCommandEncoder` does not scale, so the preview showed the corner of the
 sensor frame. Presentation now goes through a render pass.
 
+## Deferred from the cleanup pass
+
+Two findings were real but larger than a cleanup. Both are safety-by-convention where
+safety-by-construction is available:
+
+1. **`PreviewFrame`'s borrow is prose, not structure.** The type documents "the view reads
+   this while the capture queue writes elsewhere", then the handler stores the bare texture
+   indefinitely one line after the boundary. Double-buffering bounds the producer at the
+   instant of hand-off, not the consumer's hold time. The structural fixes are a scoped
+   accessor (`withTexture { }`, or `~Copyable`) so the texture cannot be stored, or the
+   standard Metal N-buffering handshake — a semaphore signalled from the consumer's
+   `addCompletedHandler`, which also turns the buffer count into real backpressure.
+2. **`Activity.live` is a branch, not a policy.** Framing is a degenerate session: one frame
+   per segment, no alignment, no terminal condition. Modelled as `SegmentPlan`, `consume()`
+   collapses to a single path and the live branch stops being able to drift from the session
+   one — it already had, hardcoding `.smooth` and skipping `report()`.
+
 ## Known gaps
 
 1. **Time-lapse never run to completion.** Ordering is correct by construction; an hour-long
