@@ -16,10 +16,12 @@ final class CaptureViewModel {
         /// Live view for framing and focus, before committing to a session.
         case aiming
         case capturing
-        case finishing
+        /// Capture finished; the result is on screen and still adjustable.
+        case reviewing
         case failed(String)
 
         var isCapturing: Bool { self == .capturing }
+        var isReviewing: Bool { self == .reviewing }
     }
 
     // MARK: - User-facing state
@@ -38,6 +40,13 @@ final class CaptureViewModel {
     private(set) var capabilities: CameraCapabilities
     private(set) var plan: SkyDirector.Plan?
     private(set) var lastSavedMessage: String?
+    /// Curve applied to the finished capture while reviewing it. Starts from what the
+    /// session used; every change re-develops from the accumulated float32 buffer, so it
+    /// costs nothing in quality no matter how far it is pushed.
+    var reviewTone = FrameAccumulator.ToneSettings()
+    /// Finished time-lapse awaiting a decision. Video cannot be re-toned — the frames are
+    /// already encoded — so review is watch-and-keep.
+    private(set) var reviewVideoURL: URL?
 
     let attitude = AttitudeProvider()
 
@@ -181,9 +190,9 @@ final class CaptureViewModel {
             }
         }
 
-        stack.onFinished = { [weak self] image in
+        stack.onFinished = { [weak self] in
             Task { @MainActor in
-                await self?.finishSession(final: image)
+                await self?.enterReview()
             }
         }
     }
@@ -245,23 +254,54 @@ final class CaptureViewModel {
         stackEngine?.cancel()
     }
 
-    private func finishSession(final: RenderedImage?) async {
+    /// Capture is over. Show the result and let it be judged before anything is saved.
+    ///
+    /// Nothing is written to Photos automatically. An hour of sky deserves a look first,
+    /// and — for a stack — the curve is still fully adjustable at this point, because the
+    /// accumulator holds the summed frames rather than a developed image.
+    private func enterReview() async {
         guard state == .capturing else { return }
-        state = .finishing
 
         restoreScreen()
+        lastSavedMessage = nil
+        reviewTone = tone
 
         if mode.isTimelapse, let writer = timelapseWriter {
-            if let url = await writer.finish() {
-                await save(videoAt: url)
-            }
+            reviewVideoURL = await writer.finish()
             timelapseWriter = nil
-        } else if let final {
-            await save(image: final)
+        } else {
+            reviewVideoURL = nil
         }
 
-        // Back to framing so the next shot can be composed straight away.
-        try? await captureEngine?.apply(activeSettings)
+        state = .reviewing
+    }
+
+    /// Re-develop the result with the review curve. Free and lossless — same render the
+    /// session would have produced with these settings.
+    func reviewToneChanged() {
+        guard state.isReviewing, !mode.isTimelapse else { return }
+        stackEngine?.rerender(tone: reviewTone)
+    }
+
+    /// Keep the result.
+    func saveResult() async {
+        guard state.isReviewing else { return }
+
+        if let url = reviewVideoURL {
+            await save(videoAt: url)
+        } else if let rendered = await stackEngine?.exportResult() {
+            await save(image: rendered)
+        } else {
+            lastSavedMessage = "Nothing to save."
+        }
+    }
+
+    /// Throw it away and go back to composing.
+    func dismissReview() async {
+        guard state.isReviewing else { return }
+        reviewVideoURL = nil
+        stackEngine?.resumeFraming()
+        try? await captureEngine?.apply(settings.forFraming(capabilities))
         state = .aiming
     }
 

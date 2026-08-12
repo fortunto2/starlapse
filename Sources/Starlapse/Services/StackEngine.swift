@@ -44,6 +44,13 @@ final class StackEngine: @unchecked Sendable {
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "stack")
 
     private var plan: SegmentPlan?
+    /// The plan of a finished capture, kept so the result can be re-rendered.
+    ///
+    /// While this is set the engine ignores incoming frames and the accumulator is left
+    /// untouched — which is what makes review possible at all. The float32 buffer still
+    /// holds the summed light, so changing the curve re-renders from the original data
+    /// rather than pushing pixels around in an already-developed image.
+    private var completed: SegmentPlan?
     /// Frames gathered into the segment currently being built.
     private var framesInSegment = 0
 
@@ -67,8 +74,9 @@ final class StackEngine: @unchecked Sendable {
     /// A newly rendered frame is ready to display. Pushed, never pulled: the main actor
     /// asking the engine for a render is what caused the first end-of-session crash.
     var onPreviewReady: (@Sendable (PreviewFrame) -> Void)?
-    /// Session complete, with the final image as plain bytes — safe to send anywhere.
-    var onFinished: (@Sendable (RenderedImage?) -> Void)?
+    /// Capture complete. The result stays in the accumulator for review; nothing is
+    /// saved until asked.
+    var onFinished: (@Sendable () -> Void)?
 
     init(accumulator: FrameAccumulator, queue: CaptureQueue) {
         self.accumulator = accumulator
@@ -86,6 +94,7 @@ final class StackEngine: @unchecked Sendable {
 
     private func beginOnQueue(_ plan: SegmentPlan) {
         self.plan = plan
+        completed = nil
         framesInSegment = 0
         resetAlignment()
         progress = StackProgress(
@@ -261,22 +270,58 @@ final class StackEngine: @unchecked Sendable {
     private func finish(cancelled: Bool, alreadyResolved: MTLTexture?) {
         guard let plan else { return }
 
-        let rendered = alreadyResolved
-            ?? accumulator.resolve(tone: plan.tone, mode: plan.stackMode)
-        let final = rendered.map { accumulator.snapshot(of: $0) }
-        // The bytes are copied out, so the texture goes straight back to the pool rather
-        // than to the screen — the view is about to be fed framing frames anyway.
-        rendered.map(accumulator.displayPool.release)
-
         if cancelled {
             logger.info("Session cancelled after \(self.progress.framesStacked) frames")
         }
 
-        // Straight back to framing, with the framing curve. Leaving the capture curve in
-        // place tone-mapped the next frames at stretch 12 — a bright flash at exactly the
-        // moment the user looks up at the result.
-        beginOnQueue(.framing)
-        onFinished?(final)
+        // Stop consuming frames but leave the accumulator alone: the summed light is the
+        // negative, and review develops it. Framing resumes only when the user is done.
+        completed = plan
+        self.plan = nil
+
+        if let rendered = alreadyResolved {
+            publish(rendered)
+        } else if let rendered = accumulator.resolve(tone: plan.tone, mode: plan.stackMode) {
+            publish(rendered)
+        }
+
+        onFinished?()
+    }
+
+    // MARK: - Review
+
+    /// Re-develop the finished capture with a different curve.
+    ///
+    /// Non-destructive by construction: the accumulator holds the summed frames in float32,
+    /// so this is the same render the session would have produced with these settings — not
+    /// an adjustment layered onto an already-clipped image.
+    func rerender(tone: FrameAccumulator.ToneSettings) {
+        queue.run { [weak self] in
+            guard let self, var completed else { return }
+            completed.tone = tone
+            self.completed = completed
+            if let rendered = accumulator.resolve(tone: tone, mode: completed.stackMode) {
+                publish(rendered)
+            }
+        }
+    }
+
+    /// Render the reviewed result to bytes for saving.
+    func exportResult() async -> RenderedImage? {
+        await queue.perform { [weak self] in
+            guard let self, let completed else { return nil }
+            guard let rendered = accumulator.resolve(
+                tone: completed.tone, mode: completed.stackMode
+            ) else { return nil }
+            let image = accumulator.snapshot(of: rendered)
+            accumulator.displayPool.release(rendered)
+            return image
+        }
+    }
+
+    /// Leave review and go back to composing the next shot.
+    func resumeFraming() {
+        begin(.framing)
     }
 
     /// Hand a rendered texture to the screen. Ownership goes with it: whoever displays

@@ -18,7 +18,7 @@ struct CaptureView: View {
             MetalPreviewView(frame: model.previewFrame)
                 .ignoresSafeArea()
 
-            if showsOverlay {
+            if showsOverlay && !model.state.isReviewing {
                 SkyOverlayView(
                     plan: model.plan,
                     aim: model.attitude.aim,
@@ -29,18 +29,28 @@ struct CaptureView: View {
                 .ignoresSafeArea()
             }
 
-            VStack {
-                topBar
-                Spacer()
-                if model.state.isCapturing {
-                    progressPanel
-                } else if showsOverlay {
-                    conditionsPanel
+            if model.state.isReviewing {
+                // The result fills the screen; the review panel owns the bottom half.
+                VStack {
+                    Spacer()
+                    ReviewView(model: model)
+                        .frame(maxHeight: model.reviewVideoURL == nil ? 420 : .infinity)
                 }
-                controlBar
+                .transition(.move(edge: .bottom))
+            } else {
+                VStack {
+                    topBar
+                    Spacer()
+                    if model.state.isCapturing {
+                        progressPanel
+                    } else if showsOverlay {
+                        conditionsPanel
+                    }
+                    controlBar
+                }
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
             }
-            .padding(.horizontal, 14)
-            .padding(.bottom, 10)
 
             if case .failed(let message) = model.state {
                 failureOverlay(message)
@@ -258,7 +268,7 @@ struct CaptureView: View {
                 }
             }
         }
-        .disabled(model.state == .preparing || model.state == .finishing)
+        .disabled(model.state == .preparing)
     }
 
     private func failureOverlay(_ message: String) -> some View {
