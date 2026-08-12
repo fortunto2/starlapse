@@ -273,19 +273,13 @@ final class CaptureViewModel {
     // MARK: - Saving
 
     private func save(image rendered: RenderedImage) async {
-        guard let image = rendered.makeUIImage() else {
-            lastSavedMessage = "Could not render the stack."
-            return
-        }
         guard await requestPhotoAccess() else {
             lastSavedMessage = "Photo library access denied."
             return
         }
 
         do {
-            try await PHPhotoLibrary.shared().performChanges {
-                PHAssetChangeRequest.creationRequestForAsset(from: image)
-            }
+            try await Self.writeToLibrary(rendered)
             lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
@@ -299,12 +293,47 @@ final class CaptureViewModel {
         }
 
         do {
-            try await PHPhotoLibrary.shared().performChanges {
-                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-            }
+            try await Self.writeToLibrary(videoAt: url)
             lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
+        }
+    }
+
+    /// Write to the photo library from outside the main actor.
+    ///
+    /// `nonisolated` is load-bearing, and this is the single most expensive lesson in the
+    /// project so far. `PHPhotoLibrary.performChanges` runs its block on its own internal
+    /// queue. Written inline in a `@MainActor` method, the block *inherits main-actor
+    /// isolation*, so Swift 6 emits a runtime executor check inside it — which fires on
+    /// Photos' queue and kills the process with SIGTRAP.
+    ///
+    /// This is what actually crashed the app at the end of every shoot. It survived three
+    /// rounds of fixes aimed at the Metal pipeline, because "crashes when the capture
+    /// finishes" pointed at the renderer and the real culprit was the last line of the save.
+    /// The crash report named it in one frame; guessing never would have.
+    private nonisolated static func writeToLibrary(_ rendered: RenderedImage) async throws {
+        guard let image = rendered.makeUIImage() else {
+            throw SaveError.couldNotRender
+        }
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.creationRequestForAsset(from: image)
+        }
+    }
+
+    private nonisolated static func writeToLibrary(videoAt url: URL) async throws {
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+        }
+    }
+
+    enum SaveError: LocalizedError {
+        case couldNotRender
+
+        var errorDescription: String? {
+            switch self {
+            case .couldNotRender: "Could not render the stack into an image."
+            }
         }
     }
 

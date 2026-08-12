@@ -54,6 +54,16 @@ struct MetalPreviewView: UIViewRepresentable {
 
         func submit(_ frame: PreviewFrame?) {
             guard let frame else { return }
+
+            // SwiftUI re-runs updateUIView on every body invalidation — here that is ~30
+            // times a second, driven by the attitude sensor — and hands over the *same*
+            // frame each time. Releasing unconditionally would return a texture that is
+            // still queued for display, or already on screen, straight back to the pool for
+            // the capture queue to overwrite. Identity check first.
+            guard frame.texture !== pending?.texture, frame.texture !== onScreen?.texture else {
+                return
+            }
+
             // A frame that never made it to the screen still has to go back, or the pool
             // drains and previews stop for good.
             pending?.release()

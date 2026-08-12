@@ -52,6 +52,21 @@ make gen           # regenerate Starlapse.xcodeproj from project.yml
 | Shower catalogue | `Sources/SkyKit/MeteorShower.swift` |
 | Session state | `ViewModels/CaptureViewModel.swift` |
 
+## Debugging a crash on device
+
+Get the report first. Reasoning from the symptom sent two rounds of fixes into the wrong
+subsystem here.
+
+```bash
+xcrun devicectl device info files --device $DEVICE --domain-type systemCrashLogs | grep -i starlapse
+xcrun devicectl device copy from --device $DEVICE --domain-type systemCrashLogs \
+  --source Starlapse-<stamp>.ips --destination /tmp/crash.ips
+```
+
+The `.ips` is a JSON body after a one-line header; `d["threads"][d["faultingThread"]]["frames"]`
+is the stack. `EXC_BREAKPOINT` / SIGTRAP in Swift means a runtime trap — a failed executor
+check, a force unwrap, or a precondition.
+
 ## Concurrency rules (Swift 6 strict)
 
 - Capture-path types are `@unchecked Sendable` and confined to one serial queue. Keep them
@@ -60,6 +75,10 @@ make gen           # regenerate Starlapse.xcodeproj from project.yml
   callback hands you a texture, consume it synchronously — the accumulator is cleared right
   after. `onFinished` carries no texture by design.
 - View models are `@MainActor @Observable`. Use `@Observable`, never `ObservableObject`.
+- **Framework callbacks that run on their own queue must be called from a `nonisolated`
+  function.** A block written inline in a `@MainActor` method inherits that isolation, and
+  Swift 6's runtime executor check kills the process when the framework runs it elsewhere.
+  This is what crashed every shoot until the crash report was read — see `writeToLibrary`.
 
 ## Testing conventions
 

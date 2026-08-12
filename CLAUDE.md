@@ -72,6 +72,34 @@ Swift 6 strict mode is on, so this is not optional reading.
   on the type; `onSegmentReady` must consume its texture synchronously; `onFinished`
   carries a `RenderedImage` (plain `Data`), not GPU memory.
 
+## The crash that took three tries
+
+Symptom: the app died at the end of every shoot. Two rounds of fixes went into the Metal
+pipeline — both found real races, neither stopped the crash. The third round pulled the
+crash report off the device, and it named the culprit in one frame:
+
+```
+_dispatch_assert_queue_fail
+swift_task_isCurrentExecutorWithFlagsImpl
+closure #1 in CaptureViewModel.save(image:)
+PHPhotoLibrary _performCancellableChanges
+```
+
+**A third-party API's callback block, written inline inside a `@MainActor` method, inherits
+main-actor isolation.** Swift 6 then emits a runtime executor check inside that block. When
+the API runs it on its own queue — as `PHPhotoLibrary.performChanges` does — the check fires
+and SIGTRAPs the process. The fix is `nonisolated` on the function that owns the call.
+
+Two rules from this:
+
+1. Any framework callback that is not documented to run on the main queue must be reached
+   from a `nonisolated` function. Grep before adding one: `performChanges`,
+   `addCompletedHandler`, delegate callbacks, completion handlers.
+2. **Pull the crash report before theorising.** `xcrun devicectl device info files --device
+   <uuid> --domain-type systemCrashLogs` lists them; `devicectl device copy from` fetches
+   one. Symptom-shaped reasoning ("it dies when capture ends, so it's the renderer") cost
+   two full rounds of work on the wrong subsystem.
+
 ## Lessons from the first field test
 
 Three failures, all in the layer that no test could reach. They are listed because each
