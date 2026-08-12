@@ -16,7 +16,9 @@ settings:
     # Swift 6 language mode: full data-race checking. The camera and Metal layers are
     # written sendable-correct from the start rather than retrofitted.
     SWIFT_STRICT_CONCURRENCY: complete
-    DEVELOPMENT_TEAM: J6JLR9Y684
+    # Left empty on purpose — set TEAM in Makefile.local and the device build passes it
+    # through. Keeps a team identifier out of a public repository.
+    DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"

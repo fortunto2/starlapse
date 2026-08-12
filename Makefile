@@ -2,15 +2,21 @@
 
 SCHEME  := Starlapse
 PROJECT := Starlapse.xcodeproj
-# Device UUID, not name: the phone's name contains a typographic apostrophe (U+2019)
-# that no amount of shell quoting survives. `make device` lists identifiers.
-DEVICE  ?= FC73117A-EDA2-5F2C-825C-6E80050F1255
-# Signing team. project.yml carries the org default; this overrides it with whatever
-# team is actually signed into Xcode on this machine.
-TEAM    ?= 8N495BBBLM
-# Alanya, Turkey — change for your own sky, or pass LAT=… LON=…
-LAT     ?= 36.545
-LON     ?= 32.0
+
+# Machine-specific values — signing team, target device, your observing site — live in
+# Makefile.local, which is gitignored. See Makefile.local.example.
+-include Makefile.local
+
+# Signing team for device builds. Empty means simulator-only, which still compiles
+# everything. Set TEAM in Makefile.local to install on hardware.
+TEAM    ?=
+# Target device for `make install`. Use the identifier, not the name: device names
+# often contain a typographic apostrophe (U+2019) that shell quoting mangles.
+DEVICE  ?=
+# Default observing site: Roque de los Muchachos, La Palma — one of the darkest skies
+# in Europe, and a sensible thing to compare your own against. East longitude positive.
+LAT     ?= 28.754
+LON     ?= -17.885
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -40,6 +46,7 @@ build-device: gen ## Build for a physical iPhone (needs an Apple ID in Xcode)
 		grep -E "(error:|BUILD)" | head -30
 
 install: build-device ## Build and install onto the paired iPhone
+	@test -n "$(DEVICE)" || { echo "Set DEVICE in Makefile.local — run 'make device' to list identifiers."; exit 1; }
 	@xcrun devicectl device install app \
 		--device $(DEVICE) \
 		build/Build/Products/Debug-iphoneos/Starlapse.app 2>&1 | grep -E "(App installed|bundleID|ERROR)"

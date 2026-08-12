@@ -27,7 +27,10 @@ struct SkyMathTests {
 
     /// Mid-Perseids — the night that started this project.
     static let referenceDate = utc(2026, 8, 13, 22)
-    static let alanya = GeographicCoordinates(latitude: 36.545, longitude: 32.000)
+    /// Roque de los Muchachos, La Palma — a real observatory, and a mid-northern
+    /// latitude where the Perseid radiant clears the horizon comfortably.
+    static let laPalma = GeographicCoordinates(latitude: 28.754, longitude: -17.885)
+    /// A high-latitude site, to catch anything that only breaks far north.
     static let moscow = GeographicCoordinates(latitude: 55.751, longitude: 37.618)
 
     // MARK: - Time
@@ -55,7 +58,7 @@ struct SkyMathTests {
 
     @Test("Polaris sits due north at an altitude equal to the observer's latitude")
     func polarisMarksTheLatitude() {
-        for location in [Self.alanya, Self.moscow] {
+        for location in [Self.laPalma, Self.moscow] {
             let position = SkyCatalog.polaris.position
                 .horizontal(at: location, date: Self.referenceDate)
 
@@ -69,8 +72,8 @@ struct SkyMathTests {
     @Test("The celestial pole does not move as the Earth turns")
     func poleIsFixed() {
         let later = Self.referenceDate.addingTimeInterval(6 * 3600)
-        let first = SkyCatalog.polaris.position.horizontal(at: Self.alanya, date: Self.referenceDate)
-        let second = SkyCatalog.polaris.position.horizontal(at: Self.alanya, date: later)
+        let first = SkyCatalog.polaris.position.horizontal(at: Self.laPalma, date: Self.referenceDate)
+        let second = SkyCatalog.polaris.position.horizontal(at: Self.laPalma, date: later)
 
         #expect(first.separation(from: second) < 1.5)
     }
@@ -179,7 +182,7 @@ struct SkyMathTests {
 
     @Test("Twilight deepens as the Sun sinks")
     func twilightOrdering() {
-        let phase = SolarSystem.twilightPhase(at: Self.alanya, date: Self.referenceDate)
+        let phase = SolarSystem.twilightPhase(at: Self.laPalma, date: Self.referenceDate)
         // 22:00 UTC = 01:00 local in Turkey, mid-August — fully dark.
         #expect(phase == .night)
         #expect(phase.isDarkEnoughForAstrophotography)
@@ -231,7 +234,7 @@ struct SkyMathTests {
 
     @Test("Aim lands 40° off the radiant, not on it")
     func aimAvoidsTheRadiant() {
-        let plan = SkyDirector.plan(at: Self.alanya, date: Self.referenceDate)
+        let plan = SkyDirector.plan(at: Self.laPalma, date: Self.referenceDate)
         guard let headline = plan.headlineShower, headline.isWorthShooting else {
             Issue.record("Expected an active shower mid-Perseids")
             return
@@ -245,7 +248,7 @@ struct SkyMathTests {
     func aimIsShootable() {
         // Sample a full night from several latitudes: the recommendation must never point
         // at the ground or straight up.
-        for location in [Self.alanya, Self.moscow] {
+        for location in [Self.laPalma, Self.moscow] {
             for hour in stride(from: 0, through: 23, by: 3) {
                 let moment = Self.referenceDate.addingTimeInterval(Double(hour) * 3600)
                 let plan = SkyDirector.plan(at: location, date: moment)
@@ -259,7 +262,7 @@ struct SkyMathTests {
     func aimAvoidsMoonlight() {
         // Full Moon night in December: Geminids are strong, so the aim is driven by the
         // radiant, but it should still lean away from the Moon.
-        let plan = SkyDirector.plan(at: Self.alanya, date: Self.referenceDate)
+        let plan = SkyDirector.plan(at: Self.laPalma, date: Self.referenceDate)
         guard plan.conditions.isMoonUp else { return }
 
         let separation = plan.aim.direction.separation(from: plan.conditions.moonPosition)

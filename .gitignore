@@ -10,3 +10,6 @@ DerivedData/
 *.dSYM.zip
 xcuserdata/
 .build/
+
+# Machine-local signing, device and location — never committed
+Makefile.local

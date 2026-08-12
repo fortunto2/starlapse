@@ -5,7 +5,7 @@ import SkyKit
 // No camera, no simulator, no UI — if the aiming advice is wrong, it is wrong here first,
 // and here it takes 200ms to find out.
 //
-//   swift run starlapse-sky tonight --lat 36.55 --lon 32.0
+//   swift run starlapse-sky tonight --lat 28.754 --lon -17.885
 //   swift run starlapse-sky tonight --lat 55.75 --lon 37.62 --at 2026-08-13T22:00:00Z
 
 let arguments = CommandLine.arguments

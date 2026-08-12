@@ -51,7 +51,7 @@ The sky math runs standalone, which is how it gets tested and how you plan a nig
 opening the app:
 
 ```bash
-swift run starlapse-sky tonight --lat 36.545 --lon 32.0
+swift run starlapse-sky tonight --lat 28.754 --lon -17.885
 ```
 
 ```
@@ -59,16 +59,24 @@ swift run starlapse-sky tonight --lat 36.545 --lon 32.0
   Astronomical night, no Moon — best conditions
 
   ACTIVE SHOWERS
-    Perseids                    44.1/h   radiant: NE 39° az, 33° up
+    Perseids                    42.5/h   radiant: NE 37° az, 32° up
+    Southern Delta Aquariids     2.6/h   radiant: S 171° az, 44° up
 
   POINT THE CAMERA
-    E 88° az, 53° up
+    N 349° az, 52° up
     Perseids — 40° off the radiant — that is where the trails are longest
 
-  Better later: 2026-08-13T23:50:00Z → 59.3/h
+  Milky Way core   SW 234° az, 4° up
+  Celestial pole   N 1° az, 29° up
+
+  Better later: 2026-08-13T05:10:00Z → 65.7/h
 ```
 
 Also `starlapse-sky showers` and `starlapse-sky moon --lat … --lon …`.
+
+Note the two things a star chart will not tell you: aim 40° *off* the radiant, where the
+trails are longest, and come back at 05:10 when the radiant has climbed and the rate is
+half again higher.
 
 ## Honest limits
 
@@ -80,6 +88,26 @@ Also `starlapse-sky showers` and `starlapse-sky moon --lat … --lon …`.
 - **A frame is ~1 second.** Longer exposures are stacked. The UI always shows the
   translation: "10 min of light = 600 × 1.00s".
 
+## Contributing
+
+The domain layer (`SkyKit`, `StackKit`) imports only Foundation and simd, so the tests run
+in about three seconds on any Mac with no simulator and no device:
+
+```bash
+swift test
+```
+
+Two conventions worth knowing before opening a PR:
+
+- Sky tests are anchored to **external** facts — Polaris altitude equals latitude, the
+  synodic month falls out of the periodic terms, the Moon is new on the day of the
+  2026-08-12 solar eclipse — never to the implementation's own output.
+- Alignment is tested against synthetic star fields rotated by a known angle. A misaligned
+  stack just looks like a slightly soft photo, so it has to be caught arithmetically.
+
+`Makefile.local` (gitignored) holds your signing team, device identifier and observing
+site — copy `Makefile.local.example`.
+
 ## Licence
 
-Private project.
+MIT. See [LICENSE](LICENSE).

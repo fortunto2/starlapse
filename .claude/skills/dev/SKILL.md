@@ -81,13 +81,17 @@ the activity window. Windows that wrap New Year are handled — see the Quadrant
 
 ## Device deploy
 
-Needs an Apple ID signed into Xcode (Settings → Accounts) for team `J6JLR9Y684`. Without it,
+Needs an Apple ID signed into Xcode (Settings → Accounts), and `TEAM` / `DEVICE` set in
+`Makefile.local` (gitignored — copy `Makefile.local.example`). Without a team,
 `make build-device` fails on provisioning while `make build` still works.
 
 ```bash
-xcrun devicectl list devices     # confirm the phone is paired
+make device      # list paired devices, copy the identifier
 make install
 ```
+
+Use the device *identifier*, not its name — device names often contain a typographic
+apostrophe that no shell quoting survives.
 
 ## Field checklist
 
