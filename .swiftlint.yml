@@ -1,0 +1,58 @@
+included:
+  - Sources
+  - Tests
+
+excluded:
+  - build
+  - DerivedData
+
+disabled_rules:
+  - todo
+  - trailing_comma
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - redundant_nil_coalescing
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+
+type_body_length:
+  warning: 300
+  error: 450
+
+file_length:
+  warning: 500
+  error: 700
+
+function_body_length:
+  warning: 60
+  error: 120
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  # Astronomy code is full of single-letter conventions (T, M, F, L, jd, ra, ha).
+  allowed_symbols: ["_"]
+  excluded:
+    - t
+    - m
+    - f
+    - l
+    - n
+    - g
+    - x
+    - y
+    - z
+    - ra
+    - ha
+
+cyclomatic_complexity:
+  warning: 15

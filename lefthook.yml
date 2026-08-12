@@ -1,0 +1,10 @@
+# Install: brew install lefthook && lefthook install
+pre-commit:
+  parallel: true
+  commands:
+    swiftlint:
+      glob: "*.swift"
+      run: swiftlint lint --quiet --strict {staged_files}
+    tests:
+      glob: "Sources/{SkyKit,StackKit}/**/*.swift"
+      run: swift test --quiet

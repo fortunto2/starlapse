@@ -1,0 +1,356 @@
+import AVFoundation
+import Foundation
+import Metal
+import os
+import Photos
+import SkyKit
+import SwiftUI
+
+@MainActor
+@Observable
+final class CaptureViewModel {
+
+    enum SessionState: Equatable {
+        case idle
+        case preparing
+        /// Live view for framing and focus, before committing to a session.
+        case aiming
+        case capturing
+        case finishing
+        case failed(String)
+
+        var isCapturing: Bool { self == .capturing }
+    }
+
+    // MARK: - User-facing state
+
+    var settings: CaptureSettings
+    var mode: CaptureMode = .still
+    var tone = FrameAccumulator.ToneSettings()
+    var timelapse = TimelapseSettings.default
+
+    private(set) var state: SessionState = .idle
+    private(set) var progress = StackProgress()
+    private(set) var previewTexture: MTLTexture?
+    private(set) var capabilities: CameraCapabilities
+    private(set) var plan: SkyDirector.Plan?
+    private(set) var lastSavedMessage: String?
+
+    let attitude = AttitudeProvider()
+
+    // MARK: - Machinery
+
+    private var captureEngine: CaptureEngine?
+    private var stackEngine: StackEngine?
+    private var accumulator: FrameAccumulator?
+    private var timelapseWriter: TimelapseWriter?
+    private var skyTimer: Timer?
+    private var aimingTimer: Timer?
+    private var previousBrightness: CGFloat = UIScreen.main.brightness
+    private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "session")
+
+    init() {
+        let capabilities = CaptureEngine.discoverCapabilities()
+        self.capabilities = capabilities
+        let lens = capabilities.fastestLens ?? LensOption(
+            deviceType: .builtInWideAngleCamera,
+            displayName: "Main",
+            aperture: 1.78,
+            fieldOfView: 70
+        )
+        self.settings = .default(for: lens, capabilities: capabilities)
+    }
+
+    // MARK: - Sky guidance
+
+    /// The aiming advice, refreshed as the sky turns. Ten seconds is far more often than
+    /// the sky needs, and far cheaper than the camera pipeline running beside it.
+    func startSkyUpdates() {
+        attitude.start()
+        refreshPlan()
+        skyTimer?.invalidate()
+        skyTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refreshPlan() }
+        }
+    }
+
+    func stopSkyUpdates() {
+        skyTimer?.invalidate()
+        skyTimer = nil
+        attitude.stop()
+    }
+
+    private func refreshPlan() {
+        guard let location = attitude.location else { return }
+        plan = SkyDirector.plan(at: location, date: Date())
+    }
+
+    /// How far, and which way, to swing the phone to hit the recommended target.
+    var aimGuidance: AimGuidance? {
+        guard let plan, attitude.hasFullFix else { return nil }
+        return AimGuidance(from: attitude.aim, to: plan.aim.direction)
+    }
+
+    // MARK: - Camera lifecycle
+
+    func prepare() async {
+        state = .preparing
+
+        guard await CaptureEngine.requestAuthorization() else {
+            state = .failed(CameraError.authorizationDenied.localizedDescription)
+            return
+        }
+
+        do {
+            let accumulator = try FrameAccumulator()
+            let stack = StackEngine(accumulator: accumulator)
+            let capture = CaptureEngine { [weak stack] frame in
+                stack?.consume(frame)
+            }
+
+            wire(stack)
+
+            self.accumulator = accumulator
+            self.stackEngine = stack
+            self.captureEngine = capture
+
+            try await capture.prepare(lens: settings.lens)
+            try await capture.apply(aimingSettings)
+            await capture.start()
+
+            // Framing happens before the session starts, so the sensor runs short and hot:
+            // useless for stars, but it shows the horizon, trees and focus well enough to
+            // compose — which a one-second frame at low ISO would not.
+            startAimingPreview()
+            state = .aiming
+        } catch {
+            logger.error("Prepare failed: \(error.localizedDescription, privacy: .public)")
+            state = .failed(error.localizedDescription)
+        }
+    }
+
+    /// Short, high-gain frames purely for composing the shot.
+    private var aimingSettings: CaptureSettings {
+        var aiming = settings
+        aiming.frameExposure = min(1.0 / 8.0, capabilities.maxFrameExposure)
+        aiming.iso = capabilities.isoRange.upperBound
+        return aiming
+    }
+
+    private func wire(_ stack: StackEngine) {
+        stack.onProgress = { [weak self] progress in
+            Task { @MainActor in
+                self?.progress = progress
+                self?.refreshPreview()
+            }
+        }
+
+        stack.onFinished = { [weak self] in
+            Task { @MainActor in
+                await self?.finishSession()
+            }
+        }
+    }
+
+    private func startAimingPreview() {
+        // In aiming mode frames arrive several times a second; refreshing the preview on a
+        // timer keeps the UI steady without a redraw per frame.
+        aimingTimer?.invalidate()
+        aimingTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                guard self.state == .aiming else {
+                    self.aimingTimer?.invalidate()
+                    self.aimingTimer = nil
+                    return
+                }
+                self.refreshPreview(tone: .neutral)
+            }
+        }
+    }
+
+    private func refreshPreview(tone overrideTone: FrameAccumulator.ToneSettings? = nil) {
+        previewTexture = stackEngine?.currentPreview(tone: overrideTone ?? tone)
+    }
+
+    // MARK: - Session
+
+    func start() async {
+        guard let captureEngine, let stackEngine else { return }
+
+        do {
+            try await captureEngine.apply(settings)
+        } catch {
+            state = .failed(error.localizedDescription)
+            return
+        }
+
+        if case .timelapse(let timelapseSettings) = mode {
+            let writer = try? TimelapseWriter(
+                width: accumulator?.width ?? 1920,
+                height: accumulator?.height ?? 1080,
+                frameRate: timelapseSettings.outputFrameRate
+            )
+            timelapseWriter = writer
+
+            // Encode inline on the capture queue that produced the texture. The writer is
+            // its own queue-safe object, so the frame lands in the file before the
+            // accumulator is cleared for the next segment.
+            stackEngine.onSegmentReady = { texture, index in
+                writer?.append(texture, frameIndex: index)
+            }
+        } else {
+            stackEngine.onSegmentReady = nil
+        }
+
+        lastSavedMessage = nil
+        stackEngine.begin(settings: settings, mode: mode, tone: tone)
+        state = .capturing
+
+        // The screen stays on — iOS force-stops capture in the background, so there is no
+        // such thing as a background astro session. Dimming to near-black is the honest
+        // substitute: the session survives, the battery lasts, and nobody's night vision
+        // is destroyed by a phone glowing on a tripod.
+        previousBrightness = UIScreen.main.brightness
+        UIApplication.shared.isIdleTimerDisabled = true
+        UIScreen.main.brightness = 0.05
+    }
+
+    func cancel() async {
+        stackEngine?.cancel()
+        await finishSession()
+    }
+
+    private func finishSession() async {
+        guard state == .capturing else { return }
+        state = .finishing
+
+        restoreScreen()
+
+        if mode.isTimelapse, let writer = timelapseWriter {
+            if let url = await writer.finish() {
+                await save(videoAt: url)
+            }
+            timelapseWriter = nil
+        } else if let finalTexture = stackEngine?.currentPreview(tone: tone) {
+            previewTexture = finalTexture
+            await save(image: finalTexture)
+        }
+
+        // Back to framing so the next shot can be composed straight away.
+        try? await captureEngine?.apply(aimingSettings)
+        startAimingPreview()
+        state = .aiming
+    }
+
+    private func appendTimelapseFrame(_ texture: MTLTexture, index: Int) {
+        timelapseWriter?.append(texture, frameIndex: index)
+        previewTexture = texture
+    }
+
+    private func restoreScreen() {
+        UIApplication.shared.isIdleTimerDisabled = false
+        UIScreen.main.brightness = previousBrightness
+    }
+
+    // MARK: - Saving
+
+    private func save(image texture: MTLTexture) async {
+        guard let cgImage = texture.makeCGImage() else {
+            lastSavedMessage = "Could not render the stack."
+            return
+        }
+        guard await requestPhotoAccess() else {
+            lastSavedMessage = "Photo library access denied."
+            return
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: UIImage(cgImage: cgImage))
+            }
+            lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
+        } catch {
+            lastSavedMessage = "Save failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func save(videoAt url: URL) async {
+        guard await requestPhotoAccess() else {
+            lastSavedMessage = "Photo library access denied."
+            return
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            }
+            lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
+        } catch {
+            lastSavedMessage = "Save failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func requestPhotoAccess() async -> Bool {
+        let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        return status == .authorized || status == .limited
+    }
+
+    // MARK: - Derived readouts
+
+    /// The honest translation of the requested exposure into what the hardware will do.
+    var exposureExplanation: String {
+        let frames = settings.frameCount
+        let total = settings.totalLightSeconds
+        let minutes = total / 60
+        let duration = minutes >= 1
+            ? String(format: "%.0f min", minutes)
+            : String(format: "%.0f s", total)
+        return "\(duration) of light = \(frames) × "
+            + String(format: "%.2fs", settings.frameExposure)
+    }
+
+    var hardwareCeilingNote: String {
+        String(
+            format: "This sensor caps a single frame at %.2fs — longer exposures are stacked, not held.",
+            capabilities.maxFrameExposure
+        )
+    }
+}
+
+// MARK: - Texture export
+
+extension MTLTexture {
+    /// Copy a BGRA texture into a CGImage for saving.
+    func makeCGImage() -> CGImage? {
+        guard pixelFormat == .bgra8Unorm else { return nil }
+
+        let bytesPerRow = width * 4
+        var data = [UInt8](repeating: 0, count: bytesPerRow * height)
+        data.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            getBytes(
+                base,
+                bytesPerRow: bytesPerRow,
+                from: MTLRegionMake2D(0, 0, width, height),
+                mipmapLevel: 0
+            )
+        }
+
+        guard let provider = CGDataProvider(data: Data(data) as CFData) else { return nil }
+        return CGImage(
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bitsPerPixel: 32,
+            bytesPerRow: bytesPerRow,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
+                .union(.byteOrder32Little),
+            provider: provider,
+            decode: nil,
+            shouldInterpolate: false,
+            intent: .defaultIntent
+        )
+    }
+}

@@ -1,0 +1,120 @@
+import AVFoundation
+import CoreVideo
+import Foundation
+import Metal
+import os
+import VideoToolbox
+
+/// Encodes finished stacks into an HEVC time-lapse, one output frame per stack.
+///
+/// Writing incrementally rather than holding frames in memory matters here: an hour-long
+/// session at full sensor resolution would be gigabytes of float textures, and the app
+/// would be killed long before the sky was done moving.
+final class TimelapseWriter: @unchecked Sendable {
+
+    private let writer: AVAssetWriter
+    private let input: AVAssetWriterInput
+    private let adaptor: AVAssetWriterInputPixelBufferAdaptor
+    private let frameRate: Int
+    private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "timelapse")
+    private var started = false
+
+    let outputURL: URL
+
+    init(width: Int, height: Int, frameRate: Int) throws {
+        // Even dimensions — HEVC will not encode odd ones.
+        let evenWidth = width - (width % 2)
+        let evenHeight = height - (height % 2)
+
+        let filename = "starlapse-\(Int(Date().timeIntervalSince1970)).mov"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        self.outputURL = url
+        self.frameRate = frameRate
+
+        writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+
+        let settings: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.hevc,
+            AVVideoWidthKey: evenWidth,
+            AVVideoHeightKey: evenHeight,
+            AVVideoCompressionPropertiesKey: [
+                // Night skies are mostly smooth gradients over near-black, where low
+                // bitrates band badly. This is generous on purpose.
+                AVVideoAverageBitRateKey: evenWidth * evenHeight * 12,
+                AVVideoProfileLevelKey: kVTProfileLevel_HEVC_Main_AutoLevel,
+            ],
+        ]
+
+        input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
+        input.expectsMediaDataInRealTime = false
+
+        adaptor = AVAssetWriterInputPixelBufferAdaptor(
+            assetWriterInput: input,
+            sourcePixelBufferAttributes: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+                kCVPixelBufferWidthKey as String: evenWidth,
+                kCVPixelBufferHeightKey as String: evenHeight,
+                kCVPixelBufferMetalCompatibilityKey as String: true,
+            ]
+        )
+
+        guard writer.canAdd(input) else {
+            throw StackError.metalUnavailable
+        }
+        writer.add(input)
+    }
+
+    /// Append one rendered stack as the next frame of the clip.
+    func append(_ texture: MTLTexture, frameIndex: Int) {
+        if !started {
+            writer.startWriting()
+            writer.startSession(atSourceTime: .zero)
+            started = true
+        }
+
+        guard writer.status == .writing else {
+            logger.error("Writer not writing: \(String(describing: self.writer.error))")
+            return
+        }
+        guard let pool = adaptor.pixelBufferPool else { return }
+
+        var pixelBuffer: CVPixelBuffer?
+        guard CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pool, &pixelBuffer) == kCVReturnSuccess,
+              let pixelBuffer else { return }
+
+        CVPixelBufferLockBaseAddress(pixelBuffer, [])
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
+
+        if let base = CVPixelBufferGetBaseAddress(pixelBuffer) {
+            let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+            let width = min(texture.width, CVPixelBufferGetWidth(pixelBuffer))
+            let height = min(texture.height, CVPixelBufferGetHeight(pixelBuffer))
+            texture.getBytes(
+                base,
+                bytesPerRow: bytesPerRow,
+                from: MTLRegionMake2D(0, 0, width, height),
+                mipmapLevel: 0
+            )
+        }
+
+        // Wait rather than drop: an output frame here cost minutes of sky time.
+        while !input.isReadyForMoreMediaData {
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+
+        let time = CMTime(value: CMTimeValue(frameIndex), timescale: CMTimeScale(frameRate))
+        adaptor.append(pixelBuffer, withPresentationTime: time)
+    }
+
+    func finish() async -> URL? {
+        guard started else { return nil }
+        input.markAsFinished()
+        await writer.finishWriting()
+
+        guard writer.status == .completed else {
+            logger.error("Time-lapse failed: \(String(describing: self.writer.error))")
+            return nil
+        }
+        return outputURL
+    }
+}
