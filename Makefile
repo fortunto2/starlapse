@@ -28,6 +28,14 @@ gen: ## Regenerate the Xcode project from project.yml
 test: ## Run the domain tests (no simulator, ~3s)
 	@swift test
 
+test-app: gen ## Run the app-layer tests on a simulator (~40s)
+	@xcodebuild -project $(PROJECT) -scheme $(SCHEME) \
+		-destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+		-derivedDataPath build-test CODE_SIGNING_ALLOWED=NO test 2>&1 | \
+		grep -E "(Test run with|recorded an issue|error:)" | tail -8
+
+test-all: test test-app ## Everything
+
 integration: ## Run the CLI against the real sky — deterministic, no UI
 	@swift run -q starlapse-sky tonight --lat $(LAT) --lon $(LON)
 	@swift run -q starlapse-sky moon --lat $(LAT) --lon $(LON)

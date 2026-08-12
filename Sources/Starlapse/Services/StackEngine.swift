@@ -136,7 +136,7 @@ final class StackEngine: @unchecked Sendable {
             segmentsRequested: plan.segments ?? 0
         )
 
-        if !plan.isFraming {
+        if plan.isStoppable {
             logger.info("""
                 Session start: \(plan.totalFrames ?? 0) frames, \
                 \(plan.framesPerSegment) per segment, \(plan.segments ?? 0) segments
@@ -151,7 +151,7 @@ final class StackEngine: @unchecked Sendable {
     /// — the app crashed on the stop button.
     func cancel() {
         queue.run { [weak self] in
-            guard let self, let plan, !plan.isFraming else { return }
+            guard let self, let plan, plan.isStoppable else { return }
             self.finish(cancelled: true, alreadyResolved: nil)
         }
     }
