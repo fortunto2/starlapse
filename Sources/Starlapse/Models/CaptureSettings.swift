@@ -98,6 +98,20 @@ struct CaptureSettings: Sendable, Equatable {
         frameExposure * 15.0
     }
 
+    /// The same settings, adjusted for composing the shot rather than recording it.
+    ///
+    /// Framing runs the sensor short and hot: useless for stars, but it shows the horizon,
+    /// trees and focus several times a second, which a one-second frame at low ISO would
+    /// not. Living on the settings type rather than in the view model means there is one
+    /// definition of "what the camera should be doing right now", derived from state
+    /// instead of applied by hand at transition points.
+    func forFraming(_ capabilities: CameraCapabilities) -> Self {
+        var framing = self
+        framing.frameExposure = min(1.0 / 8.0, capabilities.maxFrameExposure)
+        framing.iso = capabilities.isoRange.upperBound
+        return framing
+    }
+
     static func `default`(for lens: LensOption, capabilities: CameraCapabilities) -> Self {
         CaptureSettings(
             lens: lens,

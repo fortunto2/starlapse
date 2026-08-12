@@ -8,7 +8,8 @@ struct CaptureView: View {
     /// The sky overlay is genuinely useful and genuinely in the way — it has to come off
     /// in one tap, without hunting through a settings sheet in the dark.
     @State private var showsOverlay = true
-    @State private var themeMode = ThemeMode.bright
+    /// Read, not mirrored: the store owns the mode, so any writer invalidates the view.
+    @State private var theme = NightThemeStore.shared
 
     var body: some View {
         ZStack {
@@ -68,9 +69,8 @@ struct CaptureView: View {
                 showsOverlay.toggle()
             }
 
-            iconButton("moon.fill", active: themeMode == .nightVision) {
-                themeMode = themeMode == .bright ? .nightVision : .bright
-                NightTheme.mode = themeMode
+            iconButton("moon.fill", active: theme.mode == .nightVision) {
+                theme.toggle()
             }
 
             Spacer()
@@ -78,7 +78,7 @@ struct CaptureView: View {
             if let plan = model.plan, showsOverlay {
                 // The focus hint: autofocus is useless against a dark sky, so you set
                 // infinity by hand and confirm it on the brightest point source available.
-                if let focus = plan.focusTarget(), focus.direction.isAboveHorizon {
+                if let focus = plan.focusTarget {
                     Text("FOCUS ON \(focus.name.uppercased())")
                         .font(NightTheme.mono(10, weight: .semibold))
                         .foregroundStyle(NightTheme.accent)
@@ -127,7 +127,7 @@ struct CaptureView: View {
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)
 
-                let planets = plan.visiblePlanets()
+                let planets = plan.visiblePlanets
                 if !planets.isEmpty {
                     ReadoutRow(
                         label: "Planets up",

@@ -8,18 +8,6 @@ import Testing
 @Suite("Planets")
 struct PlanetTests {
 
-    static func utc(_ year: Int, _ month: Int, _ day: Int, _ hour: Int = 0) -> Date {
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        components.hour = hour
-        guard let date = Calendar.gregorianUTC.date(from: components) else {
-            fatalError("Bad test date")
-        }
-        return date
-    }
-
     @Test("Kepler's equation inverts correctly")
     func keplerSolverInverts() {
         for eccentricity in [0.0, 0.02, 0.09, 0.21, 0.5] {
@@ -43,10 +31,10 @@ struct PlanetTests {
         let limits = ["Mercury": 29.0, "Venus": 48.0]
 
         for month in 1...12 {
-            let jd = AstroTime.julianDate(from: Self.utc(2026, month, 1))
+            let jd = AstroTime.julianDate(from: utc(2026, month, 1))
             let sun = SolarSystem.sunPosition(jd: jd)
             let equator = GeographicCoordinates(latitude: 0, longitude: 0)
-            let date = Self.utc(2026, month, 1)
+            let date = utc(2026, month, 1)
 
             for planet in PlanetEphemeris.positions(jd: jd) {
                 guard let limit = limits[planet.name] else { continue }
@@ -63,7 +51,7 @@ struct PlanetTests {
         // Every major planet orbits within a few degrees of Earth's orbital plane. Measured
         // as distance from the Sun's own path, none should stray past about 10°.
         for year in [2026, 2028, 2031] {
-            let jd = AstroTime.julianDate(from: Self.utc(year, 3, 15))
+            let jd = AstroTime.julianDate(from: utc(year, 3, 15))
             let obliquity = AstroTime.obliquityOfEcliptic(jd: jd).radians
 
             for planet in PlanetEphemeris.positions(jd: jd) {
@@ -85,7 +73,7 @@ struct PlanetTests {
         // The periods below are Kepler's third law, T = a^1.5 years, not memorised values.
         for planet in Planet.catalog {
             let period = pow(planet.elements.semiMajorAxis, 1.5) * 365.256
-            let start = AstroTime.julianDate(from: Self.utc(2026, 1, 1))
+            let start = AstroTime.julianDate(from: utc(2026, 1, 1))
 
             let first = PlanetEphemeris.heliocentric(
                 planet.elements.advanced(centuries: AstroTime.julianCenturies(since: start))
@@ -108,7 +96,7 @@ struct PlanetTests {
         // Geocentric distance can never exceed the planet's aphelion plus Earth's, nor drop
         // below the difference of their perihelia.
         for month in 1...12 {
-            let jd = AstroTime.julianDate(from: Self.utc(2027, month, 1))
+            let jd = AstroTime.julianDate(from: utc(2027, month, 1))
             for planet in PlanetEphemeris.positions(jd: jd) {
                 let a = planet.planet.elements.semiMajorAxis
                 let e = planet.planet.elements.eccentricity
@@ -124,7 +112,7 @@ struct PlanetTests {
     func venusOutshinesEverything() {
         // Venus reaches about −4, brighter than Sirius at −1.46. Any ordering bug in the
         // magnitude calculation shows up here.
-        let jd = AstroTime.julianDate(from: Self.utc(2026, 8, 13))
+        let jd = AstroTime.julianDate(from: utc(2026, 8, 13))
         let planets = PlanetEphemeris.positions(jd: jd)
 
         guard let venus = planets.first(where: { $0.name == "Venus" }) else {
@@ -152,7 +140,7 @@ struct PlanetTests {
         // months and its distance changes fastest right there, so a coarse grid steps
         // straight over the peak and understates the range.
         func magnitudeRange(of name: String) -> Double {
-            let start = AstroTime.julianDate(from: Self.utc(2026, 1, 1))
+            let start = AstroTime.julianDate(from: utc(2026, 1, 1))
             var brightest = Double.infinity
             var faintest = -Double.infinity
 

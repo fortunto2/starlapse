@@ -48,8 +48,10 @@ final class CaptureViewModel {
     private var accumulator: FrameAccumulator?
     private var timelapseWriter: TimelapseWriter?
     private var skyTimer: Timer?
-    private var aimingTimer: Timer?
     private var previousBrightness: CGFloat = UIScreen.main.brightness
+    /// Last lens actually handed to the hardware, so a lens change can be told apart
+    /// from an exposure change — the former needs a full session reconfigure.
+    private var appliedLens: LensOption?
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "session")
 
     init() {
@@ -118,13 +120,14 @@ final class CaptureViewModel {
             self.captureEngine = capture
 
             try await capture.prepare(lens: settings.lens)
-            try await capture.apply(aimingSettings)
+            appliedLens = settings.lens
+            try await capture.apply(activeSettings)
 
             // Framing happens before the session starts, so the sensor runs short and hot:
             // useless for stars, but it shows the horizon, trees and focus well enough to
             // compose — which a one-second frame at low ISO would not. The engine has to
             // be told to display these frames, or it drops them and the screen stays black.
-            stack.beginLivePreview(settings: aimingSettings, tone: .neutral)
+            stack.beginLivePreview(settings: activeSettings, tone: .neutral)
             await capture.start()
             state = .aiming
         } catch {
@@ -133,12 +136,27 @@ final class CaptureViewModel {
         }
     }
 
-    /// Short, high-gain frames purely for composing the shot.
-    private var aimingSettings: CaptureSettings {
-        var aiming = settings
-        aiming.frameExposure = min(1.0 / 8.0, capabilities.maxFrameExposure)
-        aiming.iso = capabilities.isoRange.upperBound
-        return aiming
+    /// What the camera should be doing right now, derived from state rather than pushed at
+    /// transition points. Framing gets short, high-gain frames; a session gets exactly what
+    /// the user dialled in.
+    private var activeSettings: CaptureSettings {
+        state.isCapturing ? settings : settings.forFraming(capabilities)
+    }
+
+    /// Push the current settings to the sensor.
+    ///
+    /// Called on every settings edit, not only on state transitions. Without this the lens
+    /// picker was inert for the whole app lifetime — `settings.lens` was bound to a control
+    /// but only ever reached the hardware inside `prepare()`.
+    func settingsChanged() async {
+        guard let captureEngine, state == .aiming || state.isCapturing else { return }
+
+        if settings.lens != appliedLens {
+            appliedLens = settings.lens
+            try? await captureEngine.prepare(lens: settings.lens)
+            stackEngine?.beginLivePreview(settings: activeSettings, tone: .neutral)
+        }
+        try? await captureEngine.apply(activeSettings)
     }
 
     private func wire(_ stack: StackEngine) {
@@ -233,8 +251,9 @@ final class CaptureViewModel {
         }
 
         // Back to framing so the next shot can be composed straight away.
-        try? await captureEngine?.apply(aimingSettings)
-        stackEngine?.beginLivePreview(settings: aimingSettings, tone: .neutral)
+        let framing = activeSettings
+        try? await captureEngine?.apply(framing)
+        stackEngine?.beginLivePreview(settings: framing, tone: .neutral)
         state = .aiming
     }
 
@@ -304,43 +323,6 @@ final class CaptureViewModel {
         String(
             format: "This sensor caps a single frame at %.2fs — longer exposures are stacked, not held.",
             capabilities.maxFrameExposure
-        )
-    }
-}
-
-// MARK: - Texture export
-
-extension MTLTexture {
-    /// Copy a BGRA texture into a CGImage for saving.
-    func makeCGImage() -> CGImage? {
-        guard pixelFormat == .bgra8Unorm else { return nil }
-
-        let bytesPerRow = width * 4
-        var data = [UInt8](repeating: 0, count: bytesPerRow * height)
-        data.withUnsafeMutableBytes { raw in
-            guard let base = raw.baseAddress else { return }
-            getBytes(
-                base,
-                bytesPerRow: bytesPerRow,
-                from: MTLRegionMake2D(0, 0, width, height),
-                mipmapLevel: 0
-            )
-        }
-
-        guard let provider = CGDataProvider(data: Data(data) as CFData) else { return nil }
-        return CGImage(
-            width: width,
-            height: height,
-            bitsPerComponent: 8,
-            bitsPerPixel: 32,
-            bytesPerRow: bytesPerRow,
-            space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
-                .union(.byteOrder32Little),
-            provider: provider,
-            decode: nil,
-            shouldInterpolate: false,
-            intent: .defaultIntent
         )
     }
 }

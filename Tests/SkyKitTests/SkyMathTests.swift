@@ -9,22 +9,6 @@ import Testing
 @Suite("Sky math")
 struct SkyMathTests {
 
-    /// Build a UTC instant from calendar fields. Raw `timeIntervalSince1970` constants are
-    /// banned here on purpose — the first draft of this file had four of them and three
-    /// pointed at a different day than their comment claimed.
-    static func utc(_ year: Int, _ month: Int, _ day: Int, _ hour: Int = 0, _ minute: Int = 0) -> Date {
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        components.hour = hour
-        components.minute = minute
-        guard let date = Calendar.gregorianUTC.date(from: components) else {
-            fatalError("Bad test date \(year)-\(month)-\(day)")
-        }
-        return date
-    }
-
     /// Mid-Perseids — the night that started this project.
     static let referenceDate = utc(2026, 8, 13, 22)
     /// Roque de los Muchachos, La Palma — a real observatory, and a mid-northern
@@ -113,7 +97,7 @@ struct SkyMathTests {
     func sunFollowsTheDay() {
         // Summer solstice. Longitude 0, so UTC noon is local noon.
         let greenwich = GeographicCoordinates(latitude: 51.48, longitude: 0)
-        let noon = Self.utc(2026, 6, 21, 12)
+        let noon = utc(2026, 6, 21, 12)
         let midnight = noon.addingTimeInterval(12 * 3600)
 
         let atNoon = SolarSystem.sunPosition(jd: AstroTime.julianDate(from: noon))
@@ -130,7 +114,7 @@ struct SkyMathTests {
         // A total solar eclipse crossed Spain and Iceland on 2026-08-12. An eclipse *is*
         // a new moon — the Moon is between us and the Sun — so this is an external,
         // non-circular anchor for the phase calculation.
-        let eclipse = Self.utc(2026, 8, 12, 18)
+        let eclipse = utc(2026, 8, 12, 18)
         let state = SolarSystem.moonState(jd: AstroTime.julianDate(from: eclipse))
         #expect(state.illuminatedFraction < 0.01)
         #expect(state.phaseName == "New Moon")
@@ -152,7 +136,7 @@ struct SkyMathTests {
         var falling = false
 
         for hour in 0..<(120 * 24) {
-            let moment = Self.utc(2026, 6, 1).addingTimeInterval(Double(hour) * 3600)
+            let moment = utc(2026, 6, 1).addingTimeInterval(Double(hour) * 3600)
             let lit = SolarSystem.moonState(jd: AstroTime.julianDate(from: moment)).illuminatedFraction
             if lit < previous {
                 falling = true
@@ -201,9 +185,9 @@ struct SkyMathTests {
 
     @Test("The Quadrantids' window wraps across New Year")
     func quadrantidWindowWraps() {
-        let lateDecember = Self.utc(2026, 12, 30)
-        let earlyJanuary = Self.utc(2027, 1, 9)
-        let midJune = Self.utc(2026, 6, 8)
+        let lateDecember = utc(2026, 12, 30)
+        let earlyJanuary = utc(2027, 1, 9)
+        let midJune = utc(2026, 6, 8)
 
         #expect(MeteorShower.active(on: lateDecember).contains { $0.code == "QUA" })
         #expect(MeteorShower.active(on: earlyJanuary).contains { $0.code == "QUA" })

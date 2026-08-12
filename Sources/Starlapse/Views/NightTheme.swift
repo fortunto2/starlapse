@@ -23,43 +23,80 @@ enum ThemeMode: String, CaseIterable, Sendable, Identifiable {
     }
 }
 
+/// One theme's four colours, defined in one place.
+struct Palette: Sendable, Hashable {
+    let primary: Color
+    let secondary: Color
+    let dim: Color
+    let accent: Color
+
+    static let bright = Palette(
+        primary: .white,
+        secondary: Color(white: 0.78),
+        // Labels were 0.42/0.09/0.07 here, which vanished completely outdoors.
+        dim: Color(white: 0.62),
+        accent: Color(red: 1.0, green: 0.78, blue: 0.25)
+    )
+
+    static let nightVision = Palette(
+        primary: Color(red: 1.0, green: 0.25, blue: 0.20),
+        secondary: Color(red: 0.80, green: 0.20, blue: 0.16),
+        dim: Color(red: 0.62, green: 0.16, blue: 0.13),
+        accent: Color(red: 1.0, green: 0.45, blue: 0.30)
+    )
+}
+
+extension ThemeMode {
+    var palette: Palette {
+        switch self {
+        case .bright: .bright
+        case .nightVision: .nightVision
+        }
+    }
+}
+
+/// The current theme.
+///
+/// `@Observable`, not a static var. The first version stored the mode on a plain static and
+/// the toggle appeared to work — but only because the button also wrote an unrelated
+/// `@State` in the same view, which is what actually invalidated the body. A second writer
+/// anywhere (a picker in the settings sheet, an automatic switch at astronomical twilight)
+/// would have changed nothing on screen, and a half-applied night theme is worse than none:
+/// the whole point is that no white light reaches the eye.
+@MainActor
+@Observable
+final class NightThemeStore {
+    static let shared = NightThemeStore()
+
+    var mode: ThemeMode {
+        didSet { UserDefaults.standard.set(mode.rawValue, forKey: Self.storageKey) }
+    }
+
+    private static let storageKey = "themeMode"
+
+    private init() {
+        let stored = UserDefaults.standard.string(forKey: Self.storageKey)
+        // Persisted, because relaunching at 2am into a white screen destroys the 20–30
+        // minutes of dark adaptation this type exists to protect.
+        mode = stored.flatMap(ThemeMode.init(rawValue:)) ?? .bright
+    }
+
+    func toggle() {
+        mode = mode == .bright ? .nightVision : .bright
+    }
+}
+
 @MainActor
 enum NightTheme {
-    /// Set once at launch and whenever the user toggles. Static rather than threaded
-    /// through every view because every view needs it and none of them decide it.
-    static var mode: ThemeMode = .bright
+    static var mode: ThemeMode { NightThemeStore.shared.mode }
+    private static var palette: Palette { mode.palette }
 
     static let background = Color.black
 
-    static var primary: Color {
-        switch mode {
-        case .bright: Color.white
-        case .nightVision: Color(red: 1.0, green: 0.25, blue: 0.20)
-        }
-    }
-
-    static var secondary: Color {
-        switch mode {
-        case .bright: Color(white: 0.78)
-        case .nightVision: Color(red: 0.80, green: 0.20, blue: 0.16)
-        }
-    }
-
-    /// Labels and secondary readouts. Deliberately light — the previous value here was
-    /// 0.42/0.09/0.07, which vanished completely outdoors.
-    static var dim: Color {
-        switch mode {
-        case .bright: Color(white: 0.62)
-        case .nightVision: Color(red: 0.62, green: 0.16, blue: 0.13)
-        }
-    }
-
-    static var accent: Color {
-        switch mode {
-        case .bright: Color(red: 1.0, green: 0.78, blue: 0.25)
-        case .nightVision: Color(red: 1.0, green: 0.45, blue: 0.30)
-        }
-    }
+    static var primary: Color { palette.primary }
+    static var secondary: Color { palette.secondary }
+    static var dim: Color { palette.dim }
+    static var accent: Color { palette.accent }
 
     static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         .system(size: size, weight: weight, design: .monospaced)

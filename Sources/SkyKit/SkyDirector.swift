@@ -1,5 +1,12 @@
 import Foundation
 
+/// What kind of thing a sky landmark is. Drives how it is drawn and how it ranks as a
+/// focus target — a planet is a disc, so it snaps into focus more decisively than a star.
+public enum LandmarkKind: Sendable, Hashable {
+    case star
+    case planet
+}
+
 /// Turns "it's a clear night in August" into "point the phone there, for this long".
 ///
 /// This is the part that earns the app. Pointing at the radiant is the mistake every
@@ -61,38 +68,42 @@ public enum SkyDirector {
         public var compass: String { compassPoint(forAzimuth: direction.azimuth) }
     }
 
+    /// Something in the sky worth drawing, already converted to a direction.
+    ///
+    /// The conversion happens once, when the plan is built. Overlay views run at display
+    /// rate and must not be re-deriving sidereal time for the same instant thirty times a
+    /// second — the only thing that changes between redraws is where the phone is pointed.
+    public struct Landmark: Sendable, Hashable, Identifiable {
+        public var id: String { name }
+        public let name: String
+        public let kind: LandmarkKind
+        /// Apparent visual magnitude — lower is brighter.
+        public let magnitude: Double
+        public let direction: HorizontalCoordinates
+
+        public var isPlanet: Bool { kind == .planet }
+    }
+
     public struct Plan: Sendable {
         public let date: Date
         public let location: GeographicCoordinates
         public let conditions: Conditions
         public let showers: [ShowerActivity]
-        public let planets: [PlanetPosition]
+        /// Bright stars and visible planets, positions already resolved.
+        public let landmarks: [Landmark]
         public let milkyWayCore: HorizontalCoordinates
         public let celestialPole: HorizontalCoordinates
         public let aim: AimPoint
-
-        public var headlineShower: ShowerActivity? { showers.first }
-
-        /// Planets currently above the horizon and bright enough to see, brightest first.
-        public func visiblePlanets() -> [PlanetPosition] {
-            planets.filter { planet in
-                planet.isNakedEyeBright
-                    && planet.position.horizontal(at: location, date: date).isAboveHorizon
-            }
-        }
-
         /// The best thing to focus on. Autofocus is useless against a dark sky, so manual
         /// focus needs a bright point source — a planet is the brightest one available
         /// short of the Moon, and unlike the Moon it never blows out the frame.
-        public func focusTarget() -> (name: String, direction: HorizontalCoordinates)? {
-            if let planet = visiblePlanets().first {
-                return (planet.name, planet.position.horizontal(at: location, date: date))
-            }
-            let star = SkyCatalog.brightStars
-                .map { ($0, $0.position.horizontal(at: location, date: date)) }
-                .filter { $0.1.altitude > 15 }
-                .min { $0.0.magnitude < $1.0.magnitude }
-            return star.map { ($0.0.name, $0.1) }
+        public let focusTarget: Landmark?
+
+        public var headlineShower: ShowerActivity? { showers.first }
+
+        /// Planets currently up and bright enough to see, brightest first.
+        public var visiblePlanets: [Landmark] {
+            landmarks.filter(\.isPlanet)
         }
     }
 
@@ -130,13 +141,14 @@ public enum SkyDirector {
 
         let milkyWay = SkyCatalog.galacticCenter.horizontal(at: location, date: date)
         let pole = SkyCatalog.polaris.position.horizontal(at: location, date: date)
+        let landmarks = resolveLandmarks(at: location, date: date, jd: jd)
 
         return Plan(
             date: date,
             location: location,
             conditions: conditions,
             showers: showers,
-            planets: PlanetEphemeris.positions(jd: jd),
+            landmarks: landmarks,
             milkyWayCore: milkyWay,
             celestialPole: pole,
             aim: aimPoint(
@@ -144,8 +156,49 @@ public enum SkyDirector {
                 milkyWay: milkyWay,
                 pole: pole,
                 conditions: conditions
-            )
+            ),
+            // Brightest thing high enough to be clear of horizon haze. Planets win over
+            // stars at equal magnitude — they are disc sources, so they cut through
+            // seeing better and snap into focus more decisively.
+            focusTarget: landmarks
+                .filter { $0.direction.altitude > 15 }
+                .min { left, right in
+                    let leftScore = left.magnitude - (left.isPlanet ? 0.5 : 0)
+                    let rightScore = right.magnitude - (right.isPlanet ? 0.5 : 0)
+                    return leftScore < rightScore
+                }
         )
+    }
+
+    /// Resolve every drawable object to a direction, once per plan.
+    static func resolveLandmarks(
+        at location: GeographicCoordinates,
+        date: Date,
+        jd: Double
+    ) -> [Landmark] {
+        let planets = PlanetEphemeris.positions(jd: jd)
+            .filter(\.isNakedEyeBright)
+            .map { planet in
+                Landmark(
+                    name: planet.name,
+                    kind: .planet,
+                    magnitude: planet.magnitude,
+                    direction: planet.position.horizontal(at: location, date: date)
+                )
+            }
+
+        let stars = SkyCatalog.brightStars.map { star in
+            Landmark(
+                name: star.name,
+                kind: .star,
+                magnitude: star.magnitude,
+                direction: star.position.horizontal(at: location, date: date)
+            )
+        }
+
+        return (planets + stars)
+            .filter(\.direction.isAboveHorizon)
+            .sorted { $0.magnitude < $1.magnitude }
     }
 
     // MARK: - Scoring

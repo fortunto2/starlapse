@@ -67,8 +67,15 @@ struct MetalPreviewView: UIViewRepresentable {
                   let commandQueue,
                   let buffer = commandQueue.makeCommandBuffer() else { return }
 
-            if let texture, let pipeline,
-               let encoder = buffer.makeRenderCommandEncoder(descriptor: descriptor) {
+            // The pass itself clears to black, so with no frame yet an empty encoder is
+            // exactly the right thing to submit.
+            guard let encoder = buffer.makeRenderCommandEncoder(descriptor: descriptor) else {
+                buffer.present(drawable)
+                buffer.commit()
+                return
+            }
+
+            if let texture, let pipeline {
                 encoder.setRenderPipelineState(pipeline)
                 encoder.setFragmentTexture(texture, index: 0)
 
@@ -81,12 +88,9 @@ struct MetalPreviewView: UIViewRepresentable {
                 )
                 encoder.setFragmentBytes(&scale, length: MemoryLayout<SIMD2<Float>>.stride, index: 0)
                 encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
-                encoder.endEncoding()
-            } else if let encoder = buffer.makeRenderCommandEncoder(descriptor: descriptor) {
-                // No frame yet — clear to black rather than showing stale contents.
-                encoder.endEncoding()
             }
 
+            encoder.endEncoding()
             buffer.present(drawable)
             buffer.commit()
         }

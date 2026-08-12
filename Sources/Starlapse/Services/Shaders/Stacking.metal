@@ -9,7 +9,7 @@ struct StackParams {
     // Maps accumulator coordinates to frame coordinates — the inverse of the sky's
     // rotation, so a star lands on the same texel in every frame.
     float3x3 transform;
-    uint mode;        // 0 = sum (averaged on resolve), 1 = lighten (trails)
+    uint mode;        // 0 = sum (averaged on resolve), 1 = lighten (trails), 2 = replace
     uint frameIndex;
     uint useTransform;
 };
@@ -52,6 +52,15 @@ kernel void accumulate(texture2d<float, access::sample> frame [[texture(0)]],
     }
 
     float4 incoming = frame.sample(linearSampler, uv);
+
+    if (params.mode == 2) {
+        // Framing: this frame *is* the picture. Overwriting means the caller does not have
+        // to clear the accumulator first, which at full sensor resolution is a ~200 MB
+        // write of zeros that the very next instruction would overwrite anyway.
+        accumulator.write(incoming, gid);
+        return;
+    }
+
     float4 existing = accumulator.read(gid);
 
     if (params.mode == 1) {

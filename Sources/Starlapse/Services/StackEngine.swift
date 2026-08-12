@@ -97,9 +97,7 @@ final class StackEngine: @unchecked Sendable {
         self.settings = settings
         self.tone = tone
         activity = .live
-        referenceStars = []
-        previousStars = []
-        accumulatedTransform = .identity
+        resetAlignment()
         progress = StackProgress()
     }
 
@@ -107,10 +105,7 @@ final class StackEngine: @unchecked Sendable {
         self.settings = settings
         self.mode = mode
         self.tone = tone
-
-        referenceStars = []
-        previousStars = []
-        accumulatedTransform = .identity
+        resetAlignment()
 
         switch mode {
         case .still:
@@ -127,6 +122,9 @@ final class StackEngine: @unchecked Sendable {
             )
         }
 
+        // Drop whatever the framing preview left in the buffer, so the first frame of the
+        // session starts from black rather than stacking on top of a live view frame.
+        accumulator.clear()
         activity = .session
         logger.info("""
             Session start: \(self.progress.framesRequested) frames, \
@@ -138,6 +136,14 @@ final class StackEngine: @unchecked Sendable {
     func cancel() {
         guard activity == .session else { return }
         finish(reporting: true)
+    }
+
+    /// Forget where the stars were. Every entry and exit from a session goes through here,
+    /// so a new piece of tracking state only has to be cleared in one place.
+    private func resetAlignment() {
+        referenceStars = []
+        previousStars = []
+        accumulatedTransform = .identity
     }
 
     // MARK: - Frame intake
@@ -153,15 +159,18 @@ final class StackEngine: @unchecked Sendable {
         if activity == .live {
             // Framing: each frame replaces the last. No stacking, no alignment — just show
             // the user what the lens is pointed at.
-            accumulator.reset(width: width, height: height)
-            accumulator.add(frame.pixelBuffer, transform: nil, mode: .smooth)
+            accumulator.prepare(width: width, height: height)
+            accumulator.show(frame.pixelBuffer)
             if let rendered = accumulator.resolve(tone: tone, mode: .smooth) {
                 onPreviewReady?(PreviewFrame(texture: rendered))
             }
             return
         }
 
-        if accumulator.frameCount == 0 && progress.framesStacked == 0 {
+        // First frame of the session: size the textures to it. Keyed on the session's own
+        // progress, not the accumulator's frame count — the framing preview leaves that at
+        // one, which would skip this entirely.
+        if progress.framesStacked == 0 && progress.segmentsCompleted == 0 {
             accumulator.reset(width: width, height: height)
             segmentStartTime = frame.timestamp
         }
@@ -256,7 +265,7 @@ final class StackEngine: @unchecked Sendable {
 
         switch mode {
         case .still:
-            finish(reporting: false)
+            finish(reporting: false, alreadyResolved: resolved)
 
         case .timelapse(let timelapse):
             if let resolved {
@@ -265,15 +274,13 @@ final class StackEngine: @unchecked Sendable {
             }
 
             if progress.segmentsCompleted >= timelapse.frameCount {
-                finish(reporting: false)
+                finish(reporting: false, alreadyResolved: resolved)
             } else {
                 // Start the next segment clean. Alignment restarts too: over a long
                 // time-lapse the sky rotates far past what frame-to-frame tracking should
                 // be asked to carry, and each output frame is its own picture anyway.
                 accumulator.clear()
-                referenceStars = []
-                previousStars = []
-                accumulatedTransform = .identity
+                resetAlignment()
             }
         }
     }
@@ -282,17 +289,21 @@ final class StackEngine: @unchecked Sendable {
     ///
     /// The snapshot is taken here, on the capture queue, while nothing else is writing.
     /// This is the difference between saving a photo and crashing on one.
-    private func finish(reporting cancelled: Bool) {
+    /// `alreadyResolved` is the texture `completeSegment` just produced from an unchanged
+    /// accumulator — resolving a second time would repeat a full-resolution pass and a
+    /// blocking GPU wait to get identical pixels.
+    private func finish(reporting cancelled: Bool, alreadyResolved: MTLTexture? = nil) {
         guard let settings else { return }
 
-        let final = accumulator
-            .resolve(tone: tone, mode: settings.stackMode)
-            .map { accumulator.snapshot(of: $0) }
+        let rendered = alreadyResolved ?? accumulator.resolve(tone: tone, mode: settings.stackMode)
+        let final = rendered.map { accumulator.snapshot(of: $0) }
 
+        // Back to framing, with the framing curve. Leaving the capture curve installed here
+        // tone-mapped the first frames after a session with stretch 12 — a bright flash at
+        // exactly the moment the user looks up at the result.
         activity = .live
-        referenceStars = []
-        previousStars = []
-        accumulatedTransform = .identity
+        tone = .neutral
+        resetAlignment()
 
         if cancelled {
             logger.info("Session cancelled after \(self.progress.framesStacked) frames")

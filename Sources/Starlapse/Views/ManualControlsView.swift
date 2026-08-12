@@ -24,6 +24,12 @@ struct ManualControlsView: View {
             .padding(16)
         }
         .background(NightTheme.background)
+        // Push edits to the sensor as they happen. Previously settings only reached the
+        // hardware at state transitions, which left the lens picker inert for the whole
+        // lifetime of the app.
+        .onChange(of: model.settings) {
+            Task { await model.settingsChanged() }
+        }
     }
 
     // MARK: - Lens

@@ -62,20 +62,12 @@ struct SkyOverlayView: View {
 
     private func landmarks(plan: SkyDirector.Plan, in size: CGSize) -> some View {
         ZStack {
-            ForEach(SkyCatalog.brightStars) { star in
-                let position = star.position.horizontal(at: plan.location, date: plan.date)
-                if position.isAboveHorizon, let point = project(position, in: size) {
-                    starMarker(name: star.name, magnitude: star.magnitude)
-                        .position(point)
-                }
-            }
-
-            // Planets, which are the brightest things up there after the Moon and the best
-            // manual-focus targets on a dark night.
-            ForEach(plan.visiblePlanets()) { planet in
-                let position = planet.position.horizontal(at: plan.location, date: plan.date)
-                if let point = project(position, in: size) {
-                    planetMarker(planet)
+            // Directions were resolved when the plan was built. This body re-runs at
+            // display rate, and the only thing that changes between redraws is where the
+            // phone points — not where the sky is.
+            ForEach(plan.landmarks) { landmark in
+                if let point = project(landmark.direction, in: size) {
+                    landmarkMarker(landmark)
                         .position(point)
                 }
             }
@@ -104,47 +96,40 @@ struct SkyOverlayView: View {
         }
     }
 
-    private func starMarker(name: String, magnitude: Double) -> some View {
-        // Brighter stars get bigger marks, the way a real chart plots them.
-        let diameter = max(4.0, 9.0 - magnitude * 2.0)
-        return VStack(spacing: 3) {
-            ZStack {
-                Circle()
-                    .fill(NightTheme.primary.opacity(0.25))
-                    .frame(width: diameter * 2.4, height: diameter * 2.4)
-                Circle()
-                    .fill(NightTheme.primary)
-                    .frame(width: diameter, height: diameter)
-            }
-            Text(name.uppercased())
-                .font(NightTheme.mono(9, weight: .medium))
-                .foregroundStyle(NightTheme.primary.opacity(0.9))
-                .skyLegible()
-        }
-    }
+    /// One marker for stars and planets alike — brighter objects get bigger dots, the way
+    /// a printed chart plots them. Planets are ringed and carry their magnitude, since
+    /// they are the ones you might aim a focus at.
+    private func landmarkMarker(_ landmark: SkyDirector.Landmark) -> some View {
+        let planet = landmark.isPlanet
+        let color = planet ? NightTheme.accent : NightTheme.primary
+        let diameter = planet
+            ? max(7.0, 13.0 - landmark.magnitude * 1.5)
+            : max(4.0, 9.0 - landmark.magnitude * 2.0)
 
-    private func planetMarker(_ planet: PlanetPosition) -> some View {
-        let diameter = max(7.0, 13.0 - planet.magnitude * 1.5)
         return VStack(spacing: 3) {
             ZStack {
                 Circle()
-                    .fill(NightTheme.accent.opacity(0.22))
-                    .frame(width: diameter * 2.2, height: diameter * 2.2)
+                    .fill(color.opacity(0.24))
+                    .frame(width: diameter * 2.3, height: diameter * 2.3)
                 Circle()
-                    .fill(NightTheme.accent)
+                    .fill(color)
                     .frame(width: diameter, height: diameter)
-                Circle()
-                    .stroke(NightTheme.accent.opacity(0.7), lineWidth: 1)
-                    .frame(width: diameter * 1.7, height: diameter * 1.7)
+                if planet {
+                    Circle()
+                        .stroke(color.opacity(0.7), lineWidth: 1)
+                        .frame(width: diameter * 1.7, height: diameter * 1.7)
+                }
             }
-            Text(planet.name.uppercased())
-                .font(NightTheme.mono(10, weight: .bold))
-                .foregroundStyle(NightTheme.accent)
+            Text(landmark.name.uppercased())
+                .font(NightTheme.mono(planet ? 10 : 9, weight: planet ? .bold : .medium))
+                .foregroundStyle(planet ? color : color.opacity(0.9))
                 .skyLegible()
-            Text(String(format: "mag %.1f", planet.magnitude))
-                .font(NightTheme.mono(8))
-                .foregroundStyle(NightTheme.accent.opacity(0.85))
-                .skyLegible()
+            if planet {
+                Text(String(format: "mag %.1f", landmark.magnitude))
+                    .font(NightTheme.mono(8))
+                    .foregroundStyle(color.opacity(0.85))
+                    .skyLegible()
+            }
         }
     }
 
