@@ -2,7 +2,12 @@
 
 SCHEME  := Starlapse
 PROJECT := Starlapse.xcodeproj
-DEVICE  := Rust's iPhone
+# Device UUID, not name: the phone's name contains a typographic apostrophe (U+2019)
+# that no amount of shell quoting survives. `make device` lists identifiers.
+DEVICE  ?= FC73117A-EDA2-5F2C-825C-6E80050F1255
+# Signing team. project.yml carries the org default; this overrides it with whatever
+# team is actually signed into Xcode on this machine.
+TEAM    ?= 8N495BBBLM
 # Alanya, Turkey — change for your own sky, or pass LAT=… LON=…
 LAT     ?= 36.545
 LON     ?= 32.0
@@ -30,13 +35,14 @@ build: gen ## Build for the simulator (fast compile check)
 build-device: gen ## Build for a physical iPhone (needs an Apple ID in Xcode)
 	@xcodebuild -project $(PROJECT) -scheme $(SCHEME) \
 		-sdk iphoneos -destination 'generic/platform=iOS' \
-		-derivedDataPath build -allowProvisioningUpdates build 2>&1 | \
+		-derivedDataPath build -allowProvisioningUpdates \
+		DEVELOPMENT_TEAM=$(TEAM) build 2>&1 | \
 		grep -E "(error:|BUILD)" | head -30
 
 install: build-device ## Build and install onto the paired iPhone
 	@xcrun devicectl device install app \
-		--device "$(DEVICE)" \
-		build/Build/Products/Debug-iphoneos/Starlapse.app
+		--device $(DEVICE) \
+		build/Build/Products/Debug-iphoneos/Starlapse.app 2>&1 | grep -E "(App installed|bundleID|ERROR)"
 
 archive: gen ## Archive for distribution
 	@xcodebuild archive -project $(PROJECT) -scheme $(SCHEME) \
