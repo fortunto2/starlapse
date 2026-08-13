@@ -1,0 +1,16 @@
+# GitHub Pages serves the privacy policy — App Store submissions need a real URL, and a
+# public repo hosts one for free, with its revision history visible.
+title: Starlapse
+description: Long-exposure astrophotography for iPhone
+theme: jekyll-theme-minimal
+exclude:
+  - Sources
+  - Tests
+  - tools
+  - Makefile
+  - Makefile.local.example
+  - Package.swift
+  - project.yml
+  - build
+  - build-sim
+  - build-test

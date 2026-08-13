@@ -1,5 +1,6 @@
 ---
 title: Privacy Policy
+permalink: /privacy/
 ---
 
 # Privacy Policy — Starlapse
