@@ -13,3 +13,4 @@ xcuserdata/
 
 # Machine-local signing, device and location — never committed
 Makefile.local
+*.xcarchive
