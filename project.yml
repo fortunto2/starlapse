@@ -21,7 +21,7 @@ settings:
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 targets:
@@ -42,11 +42,15 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: co.superduperai.starlapse
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        MTL_ENABLE_DEBUG_INFO: INCLUDE_SOURCE
         MTL_FAST_MATH: YES
       configs:
         debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          # Shader source in the metallib, for the GPU debugger. Debug only: shipping it
+          # bloats the bundle and hands out the source, and App Store Connect flags it.
+          MTL_ENABLE_DEBUG_INFO: INCLUDE_SOURCE
+        release:
+          MTL_ENABLE_DEBUG_INFO: NO
     info:
       path: Sources/Starlapse/App/Info.plist
       properties:
