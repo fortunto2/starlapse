@@ -26,4 +26,27 @@ extension CaptureViewModel {
             capabilities.maxFrameExposure
         )
     }
+
+    /// Now, except in screenshot mode, where it is the middle of a Perseid night.
+    ///
+    /// Screenshots get taken in the afternoon, and an astrophotography app photographed in
+    /// daylight honestly reports "wait for full darkness" — accurate, and useless as a
+    /// picture of what the app is for. The sky positions are still computed for real from
+    /// this instant; only the instant is chosen.
+    var planDate: Date {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
+            var components = DateComponents()
+            components.year = 2026
+            components.month = 8
+            components.day = 12
+            components.hour = 1
+            components.minute = 20
+            if let night = Calendar.gregorianUTC.date(from: components) {
+                return night
+            }
+        }
+        #endif
+        return Date()
+    }
 }

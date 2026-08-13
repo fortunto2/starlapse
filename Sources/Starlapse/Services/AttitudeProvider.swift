@@ -60,6 +60,18 @@ final class AttitudeProvider: NSObject {
     }
 
     func start() {
+        #if DEBUG
+        // Screenshot mode: the Simulator has no GPS and no magnetometer, so the sky overlay
+        // would be empty and a permission dialog would sit over the shot. Stand in for both.
+        // The positions are still computed for real — this only supplies where and which way.
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
+            location = GeographicCoordinates(latitude: 28.754, longitude: -17.885)
+            aim = HorizontalCoordinates(azimuth: 96, altitude: 44)
+            isHeadingAvailable = true
+            return
+        }
+        #endif
+
         switch locationManager.authorizationStatus {
         case .notDetermined:
             locationManager.requestWhenInUseAuthorization()

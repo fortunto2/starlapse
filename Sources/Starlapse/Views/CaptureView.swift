@@ -68,9 +68,31 @@ struct CaptureView: View {
         .task {
             model.startSkyUpdates()
             await model.prepare()
+            #if DEBUG
+            await applyScreenshotHooks()
+            #endif
         }
         .onDisappear { model.stopSkyUpdates() }
     }
+
+    #if DEBUG
+    /// Drive the app to a given screen for App Store screenshots. The Simulator cannot be
+    /// tapped from the command line, so each shot is reached by launch environment instead.
+    private func applyScreenshotHooks() async {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["UITEST_SKY"] == "1" else { return }
+
+        if environment["UITEST_MODE"] == "detector" {
+            model.mode = .detector(model.detectorSettings)
+        }
+        if environment["UITEST_PANEL"] == "controls" {
+            showsControls = true
+        }
+        if environment["UITEST_CAPTURE"] == "1" {
+            await model.start()
+        }
+    }
+    #endif
 
     // MARK: - Top bar
 

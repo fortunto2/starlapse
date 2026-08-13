@@ -120,7 +120,7 @@ final class CaptureViewModel {
 
     private func refreshPlan() {
         guard let location = attitude.location else { return }
-        plan = SkyDirector.plan(at: location, date: Date())
+        plan = SkyDirector.plan(at: location, date: planDate)
     }
 
     /// How far, and which way, to swing the phone to hit the recommended target.

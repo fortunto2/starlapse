@@ -19,6 +19,11 @@ final class CaptureEngine: @unchecked Sendable {
 
     private var device: AVCaptureDevice?
     private var receiver: FrameReceiver?
+    #if DEBUG
+    private var stubSky: StubSkySource?
+    private var stubTimer: DispatchSourceTimer?
+    private var stubFrameIndex = 0
+    #endif
 
     /// Called on the capture queue for every frame. Must consume the buffer synchronously.
     private let onFrame: @Sendable (SensorFrame) -> Void
@@ -44,6 +49,10 @@ final class CaptureEngine: @unchecked Sendable {
     // MARK: - Authorization
 
     static func requestAuthorization() async -> Bool {
+        #if DEBUG
+        // The Simulator has no camera to authorise, and the stub sky does not need one.
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" { return true }
+        #endif
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized: return true
         case .notDetermined: return await AVCaptureDevice.requestAccess(for: .video)
@@ -55,6 +64,25 @@ final class CaptureEngine: @unchecked Sendable {
 
     /// Read what the hardware offers instead of assuming a model.
     static func discoverCapabilities() -> CameraCapabilities {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
+            return CameraCapabilities(
+                lenses: [
+                    LensOption(deviceType: .builtInUltraWideCamera, displayName: "Ultra Wide",
+                               aperture: 2.2, fieldOfView: 106),
+                    LensOption(deviceType: .builtInWideAngleCamera, displayName: "Main",
+                               aperture: 1.78, fieldOfView: 73),
+                    LensOption(deviceType: .builtInTelephotoCamera, displayName: "Telephoto",
+                               aperture: 2.8, fieldOfView: 28),
+                ],
+                isoRange: 55...12288,
+                maxFrameExposure: 1.0,
+                minFrameExposure: 1.0 / 8000,
+                supportsAppleProRAW: true,
+                deviceModel: "iPhone"
+            )
+        }
+        #endif
         let discovery = AVCaptureDevice.DiscoverySession(
             deviceTypes: [.builtInUltraWideCamera, .builtInWideAngleCamera, .builtInTelephotoCamera],
             mediaType: .video,
@@ -161,6 +189,9 @@ final class CaptureEngine: @unchecked Sendable {
     }
 
     private func configure(lens: LensOption, preference: FormatPreference) throws {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" { return }
+        #endif
         guard let device = AVCaptureDevice.default(lens.deviceType, for: .video, position: .back) else {
             throw CameraError.noCameraAvailable
         }
@@ -210,10 +241,21 @@ final class CaptureEngine: @unchecked Sendable {
             }
         }
 
+        try lockAndDisableAutomatics(device, format: format)
+
+        self.device = device
+        logger.info("""
+            Configured \(device.localizedName, privacy: .public): \
+            max exposure \(format.maxExposureDuration.seconds, format: .fixed(precision: 2))s, \
+            ISO \(format.minISO, format: .fixed(precision: 0))–\(format.maxISO, format: .fixed(precision: 0))
+            """)
+    }
+
+    /// Turn off every automatic system. Each of these will happily undo a manual setting
+    /// mid-session, which is exactly the complaint that started this project.
+    private func lockAndDisableAutomatics(_ device: AVCaptureDevice, format: AVCaptureDevice.Format) throws {
         try device.lockForConfiguration()
         device.activeFormat = format
-        // Kill every automatic system. Each of these will happily undo a manual setting
-        // mid-session, which is exactly the complaint that started this project.
         if device.isSubjectAreaChangeMonitoringEnabled {
             device.isSubjectAreaChangeMonitoringEnabled = false
         }
@@ -228,13 +270,6 @@ final class CaptureEngine: @unchecked Sendable {
         }
         device.videoZoomFactor = 1.0
         device.unlockForConfiguration()
-
-        self.device = device
-        logger.info("""
-            Configured \(device.localizedName, privacy: .public): \
-            max exposure \(format.maxExposureDuration.seconds, format: .fixed(precision: 2))s, \
-            ISO \(format.minISO, format: .fixed(precision: 0))–\(format.maxISO, format: .fixed(precision: 0))
-            """)
     }
 
     // MARK: - Manual exposure
@@ -246,6 +281,9 @@ final class CaptureEngine: @unchecked Sendable {
     }
 
     private func applyOnQueue(_ settings: CaptureSettings) throws {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" { return }
+        #endif
         guard let device else { throw CameraError.noCameraAvailable }
 
         let format = device.activeFormat
@@ -288,12 +326,47 @@ final class CaptureEngine: @unchecked Sendable {
     // MARK: - Running
 
     func start() async {
+        // The Simulator has no camera. Rather than showing a black rectangle, feed the
+        // pipeline a synthesised sky — see StubSkySource. DEBUG only, opt-in by env var,
+        // and it goes through exactly the same code path a real frame would.
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
+            startStubSky()
+            return
+        }
+        #endif
+
         await captureQueue.perform { [self] in
             if !session.isRunning { session.startRunning() }
         }
     }
 
+    #if DEBUG
+    private func startStubSky() {
+        let source = StubSkySource()
+        stubSky = source
+        stubTimer = DispatchSource.makeTimerSource(queue: captureQueue.dispatch)
+        stubTimer?.schedule(deadline: .now(), repeating: 0.35)
+        stubTimer?.setEventHandler { [weak self] in
+            guard let self, let buffer = source.nextFrame() else { return }
+            stubFrameIndex += 1
+            onFrame(SensorFrame(
+                pixelBuffer: buffer,
+                timestamp: Double(stubFrameIndex) * 0.35,
+                index: stubFrameIndex
+            ))
+        }
+        stubTimer?.resume()
+        logger.info("Stub sky running — Simulator screenshots")
+    }
+    #endif
+
     func stop() async {
+        #if DEBUG
+        stubTimer?.cancel()
+        stubTimer = nil
+        stubSky = nil
+        #endif
         await captureQueue.perform { [self] in
             if session.isRunning { session.stopRunning() }
         }
