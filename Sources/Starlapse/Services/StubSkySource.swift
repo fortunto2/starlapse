@@ -13,11 +13,17 @@ import simd
 ///
 /// It stays inside `#if DEBUG` and never ships.
 ///
-/// What it deliberately does **not** do is invent results the app cannot produce. The stars
-/// rotate about the celestial pole at the true sidereal rate, so alignment has something
-/// real to solve and the trails curve the way they actually would. There is no comet and no
-/// meteor: those are rare, and a screenshot promising one would be promising something a
-/// buyer will not get.
+/// The stars rotate about the celestial pole at the true sidereal rate, so alignment has
+/// something real to solve and the trails curve the way they actually would.
+///
+/// A meteor crosses the frame on one frame in every cycle — because that is what the app is
+/// built to catch, and during the Perseids a real user sees dozens an hour. It is drawn into
+/// the *sky*, not onto the screenshot, so the detector finds it the same way it finds a real
+/// one: frame differencing, connected regions, streak shape. What the screenshot shows is a
+/// genuine detection.
+///
+/// No comet, though. Those come every few years, and a screenshot promising one would be
+/// promising a buyer something they will not get.
 final class StubSkySource: @unchecked Sendable {
 
     private let width: Int
@@ -34,6 +40,12 @@ final class StubSkySource: @unchecked Sendable {
     }
 
     private let stars: [Star]
+
+    /// Frames on which a meteor crosses. Frequent, because a screenshot has to catch one —
+    /// and in a stacked shot it stays in the result anyway, which is exactly what happens
+    /// on a real Perseid night.
+    private let meteorFrame = 2
+    private let meteorPeriod = 4
     /// Where the sky turns about — off-frame, as it is for anyone not shooting the pole.
     private let poleX: Double
     private let poleY: Double
@@ -106,6 +118,63 @@ final class StubSkySource: @unchecked Sendable {
         drawBackground(into: pixels, bytesPerRow: bytesPerRow)
         drawMilkyWay(into: pixels, bytesPerRow: bytesPerRow)
         drawStars(into: pixels, bytesPerRow: bytesPerRow, angle: angle)
+
+        if (frameIndex - 1) % meteorPeriod == meteorFrame {
+            drawMeteor(into: pixels, bytesPerRow: bytesPerRow)
+        }
+    }
+
+    /// A Perseid: a bright streak, brightest two-thirds along, gone in one frame.
+    ///
+    /// Drawn radiating away from the shower's radiant, which is what real ones do — and
+    /// the reason the app tells you to aim 40° off it rather than at it.
+    private func drawMeteor(into pixels: UnsafeMutablePointer<UInt8>, bytesPerRow: Int) {
+        let startX = Double(width) * 0.17
+        let startY = Double(height) * 0.30
+        let endX = Double(width) * 0.78
+        let endY = Double(height) * 0.62
+        let steps = 900
+        let thickness = 2.1
+
+        for step in 0...steps {
+            let t = Double(step) / Double(steps)
+            let px = startX + (endX - startX) * t
+            let py = startY + (endY - startY) * t
+
+            // Fades in, peaks around two thirds, then cuts out — the way one burns up.
+            let envelope: Double
+            if t < 0.62 {
+                envelope = pow(t / 0.62, 2.4)
+            } else {
+                envelope = pow(max(0, 1 - (t - 0.62) / 0.38), 2.6)
+            }
+            let brightness = 250.0 * envelope
+            guard brightness > 1 else { continue }
+
+            // Thicker where it burns brightest, hair-thin at the ends — that taper is what
+            // a straight line of constant width never looks like.
+            let localThickness = thickness * (0.45 + 0.55 * envelope)
+            let radius = Int((localThickness * 3).rounded(.up))
+            for offsetY in -radius...radius {
+                for offsetX in -radius...radius {
+                    let x = Int(px) + offsetX
+                    let y = Int(py) + offsetY
+                    guard x >= 0, x < width, y >= 0, y < height else { continue }
+
+                    let dx = Double(x) - px
+                    let dy = Double(y) - py
+                    let falloff = exp(-(dx * dx + dy * dy) / (2 * localThickness * localThickness))
+                    let value = brightness * falloff
+                    guard value > 0.6 else { continue }
+
+                    let offset = y * bytesPerRow + x * 4
+                    // Perseids run blue-green from their entry speed — 59 km/s.
+                    pixels[offset] = UInt8(min(255, Double(pixels[offset]) + value))
+                    pixels[offset + 1] = UInt8(min(255, Double(pixels[offset + 1]) + value * 0.97))
+                    pixels[offset + 2] = UInt8(min(255, Double(pixels[offset + 2]) + value * 0.82))
+                }
+            }
+        }
     }
 
     /// Light pollution gradient from the horizon, the way any sky within reach of a town
