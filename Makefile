@@ -59,10 +59,28 @@ install: build-device ## Build and install onto the paired iPhone
 		--device $(DEVICE) \
 		build/Build/Products/Debug-iphoneos/Starlapse.app 2>&1 | grep -E "(App installed|bundleID|ERROR)"
 
-archive: gen ## Archive for distribution
+archive: gen ## Archive signed for the App Store
+	@rm -rf build/$(SCHEME).xcarchive
 	@xcodebuild archive -project $(PROJECT) -scheme $(SCHEME) \
 		-destination 'generic/platform=iOS' \
-		-archivePath build/$(SCHEME).xcarchive -allowProvisioningUpdates
+		-archivePath build/$(SCHEME).xcarchive -allowProvisioningUpdates \
+		DEVELOPMENT_TEAM=$(TEAM) CODE_SIGN_STYLE=Manual \
+		PROVISIONING_PROFILE_SPECIFIER="$(PROFILE)" \
+		CODE_SIGN_IDENTITY="$(SIGN_IDENTITY)" 2>&1 | \
+		grep -E "(error:|ARCHIVE SUCCEEDED)" | head -5
+	@plutil -p build/$(SCHEME).xcarchive/Info.plist | grep -E "SigningIdentity|CFBundleVersion"
+
+ipa: archive ## Export a signed .ipa ready for upload
+	@rm -rf build/export
+	@xcodebuild -exportArchive -archivePath build/$(SCHEME).xcarchive \
+		-exportPath build/export -exportOptionsPlist .asc/ExportOptions-AppStore.plist \
+		-allowProvisioningUpdates 2>&1 | grep -E "(error:|EXPORT SUCCEEDED)"
+	@ls -lh build/export/*.ipa
+
+testflight: ipa ## Upload to TestFlight (needs APP_ID — the ASC app record)
+	@test -n "$(APP_ID)" || { echo "Set APP_ID in Makefile.local — create the app record first."; exit 1; }
+	@asc publish testflight --app "$(APP_ID)" --ipa build/export/$(SCHEME).ipa \
+		--group "Beta" --wait --output table
 
 open: ## Open the archive for Distribute App
 	@open build/$(SCHEME).xcarchive
