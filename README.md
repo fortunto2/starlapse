@@ -108,6 +108,13 @@ Two conventions worth knowing before opening a PR:
 `Makefile.local` (gitignored) holds your signing team, device identifier and observing
 site — copy `Makefile.local.example`.
 
+## Privacy
+
+Starlapse collects nothing — no account, no server, no analytics, and no network code at
+all. Location and motion are used on-device to work out where to point the camera, and are
+never transmitted or stored. See [PRIVACY.md](PRIVACY.md); the source is here, so the claim
+is checkable rather than merely asserted.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
