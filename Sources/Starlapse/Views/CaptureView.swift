@@ -196,7 +196,30 @@ struct CaptureView: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 1) {
+            VStack(alignment: .trailing, spacing: 6) {
+                Button {
+                    model.shutterDelay = model.shutterDelay.next
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: model.shutterDelay.isOn
+                              ? "timer" : "timer.slash")
+                            .font(.system(size: 13, weight: .medium))
+                        Text(model.shutterDelay.label)
+                            .font(NightTheme.mono(11, weight: .semibold))
+                    }
+                    .foregroundStyle(model.shutterDelay.isOn ? NightTheme.accent : NightTheme.dim)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .overlay(
+                        Capsule().stroke(
+                            model.shutterDelay.isOn ? NightTheme.accent.opacity(0.6)
+                                                    : NightTheme.dim.opacity(0.5),
+                            lineWidth: 1
+                        )
+                    )
+                }
+                .disabled(model.state.isCapturing)
+
                 Text(model.settings.stackMode.title.uppercased())
                     .font(NightTheme.mono(9, weight: .bold))
                 Text(model.mode.isTimelapse ? model.timelapse.summary : model.exposureExplanation)
@@ -211,12 +234,10 @@ struct CaptureView: View {
 
     private var shutterButton: some View {
         Button {
-            Task {
-                if model.state.isCapturing {
-                    await model.cancel()
-                } else {
-                    await model.start()
-                }
+            if model.countdown > 0 {
+                model.cancelCountdown()
+            } else {
+                Task { await model.triggerShutter() }
             }
         } label: {
             ZStack {
@@ -224,7 +245,13 @@ struct CaptureView: View {
                     .stroke(NightTheme.primary, lineWidth: 3)
                     .frame(width: 74, height: 74)
 
-                if model.state.isCapturing {
+                if model.countdown > 0 {
+                    // The count itself is the button — tapping again cancels.
+                    Text("\(model.countdown)")
+                        .font(NightTheme.mono(30, weight: .bold))
+                        .foregroundStyle(NightTheme.accent)
+                        .monospacedDigit()
+                } else if model.state.isCapturing {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(NightTheme.primary)
                         .frame(width: 28, height: 28)

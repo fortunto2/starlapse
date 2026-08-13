@@ -33,6 +33,11 @@ final class CaptureViewModel {
     /// off for anyone who wants to watch the stack build.
     var dimsScreenDuringCapture = true
 
+    /// Delay between tapping the shutter and the first frame — see `ShutterDelay`.
+    var shutterDelay: ShutterDelay = .off
+    /// Seconds left before capture starts, while counting down.
+    private(set) var countdown: Int = 0
+
     private(set) var state: SessionState = .idle
     private(set) var progress = StackProgress()
     private(set) var previewFrame: PreviewFrame? {
@@ -51,7 +56,9 @@ final class CaptureViewModel {
     }
     private(set) var capabilities: CameraCapabilities
     private(set) var plan: SkyDirector.Plan?
-    private(set) var lastSavedMessage: String?
+    /// Written by the saving extension in the file next door, so no `private(set)` here —
+    /// Swift scopes that to the declaring file, not the type.
+    var lastSavedMessage: String?
     /// Curve applied to the finished capture while reviewing it. Starts from what the
     /// session used; every change re-develops from the accumulated float32 buffer, so it
     /// costs nothing in quality no matter how far it is pushed.
@@ -267,6 +274,30 @@ final class CaptureViewModel {
 
     // MARK: - Session
 
+    /// Tap the shutter: count down if a delay is set, then begin.
+    func triggerShutter() async {
+        guard !state.isCapturing else {
+            await cancel()
+            return
+        }
+
+        if shutterDelay.isOn {
+            countdown = shutterDelay.rawValue
+            while countdown > 0 {
+                try? await Task.sleep(for: .seconds(1))
+                guard countdown > 0 else { return }   // cancelled by another tap
+                countdown -= 1
+            }
+        }
+
+        await start()
+    }
+
+    /// Abort a countdown that has not started capturing yet.
+    func cancelCountdown() {
+        countdown = 0
+    }
+
     func start() async {
         guard let captureEngine, let stackEngine else { return }
 
@@ -395,34 +426,6 @@ final class CaptureViewModel {
         attitude.setCadence(.interactive)
         UIApplication.shared.isIdleTimerDisabled = false
         UIScreen.main.brightness = previousBrightness
-    }
-
-    // MARK: - Saving
-
-    private func save(image rendered: RenderedImage) async {
-        guard await PhotoLibraryWriter.requestAccess() else {
-            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
-            return
-        }
-        do {
-            try await PhotoLibraryWriter.write(rendered)
-            lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
-        } catch {
-            lastSavedMessage = "Save failed: \(error.localizedDescription)"
-        }
-    }
-
-    private func save(videoAt url: URL) async {
-        guard await PhotoLibraryWriter.requestAccess() else {
-            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
-            return
-        }
-        do {
-            try await PhotoLibraryWriter.write(videoAt: url)
-            lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
-        } catch {
-            lastSavedMessage = "Save failed: \(error.localizedDescription)"
-        }
     }
 
 }
