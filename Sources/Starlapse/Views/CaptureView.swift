@@ -29,6 +29,10 @@ struct CaptureView: View {
                 .ignoresSafeArea()
             }
 
+            if model.isFocusing {
+                focusOverlay
+            }
+
             if model.state.isReviewing {
                 // The result fills the screen; the review panel owns the bottom half.
                 VStack {
@@ -106,6 +110,17 @@ struct CaptureView: View {
                 theme.toggle()
             }
 
+            // Focus on starlight. Autofocus cannot see a night sky, and the infinity mark is
+            // not exactly infinity on any given lens.
+            iconButton("scope", active: model.isFocusing) {
+                if model.isFocusing {
+                    model.cancelAutofocus()
+                } else {
+                    Task { await model.autofocus() }
+                }
+            }
+            .disabled(model.state.isCapturing)
+
             Spacer()
 
             if let plan = model.plan, showsOverlay {
@@ -136,6 +151,26 @@ struct CaptureView: View {
                 .clipShape(Circle())
                 .overlay(Circle().stroke(NightTheme.dim.opacity(0.5), lineWidth: 1))
         }
+    }
+
+    private var focusOverlay: some View {
+        VStack(spacing: 10) {
+            Text("FOCUSING ON STARS")
+                .font(NightTheme.mono(13, weight: .bold))
+                .foregroundStyle(NightTheme.accent)
+            ProgressView(value: model.focusProgress)
+                .tint(NightTheme.accent)
+                .frame(width: 180)
+            Text("Stepping the lens and measuring star size.\nHold still — the tripod must not move.")
+                .font(NightTheme.mono(10))
+                .foregroundStyle(NightTheme.dim)
+                .multilineTextAlignment(.center)
+            Button("Cancel") { model.cancelAutofocus() }
+                .font(NightTheme.mono(11, weight: .semibold))
+                .foregroundStyle(NightTheme.dim)
+        }
+        .padding(20)
+        .nightPanel()
     }
 
     // MARK: - Mode

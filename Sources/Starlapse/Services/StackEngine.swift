@@ -74,6 +74,10 @@ final class StackEngine: @unchecked Sendable {
     private var previewCountdown = 0
     private var watcher: SkyWatcher?
 
+    /// Star sharpness of the next frame, once requested.
+    private var focusContinuation: CheckedContinuation<FocusMetric, Never>?
+    private let focusEvaluator = FocusEvaluator()
+
     /// A clip was written. Called on the capture queue.
     var onEventRecorded: (@Sendable (URL, Transient) -> Void)?
 
@@ -138,6 +142,24 @@ final class StackEngine: @unchecked Sendable {
         }
     }
 
+    /// Measure how sharp the stars are in the next frame to arrive.
+    ///
+    /// Used by the autofocus sweep: set a lens position, wait for a frame taken at it, read
+    /// the star size back. The wait is unavoidable — the sensor has to actually expose one.
+    func measureFocus() async -> FocusMetric {
+        await withCheckedContinuation { continuation in
+            queue.run { [weak self] in
+                guard let self else {
+                    continuation.resume(returning: .none)
+                    return
+                }
+                // A second request replaces the first rather than stacking up.
+                focusContinuation?.resume(returning: .none)
+                focusContinuation = continuation
+            }
+        }
+    }
+
     /// Forget where the stars were. Every entry and exit from a segment goes through here,
     /// so a new piece of tracking state only has to be cleared in one place.
     private func resetAlignment() {
@@ -162,6 +184,12 @@ final class StackEngine: @unchecked Sendable {
             width: CVPixelBufferGetWidth(frame.pixelBuffer),
             height: CVPixelBufferGetHeight(frame.pixelBuffer)
         )
+
+        // Framing frames are what the focus sweep measures — a session should never be
+        // interrupted to answer one.
+        if plan.isFraming, let luminance = accumulator.readLuminance(from: frame.pixelBuffer) {
+            reportFocusIfRequested(luminance)
+        }
 
         var transform: simd_float3x3?
         if plan.aligns {
@@ -226,6 +254,7 @@ final class StackEngine: @unchecked Sendable {
         }
 
         guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer) else { return }
+        reportFocusIfRequested(luminance)
 
         switch watcher.consume(
             frame,
@@ -395,6 +424,14 @@ final class StackEngine: @unchecked Sendable {
             return
         }
         onPreviewReady(PreviewFrame(texture: texture, pool: accumulator.displayPool))
+    }
+
+    private func reportFocusIfRequested(_ luminance: [Float]) {
+        guard let continuation = focusContinuation else { return }
+        focusContinuation = nil
+        continuation.resume(returning: focusEvaluator.measure(
+            luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight
+        ))
     }
 
     private func report() {

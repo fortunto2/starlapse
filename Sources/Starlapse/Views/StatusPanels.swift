@@ -59,6 +59,12 @@ struct StatusPanels: View {
                     .foregroundStyle(NightTheme.dim)
             }
 
+            if let focus = model.focusResult {
+                Text(focus.message)
+                    .font(NightTheme.mono(10, weight: .semibold))
+                    .foregroundStyle(NightTheme.accent)
+            }
+
             if let message = model.lastSavedMessage {
                 Text(message)
                     .font(NightTheme.mono(10, weight: .semibold))

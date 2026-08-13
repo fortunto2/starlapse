@@ -35,6 +35,12 @@ final class CaptureViewModel {
 
     /// Delay between tapping the shutter and the first frame — see `ShutterDelay`.
     var shutterDelay: ShutterDelay = .off
+    /// A focus sweep is running.
+    var isFocusing = false
+    /// How far through the sweep, 0...1.
+    var focusProgress: Double = 0
+    /// Outcome of the last sweep, for the readout.
+    var focusResult: FocusResult?
     /// Seconds left before capture starts, while counting down.
     private(set) var countdown: Int = 0
 
@@ -83,8 +89,8 @@ final class CaptureViewModel {
     // MARK: - Machinery
 
     private let captureQueue = CaptureQueue()
-    private var captureEngine: CaptureEngine?
-    private var stackEngine: StackEngine?
+    var captureEngine: CaptureEngine?
+    var stackEngine: StackEngine?
     private var accumulator: FrameAccumulator?
     private var timelapseWriter: TimelapseWriter?
     private var skyTimer: Timer?
@@ -92,7 +98,7 @@ final class CaptureViewModel {
     /// Last lens actually handed to the hardware, so a lens change can be told apart
     /// from an exposure change — the former needs a full session reconfigure.
     private var appliedLens: LensOption?
-    private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "session")
+    let logger = Logger(subsystem: "co.superduperai.starlapse", category: "session")
 
     init() {
         let capabilities = CaptureEngine.discoverCapabilities()
@@ -179,7 +185,7 @@ final class CaptureViewModel {
     /// What the camera should be doing right now, derived from state rather than pushed at
     /// transition points. Framing gets short, high-gain frames; a session gets exactly what
     /// the user dialled in.
-    private var activeSettings: CaptureSettings {
+    var activeSettings: CaptureSettings {
         guard state.isCapturing else { return settings.forFraming(capabilities) }
         // Watching needs short frames at a usable rate — an exposure long enough for a deep
         // stack would smear the meteor into the background and give three frames a second.
