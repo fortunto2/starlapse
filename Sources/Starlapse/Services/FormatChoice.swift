@@ -35,50 +35,82 @@ enum FormatChoice {
     /// detail-limited, and no one has ever wanted a 48 MP picture of star noise.
     static let pixelBudget = 16_000_000
 
-    /// Index of the format that allows the longest single frame, breaking ties by
-    /// resolution. This ordering is the entire game: frame length decides how many frames
-    /// a given hour of sky costs, and every frame is a fresh helping of read noise.
-    static func longExposure(from facts: [FormatFacts]) -> Int? {
-        rank(affordable(in: facts)) { left, right in
+    /// Every format worth trying for a long exposure, best first.
+    ///
+    /// A ranking rather than a single answer, because the camera gets a veto. A format can
+    /// be listed by the device and still be refused when the session is asked to use it,
+    /// and on an iPhone 17 that refusal arrived as an exception out of
+    /// `commitConfiguration` — fatal, with no second choice to fall back to. The engine
+    /// now walks this list until one is accepted.
+    ///
+    /// Longest frame first, ties broken by resolution: frame length decides how many
+    /// frames a given hour of sky costs, and every frame is a fresh helping of read noise.
+    static func longExposureRanking(from facts: [FormatFacts]) -> [Int] {
+        let (affordable, tooBig) = split(facts)
+        let best = affordable.sorted { left, right in
             if abs(left.fact.longestFrame - right.fact.longestFrame) > 0.01 {
-                return left.fact.longestFrame < right.fact.longestFrame
+                return left.fact.longestFrame > right.fact.longestFrame
             }
-            return left.fact.pixels < right.fact.pixels
+            return left.fact.pixels > right.fact.pixels
         }
+        return (best + tooBig).map(\.index)
     }
 
-    /// Index of the format to watch the sky with: around 1080p, still able to hold the
-    /// shutter open a fifth of a second.
+    /// The best long-exposure format, or nil when there are no formats at all.
+    static func longExposure(from facts: [FormatFacts]) -> Int? {
+        longExposureRanking(from: facts).first
+    }
+
+    /// Every format worth trying for watching the sky, best first: around 1080p, still
+    /// able to hold the shutter open a fifth of a second.
     ///
     /// Resolution is the thing to give up here. A meteor is a bright streak tens of pixels
     /// long, perfectly visible at 1080p, and dropping from 12 MP cuts the detector's ring
     /// buffer and its per-frame copy by roughly 6×.
-    static func detector(from facts: [FormatFacts]) -> Int? {
+    static func detectorRanking(from facts: [FormatFacts]) -> [Int] {
         let target = 1920 * 1080
-        let usable = affordable(in: facts).filter { $0.fact.longestFrame >= 0.2 }
-        guard !usable.isEmpty else { return longExposure(from: facts) }
+        let (affordable, tooBig) = split(facts)
+        let usable = affordable.filter { $0.fact.longestFrame >= 0.2 }
+        guard !usable.isEmpty else { return longExposureRanking(from: facts) }
 
-        return rank(usable) { left, right in
-            abs(left.fact.pixels - target) > abs(right.fact.pixels - target)
-        }
+        let best = usable.sorted { abs($0.fact.pixels - target) < abs($1.fact.pixels - target) }
+        let rest = affordable.filter { $0.fact.longestFrame < 0.2 }
+            .sorted { $0.fact.longestFrame > $1.fact.longestFrame }
+        return (best + rest + tooBig).map(\.index)
     }
 
-    /// Everything inside the memory budget — or, if nothing is, the smallest format there
-    /// is. Shooting small beats being killed at launch, and on a device where every format
-    /// is enormous that is the only choice left.
-    private static func affordable(in facts: [FormatFacts]) -> [(index: Int, fact: FormatFacts)] {
+    /// The best detector format, or nil when there are no formats at all.
+    static func detector(from facts: [FormatFacts]) -> Int? {
+        detectorRanking(from: facts).first
+    }
+
+    /// Inside the memory budget, and outside it.
+    ///
+    /// Over-budget formats stay in the ranking, last and smallest first: a device where
+    /// every format is enormous should still take a photograph. Shooting big beats not
+    /// shooting, and being killed at launch beats neither.
+    private static func split(
+        _ facts: [FormatFacts]
+    ) -> (affordable: [(index: Int, fact: FormatFacts)], tooBig: [(index: Int, fact: FormatFacts)]) {
         let all = facts.enumerated().map { (index: $0.offset, fact: $0.element) }
-        let withinBudget = all.filter { $0.fact.pixels <= pixelBudget }
-        guard withinBudget.isEmpty else { return withinBudget }
-        guard let smallest = all.min(by: { $0.fact.pixels < $1.fact.pixels }) else { return [] }
-        return [smallest]
+        return (
+            all.filter { $0.fact.pixels <= pixelBudget },
+            all.filter { $0.fact.pixels > pixelBudget }.sorted { $0.fact.pixels < $1.fact.pixels }
+        )
     }
 
-    private static func rank(
-        _ candidates: [(index: Int, fact: FormatFacts)],
-        by isBetter: ((index: Int, fact: FormatFacts), (index: Int, fact: FormatFacts)) -> Bool
-    ) -> Int? {
-        candidates.max(by: isBetter)?.index
+    /// Whether the frame-duration window has to be applied before the exposure.
+    ///
+    /// The camera requires the shutter to fit inside the frame duration, and enforces it
+    /// on both setters: narrowing the window re-applies the exposure already in force, and
+    /// if that no longer fits, AVFoundation raises. Widen before lengthening, shorten
+    /// before narrowing, and no intermediate state is ever illegal.
+    ///
+    /// An unknown window counts as widening: that is the first call after a format change,
+    /// where the exposure in force is whatever the camera picked for itself. An unbounded
+    /// one does not, because any shutter already fits inside it.
+    static func frameWindowFirst(exposure: Double, currentWindow: Double) -> Bool {
+        currentWindow.isNaN || exposure > currentWindow
     }
 
     /// The frame durations a format will accept, in seconds.

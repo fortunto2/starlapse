@@ -103,40 +103,72 @@ Two rules from this:
 ## The crash that only happened on someone else's phone
 
 Build 3's first review: *"when I allow Starlapse to access my camera, the app autocloses
-when I try to open it; if I don't allow it, the app opens perfectly."* Three stars, no crash
-log — App Store Connect had no diagnostic signature for the build, so there was nothing to
-symbolicate. Denying the camera returns from `prepare()` before any of this runs, which is
-why the app "opened perfectly" that way.
+when I try to open it; if I don't allow it, the app opens perfectly."* Three stars.
 
-Two causes, both invisible on the phone it was developed on:
+The App Store Connect API had nothing — `asc performance diagnostics` returns an empty list
+for the build — but **Xcode's Organizer had three crash points**, and they named the fault in
+one line each. Everything below is measured from those reports; the first round of fixes was
+reasoned from the source alone and got the cause wrong.
 
-1. **The format picker chose by merit and ignored the bill.** It ranked by longest shutter,
-   breaking ties on resolution — and every iPhone since the 14 Pro offers a 48 MP format
-   with the same 1 s ceiling. That is 1.4 GB of accumulator, display and luminance textures
-   before a single camera buffer, and iOS kills the app during launch for it.
-   `FormatChoice.pixelBudget` is the fix, and the ranking is now pure and tested.
-2. **AVFoundation reports a bad argument by raising `NSException`, which Swift cannot
-   catch.** `videoZoomFactor = 1.0` on a camera whose minimum is above 1, a frame duration
-   outside the format's frame-rate window, `setFocusModeLocked` on a lens that reports
-   `.locked` as supported but refuses a custom position — each one is a process death, not
-   an error.
+| Device | iOS | Raised in |
+|---|---|---|
+| iPhone 17 Pro (iPhone18,1) | 26.6.1 | `-[AVCaptureSession commitConfiguration]` |
+| iPhone 17 Pro Max (iPhone18,2) | 27.0 | `-[AVCaptureSession commitConfiguration]` |
+| iPhone 15 (iPhone15,4) | 26.6.2 | `setActiveVideoMinFrameDuration:` → `setExposureModeCustomWithDuration:ISO:` |
 
-Two rules from this:
+Both are `EXC_CRASH (SIGABRT)` from `objc_exception_throw`: **AVFoundation reports a refusal
+by raising `NSException`, which Swift cannot catch.** The process dies. On the iPhone 17s it
+died 0.2 s after launch, which is exactly what the reviewer described.
 
-1. **Never hand the camera a value that was not clamped to what *this format* reports**,
-   and read the limits back from the format rather than from the device or from memory. The
-   two disagree: `maxExposureDuration` ignores the frame-rate floor, so a format advertising
-   1 s while refusing to drop below 1.5 fps delivers 0.667 s — and asking for the second is
-   what raises.
-2. **Every camera setter goes through `Hardware.perform` / `Hardware.attempt`** — the
-   `@try` barrier in `Support/CameraExceptionBarrier.m`. It is the net under rule 1, not a
-   replacement for it: without it, a device none of us owns turns a wrong guess into a
-   one-star review with no stack trace.
+### One: the format choice lived inside the transaction that cannot fail
+
+`configure()` held the whole setup in one `beginConfiguration`/`commitConfiguration`, and set
+`activeFormat` inside it. That puts the single decision that differs between iPhone models
+inside the single operation whose refusal is fatal — and `commitConfiguration` is where the
+refusal surfaces, with no indication of which part it disliked.
+
+The transaction now contains only what every iPhone supports: an input, an output, a
+connection. The format is chosen **after** the commit, against a live session, where "no" is
+a caught error and `FormatChoice` hands over the next candidate. Formats are a ranked list
+rather than one answer, for exactly that reason.
+
+### Two: the shutter and the frame window have an order
+
+The camera holds one invariant — the shutter must fit inside the frame duration — and checks
+it on **both** setters. Narrowing the window makes AVFoundation re-apply the exposure already
+in force, and if that no longer fits, it raises from inside `setActiveVideoMinFrameDuration`.
+
+So: widen the window before lengthening the shutter, shorten the shutter before narrowing the
+window. `FormatChoice.frameWindowFirst` is that rule, with tests, because getting it backwards
+is not a wrong picture — it is a dead process.
+
+### What was kept, and labelled honestly
+
+The pixel budget in `FormatChoice` was written for a **different** theory: that a 48 MP format
+was winning the ranking and its 1.4 GB of textures got the app killed. The crash reports say
+otherwise — these are exceptions, not jetsam. It stays because 28 bytes of GPU memory per
+sensor pixel is a real bill and a 48 MP format is a real entry in the list, but it is
+*reasoning*, not a measured cause. The measured causes are the two above.
+
+Three rules from this:
+
+1. **Pull the crash reports from Xcode Organizer, not just the API.** `asc performance
+   diagnostics` covers MetricKit signatures; customer crash logs are not in the public API at
+   all. `~/Library/Developer/Xcode/Products/<bundle-id>/Crashes/` is where Organizer puts them
+   once opened, and each `.crash` file is plain text.
+2. **Never hand the camera a value that was not clamped to what *this format* reports**, and
+   read the limits back from the format rather than from the device or from memory.
+   `maxExposureDuration` ignores the frame-rate floor: a format advertising 1 s while refusing
+   to drop below 1.5 fps delivers 0.667 s.
+3. **Every camera setter goes through `Hardware.perform` / `Hardware.attempt`** — the `@try`
+   barrier in `Support/CameraExceptionBarrier.m`. It is the net under rules 1 and 2, not a
+   replacement for them. A barrier that hides a wrong sequence buys a working app with wrong
+   settings; the sequence still has to be right.
 
 The same shape twice more, found while reviewing for it: `waitForReady` spun forever on a
-writer that had failed (a frozen session, no log), and the detector's ring buffer sized
-itself in frames rather than bytes. **A number that comes from the hardware needs a budget,
-not a default.**
+writer that had failed (a frozen session, no log), and the detector's ring buffer sized itself
+in frames rather than bytes. **A number that comes from the hardware needs a budget, not a
+default.**
 
 ## Lessons from the first field test
 

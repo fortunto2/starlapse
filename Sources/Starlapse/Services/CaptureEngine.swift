@@ -60,107 +60,6 @@ final class CaptureEngine: @unchecked Sendable {
         }
     }
 
-    // MARK: - Discovery
-
-    /// Read what the hardware offers instead of assuming a model.
-    static func discoverCapabilities() -> CameraCapabilities {
-        #if DEBUG
-        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
-            return CameraCapabilities(
-                lenses: [
-                    LensOption(deviceType: .builtInUltraWideCamera, displayName: "Ultra Wide",
-                               aperture: 2.2, fieldOfView: 106),
-                    LensOption(deviceType: .builtInWideAngleCamera, displayName: "Main",
-                               aperture: 1.78, fieldOfView: 73),
-                    LensOption(deviceType: .builtInTelephotoCamera, displayName: "Telephoto",
-                               aperture: 2.8, fieldOfView: 28),
-                ],
-                isoRange: 55...12288,
-                maxFrameExposure: 1.0,
-                minFrameExposure: 1.0 / 8000,
-                supportsAppleProRAW: true,
-                deviceModel: "iPhone"
-            )
-        }
-        #endif
-        let discovery = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInUltraWideCamera, .builtInWideAngleCamera, .builtInTelephotoCamera],
-            mediaType: .video,
-            position: .back
-        )
-
-        let lenses: [LensOption] = discovery.devices.map { device in
-            LensOption(
-                deviceType: device.deviceType,
-                displayName: Self.friendlyName(for: device.deviceType),
-                aperture: device.lensAperture,
-                fieldOfView: device.activeFormat.videoFieldOfView
-            )
-        }
-
-        guard let primary = discovery.devices.first(where: { $0.deviceType == .builtInWideAngleCamera })
-            ?? discovery.devices.first,
-            let format = Self.bestFormat(for: primary) else {
-            return .unavailable
-        }
-
-        // Read back what the chosen format will really do rather than what it advertises:
-        // `maxExposureDuration` ignores the frame-rate floor, and the user's "1 second"
-        // slider has to stop where the hardware does.
-        let facts = FormatFacts(format)
-
-        return CameraCapabilities(
-            lenses: lenses,
-            isoRange: facts.isoRange,
-            maxFrameExposure: facts.longestFrame,
-            minFrameExposure: facts.shortestFrame,
-            supportsAppleProRAW: discovery.devices.count >= 3,
-            deviceModel: primary.localizedName
-        )
-    }
-
-    private static func friendlyName(for type: AVCaptureDevice.DeviceType) -> String {
-        switch type {
-        case .builtInUltraWideCamera: "Ultra Wide"
-        case .builtInTelephotoCamera: "Telephoto"
-        default: "Main"
-        }
-    }
-
-    /// Pick the format that allows the longest single frame, breaking ties by resolution.
-    ///
-    /// This ordering is the entire game. iPhone formats differ in exposure ceiling, and the
-    /// binned low-resolution ones usually win — a shorter ceiling would force more, noisier
-    /// frames for the same total light.
-    static func bestFormat(
-        for device: AVCaptureDevice,
-        preference: FormatPreference = .longExposure
-    ) -> AVCaptureDevice.Format? {
-        switch preference {
-        case .longExposure: bestLongExposureFormat(for: device)
-        case .detector: bestDetectorFormat(for: device)
-        }
-    }
-
-    private static func bestDetectorFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
-        pick(from: device, using: FormatChoice.detector)
-    }
-
-    private static func bestLongExposureFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
-        pick(from: device, using: FormatChoice.longExposure)
-    }
-
-    private static func pick(
-        from device: AVCaptureDevice,
-        using choose: ([FormatFacts]) -> Int?
-    ) -> AVCaptureDevice.Format? {
-        let formats = device.formats
-        guard let index = choose(formats.map(FormatFacts.init)), formats.indices.contains(index) else {
-            return nil
-        }
-        return formats[index]
-    }
-
     // MARK: - Configuration
 
     func prepare(lens: LensOption, preference: FormatPreference = .longExposure) async throws {
@@ -169,6 +68,19 @@ final class CaptureEngine: @unchecked Sendable {
         }
     }
 
+    /// Two steps on purpose, and the split is the whole fix.
+    ///
+    /// All of this used to happen inside one `beginConfiguration`/`commitConfiguration`
+    /// transaction, including the choice of sensor format. That put the one decision that
+    /// differs between iPhone models inside the one operation whose refusal cannot be
+    /// caught: on an iPhone 17 the commit raised, and an uncaught NSException is the
+    /// process dying a fifth of a second after launch. The crash reports named
+    /// `-[AVCaptureSession commitConfiguration]` on three devices.
+    ///
+    /// So the transaction now contains only what every iPhone ever made supports — an
+    /// input, an output and a connection — and the format is chosen afterwards, against a
+    /// session that is already live, where "no" is an error with a next candidate rather
+    /// than a crash.
     private func configure(lens: LensOption, preference: FormatPreference) throws {
         #if DEBUG
         if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" { return }
@@ -176,20 +88,25 @@ final class CaptureEngine: @unchecked Sendable {
         guard let device = AVCaptureDevice.default(lens.deviceType, for: .video, position: .back) else {
             throw CameraError.noCameraAvailable
         }
-        guard let format = Self.bestFormat(for: device, preference: preference) else {
-            throw CameraError.noUsableFormat
-        }
+
+        try buildGraph(around: device)
+        self.device = device
+        selectFormat(on: device, preference: preference)
+    }
+
+    /// The parts of a capture session that are the same on every iPhone.
+    private func buildGraph(around device: AVCaptureDevice) throws {
+        let input = try AVCaptureDeviceInput(device: device)
 
         session.beginConfiguration()
-        defer { session.commitConfiguration() }
 
         // .inputPriority keeps the session from overriding activeFormat back to something
         // convenient for FaceTime. Without it every exposure setting below gets reverted.
         session.sessionPreset = .inputPriority
 
-        for input in session.inputs { session.removeInput(input) }
-        let input = try AVCaptureDeviceInput(device: device)
+        for existing in session.inputs { session.removeInput(existing) }
         guard session.canAddInput(input) else {
+            Hardware.attempt("commit empty session") { session.commitConfiguration() }
             throw CameraError.configurationFailed("input rejected")
         }
         session.addInput(input)
@@ -202,6 +119,7 @@ final class CaptureEngine: @unchecked Sendable {
             // frame is light that does not come back.
             output.alwaysDiscardsLateVideoFrames = false
             guard session.canAddOutput(output) else {
+                Hardware.attempt("commit session without output") { session.commitConfiguration() }
                 throw CameraError.configurationFailed("output rejected")
             }
             session.addOutput(output)
@@ -222,14 +140,48 @@ final class CaptureEngine: @unchecked Sendable {
             }
         }
 
-        try lockAndDisableAutomatics(device, format: format)
+        try Hardware.perform("commit capture session") { session.commitConfiguration() }
+    }
 
-        self.device = device
-        logger.info("""
-            Configured \(device.localizedName, privacy: .public): \
-            max exposure \(format.maxExposureDuration.seconds, format: .fixed(precision: 2))s, \
-            ISO \(format.minISO, format: .fixed(precision: 0))–\(format.maxISO, format: .fixed(precision: 0))
-            """)
+    /// How many formats to try before giving up and letting the camera keep its own.
+    private static let formatAttempts = 4
+
+    /// Ask for the best format, and take the next one if the hardware says no.
+    ///
+    /// Returns whether any candidate was accepted. A false here is not fatal: the session
+    /// is already running on whatever format the device chose for itself, so the app shows
+    /// a live sky instead of a crash, with the manual controls clamped to that format.
+    @discardableResult
+    private func selectFormat(on device: AVCaptureDevice, preference: FormatPreference) -> Bool {
+        let formats = device.formats
+        let facts = formats.map(FormatFacts.init)
+        let ranking = switch preference {
+        case .longExposure: FormatChoice.longExposureRanking(from: facts)
+        case .detector: FormatChoice.detectorRanking(from: facts)
+        }
+
+        for index in ranking.prefix(Self.formatAttempts) where formats.indices.contains(index) {
+            let format = formats[index]
+            do {
+                try lockAndDisableAutomatics(device, format: format)
+                logger.info("""
+                    Configured \(device.localizedName, privacy: .public): \
+                    \(facts[index].pixels / 1_000_000)MP, \
+                    longest frame \(facts[index].longestFrame, format: .fixed(precision: 2))s, \
+                    ISO \(facts[index].isoRange.lowerBound, format: .fixed(precision: 0))–\
+                    \(facts[index].isoRange.upperBound, format: .fixed(precision: 0))
+                    """)
+                return true
+            } catch {
+                logger.error("""
+                    Format \(facts[index].pixels / 1_000_000)MP refused: \
+                    \(error.localizedDescription, privacy: .public)
+                    """)
+            }
+        }
+
+        logger.error("No format accepted; keeping the camera's own")
+        return false
     }
 
     /// Turn off every automatic system. Each of these will happily undo a manual setting
@@ -291,23 +243,24 @@ final class CaptureEngine: @unchecked Sendable {
         try device.lockForConfiguration()
         defer { device.unlockForConfiguration() }
 
-        // Frame duration has to leave room for the shutter, or the requested exposure is
-        // silently truncated to fit the frame rate. `exposure` is already inside the
-        // format's frame-duration window — that is what `longestFrame` means — so this
-        // only has to survive a format that reports no window at all.
-        if FormatChoice.frameDurationBounds(format.videoSupportedFrameRateRanges) != nil {
-            Hardware.attempt("frame duration \(exposure)s") {
-                device.activeVideoMinFrameDuration = duration
-                device.activeVideoMaxFrameDuration = duration
-            }
-        }
-
-        // The one call that actually pins both shutter and gain. Everything else on this
-        // device is now forbidden from touching them.
-        if device.isExposureModeSupported(.custom) {
-            Hardware.attempt("exposure \(exposure)s at ISO \(iso)") {
-                device.setExposureModeCustom(duration: duration, iso: iso)
-            }
+        // The order of these two is not a detail; it is what killed the app on an iPhone 15.
+        //
+        // The hardware holds one invariant: the shutter has to fit inside the frame
+        // duration. It checks that on *both* setters, and narrowing the frame duration
+        // makes AVFoundation re-apply the exposure already in force — into a window that
+        // is now too small for it. The answer is an exception thrown out of
+        // `setActiveVideoMinFrameDuration`, which is exactly where the crash report
+        // pointed, and an uncaught NSException ends the process.
+        //
+        // So: widen the window before lengthening the shutter, and shorten the shutter
+        // before narrowing the window. Every intermediate state is then legal on its own.
+        let window = device.activeVideoMaxFrameDuration.seconds
+        if FormatChoice.frameWindowFirst(exposure: exposure, currentWindow: window) {
+            applyFrameWindow(duration, seconds: exposure, on: device, format: format)
+            applyExposure(duration, seconds: exposure, iso: iso, on: device)
+        } else {
+            applyExposure(duration, seconds: exposure, iso: iso, on: device)
+            applyFrameWindow(duration, seconds: exposure, on: device, format: format)
         }
 
         // Infinity, held. Autofocus in the dark hunts forever and lands on nothing.
@@ -337,6 +290,39 @@ final class CaptureEngine: @unchecked Sendable {
             Hardware.attempt("white balance \(settings.whiteBalanceKelvin)K") {
                 device.setWhiteBalanceModeLocked(with: gains)
             }
+        }
+    }
+
+    /// Pin the frame rate to the exposure, so the sensor is not asked for more frames a
+    /// second than the shutter can deliver.
+    ///
+    /// `exposure` is already inside the format's frame-duration window — that is what
+    /// `FormatFacts.longestFrame` means — so this only has to survive a format that
+    /// reports no window at all.
+    private func applyFrameWindow(
+        _ duration: CMTime,
+        seconds: Double,
+        on device: AVCaptureDevice,
+        format: AVCaptureDevice.Format
+    ) {
+        guard FormatChoice.frameDurationBounds(format.videoSupportedFrameRateRanges) != nil else { return }
+        Hardware.attempt("frame duration \(seconds)s") {
+            device.activeVideoMinFrameDuration = duration
+            device.activeVideoMaxFrameDuration = duration
+        }
+    }
+
+    /// The one call that actually pins both shutter and gain. Everything else on this
+    /// device is now forbidden from touching them.
+    private func applyExposure(
+        _ duration: CMTime,
+        seconds: Double,
+        iso: Float,
+        on device: AVCaptureDevice
+    ) {
+        guard device.isExposureModeSupported(.custom) else { return }
+        Hardware.attempt("exposure \(seconds)s at ISO \(iso)") {
+            device.setExposureModeCustom(duration: duration, iso: iso)
         }
     }
 

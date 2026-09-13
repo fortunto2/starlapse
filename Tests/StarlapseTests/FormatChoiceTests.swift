@@ -98,4 +98,65 @@ struct FormatChoiceTests {
         // `Int(totalLight / 0)` is `Int(infinity)`, which traps rather than overflowing.
         #expect(settings.frameCount >= 1)
     }
+
+    // MARK: - Ranking, because the camera gets a veto
+
+    @Test("Every format stays in the ranking, so a refusal always has a next candidate")
+    func rankingKeepsEveryFormat() {
+        let facts = [
+            Self.format(megapixels: 48),
+            Self.format(megapixels: 12),
+            Self.format(megapixels: 2, longest: 0.5),
+        ]
+
+        let ranking = FormatChoice.longExposureRanking(from: facts)
+
+        #expect(ranking.count == facts.count)
+        #expect(Set(ranking) == Set(facts.indices))
+    }
+
+    @Test("Over-budget formats come last, and the smallest of them comes first")
+    func oversizedFormatsAreTheLastResort() {
+        let facts = [
+            Self.format(megapixels: 200),
+            Self.format(megapixels: 48),
+            Self.format(megapixels: 12),
+        ]
+
+        #expect(FormatChoice.longExposureRanking(from: facts) == [2, 1, 0])
+    }
+
+    @Test("Watching ranks 1080p first and still lists what it passed over")
+    func detectorRankingIsComplete() {
+        let facts = [
+            Self.format(megapixels: 12, longest: 1.0),
+            Self.format(megapixels: 2, longest: 0.25),
+            Self.format(megapixels: 0.3, longest: 0.25),
+        ]
+
+        let ranking = FormatChoice.detectorRanking(from: facts)
+
+        #expect(ranking.first == 1)
+        #expect(Set(ranking) == Set(facts.indices))
+    }
+
+    // MARK: - The order the two exposure calls have to go in
+
+    @Test("Lengthening the shutter widens the window first")
+    func widenBeforeLengthening() {
+        // 1 s of sky into a window currently holding 1/8 s. Narrowing first is what threw
+        // the exception on an iPhone 15.
+        #expect(FormatChoice.frameWindowFirst(exposure: 1.0, currentWindow: 0.125))
+    }
+
+    @Test("Shortening the shutter sets the exposure first")
+    func shortenBeforeNarrowing() {
+        #expect(!FormatChoice.frameWindowFirst(exposure: 0.125, currentWindow: 1.0))
+    }
+
+    @Test("An unknown window counts as widening")
+    func unknownWindowWidens() {
+        #expect(FormatChoice.frameWindowFirst(exposure: 0.125, currentWindow: .nan))
+        #expect(FormatChoice.frameWindowFirst(exposure: 0.125, currentWindow: .infinity) == false)
+    }
 }
