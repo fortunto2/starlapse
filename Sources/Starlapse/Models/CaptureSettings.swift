@@ -80,7 +80,9 @@ struct CaptureSettings: Sendable, Equatable {
     /// How many frames that adds up to. The honest translation of "a one-hour exposure"
     /// into what the hardware will really do.
     var frameCount: Int {
-        max(1, Int((totalLightSeconds / frameExposure).rounded()))
+        // Never divide by the raw value: a camera that reports a zero exposure ceiling
+        // makes this infinite, and converting an infinite Double to Int traps.
+        max(1, Int((totalLightSeconds / max(frameExposure, 0.001)).rounded()))
     }
 
     /// Noise improvement from averaging, in stops. Only meaningful for the averaging modes.

@@ -30,6 +30,10 @@ public func hoursToDegrees(_ hours: Double, _ minutes: Double = 0, _ seconds: Do
 /// ("look north-east, two thirds of the way up").
 public func compassPoint(forAzimuth azimuth: Double) -> String {
     let names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
-    let index = Int((azimuth.normalizedDegrees / 45.0).rounded()) % 8
+    // A heading arrives from a sensor, and `Int(_:)` traps on NaN and on infinity rather
+    // than returning anything. One bad sample from CoreMotion should cost a dash on the
+    // overlay, not the app.
+    guard azimuth.isFinite else { return "--" }
+    let index = Int((azimuth.normalizedDegrees / 45.0).rounded()) % names.count
     return names[index]
 }

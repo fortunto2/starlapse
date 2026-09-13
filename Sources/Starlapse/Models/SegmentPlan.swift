@@ -96,7 +96,7 @@ struct SegmentPlan: Sendable, Equatable {
     ) -> Self {
         SegmentPlan(
             kind: .capturing,
-            framesPerSegment: max(1, Int(timelapse.lightPerFrame / settings.frameExposure)),
+            framesPerSegment: max(1, Int(timelapse.lightPerFrame / max(settings.frameExposure, 0.001))),
             aligns: settings.stackMode.alignsStars,
             segments: timelapse.frameCount,
             stackMode: settings.stackMode,

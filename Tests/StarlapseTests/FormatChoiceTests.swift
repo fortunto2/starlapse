@@ -89,4 +89,13 @@ struct FormatChoiceTests {
 
         #expect(FormatChoice.detector(from: facts) == 1)
     }
+
+    @Test("A camera reporting a zero exposure ceiling costs a bad plan, not a trap")
+    func zeroExposureDoesNotTrap() {
+        var settings = SegmentPlanTests.settings
+        settings.frameExposure = 0
+
+        // `Int(totalLight / 0)` is `Int(infinity)`, which traps rather than overflowing.
+        #expect(settings.frameCount >= 1)
+    }
 }
