@@ -89,20 +89,33 @@ final class CaptureEngine: @unchecked Sendable {
             throw CameraError.noCameraAvailable
         }
 
-        try buildGraph(around: device)
+        let ownsFormat = try buildGraph(around: device)
         self.device = device
-        selectFormat(on: device, preference: preference)
+        // Without `.inputPriority` the session manages `activeFormat` itself and would
+        // revert anything chosen here. On a device that refuses that preset, the session's
+        // own format is the only one there is, and fighting it would just lose.
+        if ownsFormat {
+            selectFormat(on: device, preference: preference)
+        } else {
+            logger.error("Session keeps format control; manual format selection skipped")
+        }
     }
 
     /// The parts of a capture session that are the same on every iPhone.
-    private func buildGraph(around device: AVCaptureDevice) throws {
+    ///
+    /// Returns whether the session handed over control of the sensor format.
+    @discardableResult
+    private func buildGraph(around device: AVCaptureDevice) throws -> Bool {
         let input = try AVCaptureDeviceInput(device: device)
 
         session.beginConfiguration()
 
         // .inputPriority keeps the session from overriding activeFormat back to something
         // convenient for FaceTime. Without it every exposure setting below gets reverted.
-        session.sessionPreset = .inputPriority
+        // Asked rather than assumed: this whole class of crash came from telling the
+        // capture session things instead of asking it.
+        let ownsFormat = session.canSetSessionPreset(.inputPriority)
+        if ownsFormat { session.sessionPreset = .inputPriority }
 
         for existing in session.inputs { session.removeInput(existing) }
         guard session.canAddInput(input) else {
@@ -141,6 +154,7 @@ final class CaptureEngine: @unchecked Sendable {
         }
 
         try Hardware.perform("commit capture session") { session.commitConfiguration() }
+        return ownsFormat
     }
 
     /// How many formats to try before giving up and letting the camera keep its own.
