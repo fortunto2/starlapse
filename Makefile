@@ -72,7 +72,10 @@ archive: gen ## Archive signed for the App Store
 
 ipa: archive ## Export a signed .ipa ready for upload
 	@rm -rf build/export
-	@xcodebuild -exportArchive -archivePath build/$(SCHEME).xcarchive \
+	# /usr/bin first on purpose: exportArchive shells out to rsync with Apple-specific
+	# flags, and a Homebrew rsync ahead of it in PATH answers "syntax or usage error",
+	# which xcodebuild reports only as "Copy failed".
+	@PATH=/usr/bin:$$PATH xcodebuild -exportArchive -archivePath build/$(SCHEME).xcarchive \
 		-exportPath build/export -exportOptionsPlist .asc/ExportOptions-AppStore.plist \
 		-allowProvisioningUpdates 2>&1 | grep -E "(error:|EXPORT SUCCEEDED)"
 	@ls -lh build/export/*.ipa

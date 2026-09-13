@@ -82,6 +82,12 @@ fails with *"the state of another resource"*, which names nothing useful.
 **`MTL_ENABLE_DEBUG_INFO` must be Debug-only.** Set globally it ships shader source inside
 `default.metallib`, and App Store Connect flags the upload.
 
+**A Homebrew `rsync` breaks `exportArchive`.** The export shells out to rsync with
+Apple-specific flags; GNU rsync 3.5 answers *"syntax or usage error"* and xcodebuild reports
+only *"Copy failed"*, naming neither rsync nor PATH. The real error is in
+`IDEDistributionPipeline.log` inside the `.xcdistributionlogs` bundle it prints the path to.
+`make ipa` puts `/usr/bin` first for that one command.
+
 **Screenshot sizes are fixed and the newest simulators do not match them.** APP_IPHONE_65
 wants 1284×2778; an iPhone 17 Pro shoots 1206×2622 and a 15 Plus 1290×2796. Scale to width
 and trim, the aspect differs by half a percent.
