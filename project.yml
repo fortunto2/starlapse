@@ -21,7 +21,7 @@ settings:
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "3"
+    CURRENT_PROJECT_VERSION: "4"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 targets:
@@ -43,6 +43,10 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MTL_FAST_MATH: YES
+        # One Objective-C file, for one reason: AVCaptureDevice rejects an out-of-range
+        # value by raising NSException, and Swift cannot catch those — the process dies.
+        # See Support/CameraExceptionBarrier.h.
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/Starlapse/Support/CameraExceptionBarrier.h
       configs:
         debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG

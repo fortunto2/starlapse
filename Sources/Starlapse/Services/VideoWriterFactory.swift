@@ -67,13 +67,20 @@ enum VideoWriterFactory {
         ]
     }
 
-    /// Block until the input will take another frame.
+    /// Block until the input will take another frame. Returns false if it never will.
     ///
     /// Both writers are fed from the capture queue and must not drop anything: a time-lapse
-    /// frame cost minutes of sky, and an event frame cannot be re-shot at all.
-    static func waitForReady(_ input: AVAssetWriterInput) {
+    /// frame cost minutes of sky, and an event frame cannot be re-shot at all. So this
+    /// waits — but a writer that has failed never becomes ready again, and the first
+    /// version of this loop then spun on the capture queue forever. No crash, no log: the
+    /// preview freezes and the session is over without saying so, which is worse than an
+    /// error. The encoder refusing a frame size is enough to get there.
+    static func waitForReady(_ input: AVAssetWriterInput, writer: AVAssetWriter, timeout: TimeInterval = 5) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
         while !input.isReadyForMoreMediaData {
+            guard writer.status == .writing, Date() < deadline else { return false }
             Thread.sleep(forTimeInterval: 0.005)
         }
+        return true
     }
 }

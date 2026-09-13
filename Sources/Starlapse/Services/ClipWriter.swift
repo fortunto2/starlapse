@@ -26,11 +26,13 @@ enum ClipWriter {
         let input = stack.input
         let adaptor = stack.adaptor
 
-        writer.startWriting()
+        // Checked, not assumed: `startWriting` returns false for a frame size the encoder
+        // will not take, and everything below then waits on an input that is never ready.
+        guard writer.startWriting() else { return nil }
         writer.startSession(atSourceTime: .zero)
 
         for (index, entry) in frames.enumerated() {
-            VideoWriterFactory.waitForReady(input)
+            guard VideoWriterFactory.waitForReady(input, writer: writer) else { break }
             let time = CMTime(value: CMTimeValue(index), timescale: CMTimeScale(frameRate))
             adaptor.append(entry.pixelBuffer, withPresentationTime: time)
         }

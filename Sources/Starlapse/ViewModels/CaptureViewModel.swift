@@ -218,9 +218,7 @@ final class CaptureViewModel {
     }
 
     func clearEvents() {
-        for event in events {
-            try? FileManager.default.removeItem(at: event.url)
-        }
+        ScratchStore.remove(events.map(\.url))
         events = []
     }
 

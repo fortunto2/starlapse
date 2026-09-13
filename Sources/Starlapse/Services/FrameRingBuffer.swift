@@ -19,7 +19,18 @@ final class FrameRingBuffer: @unchecked Sendable {
         let timestamp: TimeInterval
     }
 
-    private let capacity: Int
+    /// Most memory the ring may hold, whatever was asked for.
+    ///
+    /// The detector normally runs at ~1080p, where three seconds costs 25 MB. But the
+    /// format it gets is whatever the hardware offers — on a camera with no low-resolution
+    /// format that holds the shutter open, it falls back to the full-resolution one, and
+    /// the same three seconds becomes 500 MB on top of the stack's own ~350 MB. iOS answers
+    /// that by killing the app, which is indistinguishable from a crash from the outside.
+    static let byteBudget = 150 * 1024 * 1024
+
+    /// What the settings asked for, and what the frame size allows.
+    private let requestedCapacity: Int
+    private var capacity: Int
     private var buffers: [CVPixelBuffer] = []
     private var timestamps: [TimeInterval] = []
     private var writeIndex = 0
@@ -29,8 +40,13 @@ final class FrameRingBuffer: @unchecked Sendable {
     private var height = 0
 
     init(frames: Int) {
-        capacity = max(2, frames)
+        requestedCapacity = max(2, frames)
+        capacity = requestedCapacity
     }
+
+    /// Frames the ring will actually hold. Equal to what was asked for until a frame size
+    /// arrives that cannot afford it.
+    var frameCapacity: Int { capacity }
 
     /// Copy a frame into the ring, evicting the oldest.
     ///
@@ -73,6 +89,10 @@ final class FrameRingBuffer: @unchecked Sendable {
     private func configure(width: Int, height: Int) {
         self.width = width
         self.height = height
+
+        // A shorter pre-roll is a worse clip. Being killed mid-session is no clip at all.
+        let frameBytes = max(width * height * 4, 1)
+        capacity = max(2, min(requestedCapacity, Self.byteBudget / frameBytes))
 
         let attributes: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,

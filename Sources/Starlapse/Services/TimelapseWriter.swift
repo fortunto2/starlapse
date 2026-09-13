@@ -66,7 +66,10 @@ final class TimelapseWriter: @unchecked Sendable {
         }
 
         // Wait rather than drop: an output frame here cost minutes of sky time.
-        VideoWriterFactory.waitForReady(input)
+        guard VideoWriterFactory.waitForReady(input, writer: writer) else {
+            logger.error("Encoder stopped accepting frames: \(String(describing: self.writer.error))")
+            return
+        }
 
         let time = CMTime(value: CMTimeValue(frameIndex), timescale: CMTimeScale(frameRate))
         adaptor.append(pixelBuffer, withPresentationTime: time)

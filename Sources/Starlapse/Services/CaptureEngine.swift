@@ -100,15 +100,20 @@ final class CaptureEngine: @unchecked Sendable {
 
         guard let primary = discovery.devices.first(where: { $0.deviceType == .builtInWideAngleCamera })
             ?? discovery.devices.first,
-            let format = Self.bestLongExposureFormat(for: primary) else {
+            let format = Self.bestFormat(for: primary) else {
             return .unavailable
         }
 
+        // Read back what the chosen format will really do rather than what it advertises:
+        // `maxExposureDuration` ignores the frame-rate floor, and the user's "1 second"
+        // slider has to stop where the hardware does.
+        let facts = FormatFacts(format)
+
         return CameraCapabilities(
             lenses: lenses,
-            isoRange: format.minISO...format.maxISO,
-            maxFrameExposure: format.maxExposureDuration.seconds,
-            minFrameExposure: format.minExposureDuration.seconds,
+            isoRange: facts.isoRange,
+            maxFrameExposure: facts.longestFrame,
+            minFrameExposure: facts.shortestFrame,
             supportsAppleProRAW: discovery.devices.count >= 3,
             deviceModel: primary.localizedName
         )
@@ -137,47 +142,23 @@ final class CaptureEngine: @unchecked Sendable {
         }
     }
 
-    /// Around 1080p, still able to hold the shutter open a quarter second.
-    ///
-    /// Resolution is the thing to give up here: a meteor is a bright streak tens of pixels
-    /// long, perfectly visible at 1080p, and dropping from 12 MP cuts the ring buffer and
-    /// its per-frame copy by roughly 6×.
     private static func bestDetectorFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
-        let usable = device.formats.filter { format in
-            format.maxExposureDuration.seconds >= 0.2
-                && format.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= 4 }
-        }
-        guard !usable.isEmpty else { return bestLongExposureFormat(for: device) }
-
-        // Closest to 1080p from below, then the largest of those.
-        let target = 1920 * 1080
-        return usable.min { left, right in
-            let leftCost = abs(pixelCount(left) - target)
-            let rightCost = abs(pixelCount(right) - target)
-            return leftCost < rightCost
-        }
+        pick(from: device, using: FormatChoice.detector)
     }
 
     private static func bestLongExposureFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
-        device.formats
-            .filter { format in
-                // The frame rate floor has to be low enough to actually hold the shutter
-                // open that long — a format capped at 30 fps minimum cannot do 1 s frames.
-                format.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= 1.5 }
-            }
-            .max { left, right in
-                let leftExposure = left.maxExposureDuration.seconds
-                let rightExposure = right.maxExposureDuration.seconds
-                if abs(leftExposure - rightExposure) > 0.01 {
-                    return leftExposure < rightExposure
-                }
-                return Self.pixelCount(left) < Self.pixelCount(right)
-            }
+        pick(from: device, using: FormatChoice.longExposure)
     }
 
-    static func pixelCount(_ format: AVCaptureDevice.Format) -> Int {
-        let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
-        return Int(dimensions.width) * Int(dimensions.height)
+    private static func pick(
+        from device: AVCaptureDevice,
+        using choose: ([FormatFacts]) -> Int?
+    ) -> AVCaptureDevice.Format? {
+        let formats = device.formats
+        guard let index = choose(formats.map(FormatFacts.init)), formats.indices.contains(index) else {
+            return nil
+        }
+        return formats[index]
     }
 
     // MARK: - Configuration
@@ -255,21 +236,32 @@ final class CaptureEngine: @unchecked Sendable {
     /// mid-session, which is exactly the complaint that started this project.
     private func lockAndDisableAutomatics(_ device: AVCaptureDevice, format: AVCaptureDevice.Format) throws {
         try device.lockForConfiguration()
-        device.activeFormat = format
+        defer { device.unlockForConfiguration() }
+
+        try Hardware.perform("select format") { device.activeFormat = format }
+
         if device.isSubjectAreaChangeMonitoringEnabled {
-            device.isSubjectAreaChangeMonitoringEnabled = false
+            Hardware.attempt("subject-area monitoring") {
+                device.isSubjectAreaChangeMonitoringEnabled = false
+            }
         }
         if device.automaticallyAdjustsVideoHDREnabled {
-            device.automaticallyAdjustsVideoHDREnabled = false
+            Hardware.attempt("automatic HDR") { device.automaticallyAdjustsVideoHDREnabled = false }
         }
         if device.activeFormat.isVideoHDRSupported {
-            device.isVideoHDREnabled = false
+            Hardware.attempt("HDR") { device.isVideoHDREnabled = false }
         }
         if device.isLowLightBoostSupported {
-            device.automaticallyEnablesLowLightBoostWhenAvailable = false
+            Hardware.attempt("low-light boost") {
+                device.automaticallyEnablesLowLightBoostWhenAvailable = false
+            }
         }
-        device.videoZoomFactor = 1.0
-        device.unlockForConfiguration()
+
+        // 1.0 is not always an available zoom factor. On a device whose minimum is above
+        // it — a camera that is itself a crop of a larger sensor — assigning 1.0 raises
+        // NSRangeException, and an uncaught NSException is the app closing on launch.
+        let zoom = min(max(1.0, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor)
+        Hardware.attempt("zoom \(zoom)") { device.videoZoomFactor = zoom }
     }
 
     // MARK: - Manual exposure
@@ -286,40 +278,65 @@ final class CaptureEngine: @unchecked Sendable {
         #endif
         guard let device else { throw CameraError.noCameraAvailable }
 
+        // Every value below is clamped to what this format reports, and every call that
+        // applies one goes through `Hardware`. AVFoundation answers an out-of-range
+        // argument with an NSException, which Swift cannot catch and the user experiences
+        // as the app closing the moment it is given camera access.
         let format = device.activeFormat
-        let exposure = settings.frameExposure.clamped(
-            to: format.minExposureDuration.seconds ... format.maxExposureDuration.seconds
-        )
-        let iso = settings.iso.clamped(to: format.minISO ... format.maxISO)
+        let facts = FormatFacts(format)
+        let exposure = settings.frameExposure.clamped(to: facts.shortestFrame...facts.longestFrame)
+        let iso = settings.iso.clamped(to: facts.isoRange)
         let duration = CMTime(seconds: exposure, preferredTimescale: 1_000_000)
 
         try device.lockForConfiguration()
         defer { device.unlockForConfiguration() }
 
         // Frame duration has to leave room for the shutter, or the requested exposure is
-        // silently truncated to fit the frame rate.
-        device.activeVideoMinFrameDuration = duration
-        device.activeVideoMaxFrameDuration = duration
+        // silently truncated to fit the frame rate. `exposure` is already inside the
+        // format's frame-duration window — that is what `longestFrame` means — so this
+        // only has to survive a format that reports no window at all.
+        if FormatChoice.frameDurationBounds(format.videoSupportedFrameRateRanges) != nil {
+            Hardware.attempt("frame duration \(exposure)s") {
+                device.activeVideoMinFrameDuration = duration
+                device.activeVideoMaxFrameDuration = duration
+            }
+        }
 
         // The one call that actually pins both shutter and gain. Everything else on this
         // device is now forbidden from touching them.
-        device.setExposureModeCustom(duration: duration, iso: iso)
-
-        if device.isFocusModeSupported(.locked) {
-            // Infinity, held. Autofocus in the dark hunts forever and lands on nothing.
-            device.setFocusModeLocked(lensPosition: settings.focusPosition.clamped(to: 0...1))
+        if device.isExposureModeSupported(.custom) {
+            Hardware.attempt("exposure \(exposure)s at ISO \(iso)") {
+                device.setExposureModeCustom(duration: duration, iso: iso)
+            }
         }
 
-        if device.isWhiteBalanceModeSupported(.locked) {
+        // Infinity, held. Autofocus in the dark hunts forever and lands on nothing.
+        // A fixed-focus lens reports `.locked` as supported while refusing a custom lens
+        // position — the ultra-wide on several iPhones is exactly that.
+        if device.isFocusModeSupported(.locked) {
+            let position = settings.focusPosition.clamped(to: 0...1)
+            if device.isLockingFocusWithCustomLensPositionSupported {
+                Hardware.attempt("focus at \(position)") {
+                    device.setFocusModeLocked(lensPosition: position)
+                }
+            } else {
+                Hardware.attempt("focus lock") { device.focusMode = .locked }
+            }
+        }
+
+        if device.isWhiteBalanceModeSupported(.locked),
+           device.isLockingWhiteBalanceWithCustomDeviceGainsSupported {
             let temperature = AVCaptureDevice.WhiteBalanceTemperatureAndTintValues(
                 temperature: settings.whiteBalanceKelvin, tint: 0
             )
             var gains = device.deviceWhiteBalanceGains(for: temperature)
-            let ceiling = device.maxWhiteBalanceGain
+            let ceiling = max(1, device.maxWhiteBalanceGain)
             gains.redGain = gains.redGain.clamped(to: 1...ceiling)
             gains.greenGain = gains.greenGain.clamped(to: 1...ceiling)
             gains.blueGain = gains.blueGain.clamped(to: 1...ceiling)
-            device.setWhiteBalanceModeLocked(with: gains)
+            Hardware.attempt("white balance \(settings.whiteBalanceKelvin)K") {
+                device.setWhiteBalanceModeLocked(with: gains)
+            }
         }
     }
 

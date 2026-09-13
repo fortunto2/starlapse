@@ -100,6 +100,44 @@ Two rules from this:
    one. Symptom-shaped reasoning ("it dies when capture ends, so it's the renderer") cost
    two full rounds of work on the wrong subsystem.
 
+## The crash that only happened on someone else's phone
+
+Build 3's first review: *"when I allow Starlapse to access my camera, the app autocloses
+when I try to open it; if I don't allow it, the app opens perfectly."* Three stars, no crash
+log — App Store Connect had no diagnostic signature for the build, so there was nothing to
+symbolicate. Denying the camera returns from `prepare()` before any of this runs, which is
+why the app "opened perfectly" that way.
+
+Two causes, both invisible on the phone it was developed on:
+
+1. **The format picker chose by merit and ignored the bill.** It ranked by longest shutter,
+   breaking ties on resolution — and every iPhone since the 14 Pro offers a 48 MP format
+   with the same 1 s ceiling. That is 1.4 GB of accumulator, display and luminance textures
+   before a single camera buffer, and iOS kills the app during launch for it.
+   `FormatChoice.pixelBudget` is the fix, and the ranking is now pure and tested.
+2. **AVFoundation reports a bad argument by raising `NSException`, which Swift cannot
+   catch.** `videoZoomFactor = 1.0` on a camera whose minimum is above 1, a frame duration
+   outside the format's frame-rate window, `setFocusModeLocked` on a lens that reports
+   `.locked` as supported but refuses a custom position — each one is a process death, not
+   an error.
+
+Two rules from this:
+
+1. **Never hand the camera a value that was not clamped to what *this format* reports**,
+   and read the limits back from the format rather than from the device or from memory. The
+   two disagree: `maxExposureDuration` ignores the frame-rate floor, so a format advertising
+   1 s while refusing to drop below 1.5 fps delivers 0.667 s — and asking for the second is
+   what raises.
+2. **Every camera setter goes through `Hardware.perform` / `Hardware.attempt`** — the
+   `@try` barrier in `Support/CameraExceptionBarrier.m`. It is the net under rule 1, not a
+   replacement for it: without it, a device none of us owns turns a wrong guess into a
+   one-star review with no stack trace.
+
+The same shape twice more, found while reviewing for it: `waitForReady` spun forever on a
+writer that had failed (a frozen session, no log), and the detector's ring buffer sized
+itself in frames rather than bytes. **A number that comes from the hardware needs a budget,
+not a default.**
+
 ## Lessons from the first field test
 
 Three failures, all in the layer that no test could reach. They are listed because each
