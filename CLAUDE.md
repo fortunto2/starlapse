@@ -132,6 +132,19 @@ connection. The format is chosen **after** the commit, against a live session, w
 a caught error and `FormatChoice` hands over the next candidate. Formats are a ranked list
 rather than one answer, for exactly that reason.
 
+### One and a half: two more assertions inside that same transaction
+
+Found by re-reading the block for anything else it was *telling* the session rather than
+asking it, and both are on the suspect list for the same commit:
+
+- `sessionPreset = .inputPriority` was assigned blind. `canSetSessionPreset` is
+  AVFoundation's own predicate for it. Where the session refuses, the format belongs to the
+  session and choosing one behind its back only loses, so the app now runs on the session's
+  format and logs that it did.
+- `videoSettings` asked for BGRA **before** the output was attached, and
+  `availableVideoPixelFormatTypes` is empty until then — a question nothing can answer yet,
+  whose validation lands at commit. Attached first, then asked, then set.
+
 ### Two: the shutter and the frame window have an order
 
 The camera holds one invariant — the shutter must fit inside the frame duration — and checks

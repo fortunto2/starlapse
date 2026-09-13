@@ -125,9 +125,6 @@ final class CaptureEngine: @unchecked Sendable {
         session.addInput(input)
 
         if !session.outputs.contains(output) {
-            output.videoSettings = [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
-            ]
             // Never drop: an hour of stacking is a fixed budget of photons, and a skipped
             // frame is light that does not come back.
             output.alwaysDiscardsLateVideoFrames = false
@@ -136,6 +133,23 @@ final class CaptureEngine: @unchecked Sendable {
                 throw CameraError.configurationFailed("output rejected")
             }
             session.addOutput(output)
+        }
+
+        // Pixel format after the output is attached, and only if the output says it has it.
+        //
+        // `availableVideoPixelFormatTypes` is empty until then, so asking for BGRA before
+        // attaching is asking a question nothing can answer yet — the validation lands at
+        // commit instead, which is where these crashes surfaced. Left unset, the camera
+        // delivers its native format: the preview goes dark because the Metal path reads
+        // BGRA, but a dark preview is a bug report, not a dead app.
+        if output.availableVideoPixelFormatTypes.contains(kCVPixelFormatType_32BGRA) {
+            Hardware.attempt("BGRA output") {
+                output.videoSettings = [
+                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+                ]
+            }
+        } else {
+            logger.error("Camera will not deliver BGRA; using its native pixel format")
         }
 
         let receiver = FrameReceiver(onFrame: onFrame)
