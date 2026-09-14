@@ -82,6 +82,16 @@ fails with *"the state of another resource"*, which names nothing useful.
 **`MTL_ENABLE_DEBUG_INFO` must be Debug-only.** Set globally it ships shader source inside
 `default.metallib`, and App Store Connect flags the upload.
 
+**An iPhone-only camera app is offered on Apple Vision Pro by default.** The toggle is on
+unless you turn it off, and App Review tests there. Compatibility-mode iPhone apps get no
+camera on visionOS at all — `AVCaptureDevice.default` returns nil — so Starlapse can only
+show its "no usable rear camera" message, which reads as an unfinished app. It lives in
+Pricing and Availability and is **not in the public API**: not `asc apps`, not
+`asc pricing availability`. Turn it off before the first submission.
+
+*Status: the 1.0.1 rejection that prompted this was described to us rather than read — the
+Resolution Center text is not in the API and the web session was not available at the time.*
+
 **A Homebrew `rsync` breaks `exportArchive`.** The export shells out to rsync with
 Apple-specific flags; GNU rsync 3.5 answers *"syntax or usage error"* and xcodebuild reports
 only *"Copy failed"*, naming neither rsync nor PATH. The real error is in
