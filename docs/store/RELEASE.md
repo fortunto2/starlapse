@@ -82,15 +82,18 @@ fails with *"the state of another resource"*, which names nothing useful.
 **`MTL_ENABLE_DEBUG_INFO` must be Debug-only.** Set globally it ships shader source inside
 `default.metallib`, and App Store Connect flags the upload.
 
-**An iPhone-only camera app is offered on Apple Vision Pro by default.** The toggle is on
-unless you turn it off, and App Review tests there. Compatibility-mode iPhone apps get no
-camera on visionOS at all — `AVCaptureDevice.default` returns nil — so Starlapse can only
-show its "no usable rear camera" message, which reads as an unfinished app. It lives in
-Pricing and Availability and is **not in the public API**: not `asc apps`, not
-`asc pricing availability`. Turn it off before the first submission.
+**ITMS-90984 is the Vision Pro question answering itself.** After every upload Apple mails:
+*"The app contains the following UIRequiredDeviceCapabilities values, which aren't supported
+in visionOS: [magnetometer, gyroscope]."* It arrives under "delivery was successful" and is
+informational — and what it means is that those two requirements **already exclude the app
+from Apple Vision Pro**, which is exactly right for a camera app: compatibility-mode iPhone
+apps get no camera on visionOS at all, so there is nothing to adapt. Corroborated
+independently: `itunes.apple.com/lookup?id=<app>` lists 128 supported devices for 1.0 and no
+Vision among them.
 
-*Status: the 1.0.1 rejection that prompted this was described to us rather than read — the
-Resolution Center text is not in the API and the web session was not available at the time.*
+So do **not** "fix" it. Removing the requirements would put the app on a platform where it
+cannot work. The Pricing and Availability toggle does not need touching either; the plist
+settles it, and the toggle is not in the public API anyway.
 
 **A Homebrew `rsync` breaks `exportArchive`.** The export shells out to rsync with
 Apple-specific flags; GNU rsync 3.5 answers *"syntax or usage error"* and xcodebuild reports
