@@ -18,6 +18,8 @@ final class CaptureEngine: @unchecked Sendable {
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "capture")
 
     private var device: AVCaptureDevice?
+    /// The format the session picked for itself at commit — the one it is known to start on.
+    private var sessionFormat: AVCaptureDevice.Format?
     private var receiver: FrameReceiver?
     #if DEBUG
     private var stubSky: StubSkySource?
@@ -78,9 +80,10 @@ final class CaptureEngine: @unchecked Sendable {
     /// `-[AVCaptureSession commitConfiguration]` on three devices.
     ///
     /// So the transaction now contains only what every iPhone ever made supports — an
-    /// input, an output and a connection — and the format is chosen afterwards, against a
-    /// session that is already live, where "no" is an error with a next candidate rather
-    /// than a crash.
+    /// input, an output and a connection — and the format is chosen afterwards, where "no"
+    /// from the setter is an error with a next candidate rather than a crash. The session
+    /// is not running yet at this point, so a format the graph cannot use is only caught
+    /// at `startRunning` — see `startOnQueue()` for that net.
     private func configure(lens: LensOption, preference: FormatPreference) throws {
         #if DEBUG
         if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" { return }
@@ -91,6 +94,7 @@ final class CaptureEngine: @unchecked Sendable {
 
         let ownsFormat = try buildGraph(around: device)
         self.device = device
+        sessionFormat = device.activeFormat
         // Without `.inputPriority` the session manages `activeFormat` itself and would
         // revert anything chosen here. On a device that refuses that preset, the session's
         // own format is the only one there is, and fighting it would just lose.
@@ -356,19 +360,47 @@ final class CaptureEngine: @unchecked Sendable {
 
     // MARK: - Running
 
-    func start() async {
+    /// Returns whether the sensor fell back to the session's own format on the way.
+    @discardableResult
+    func start() async throws -> Bool {
         // The Simulator has no camera. Rather than showing a black rectangle, feed the
         // pipeline a synthesised sky — see StubSkySource. DEBUG only, opt-in by env var,
         // and it goes through exactly the same code path a real frame would.
         #if DEBUG
         if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
             startStubSky()
-            return
+            return false
         }
         #endif
 
-        await captureQueue.perform { [self] in
-            if !session.isRunning { session.startRunning() }
+        return try await captureQueue.perform { [self] in
+            try startOnQueue()
+        }
+    }
+
+    /// Start the session; if it refuses the chosen format, fall back to its own and retry.
+    ///
+    /// Build 8 moved the format choice out of the commit, but the session was not running
+    /// yet, so nothing validated it there either: AVFoundation checks a format against the
+    /// graph at `startRunning`, and on an iPhone 17 Pro Max (iOS 27.0) that is where it
+    /// raised. Same refusal, one call later, still fatal.
+    ///
+    /// Returns whether the fallback was taken, so the caller can re-apply exposure limits
+    /// for the format the sensor actually ended up on.
+    @discardableResult
+    private func startOnQueue() throws -> Bool {
+        guard !session.isRunning else { return false }
+        do {
+            try Hardware.perform("start session") { session.startRunning() }
+            return false
+        } catch {
+            guard let device, let sessionFormat, device.activeFormat != sessionFormat else { throw error }
+            logger.error("Session refused the chosen format; falling back to its own")
+            try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
+            try Hardware.perform("restore session format") { device.activeFormat = sessionFormat }
+            try Hardware.perform("start session on its own format") { session.startRunning() }
+            return true
         }
     }
 

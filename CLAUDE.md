@@ -155,6 +155,19 @@ So: widen the window before lengthening the shutter, shorten the shutter before 
 window. `FormatChoice.frameWindowFirst` is that rule, with tests, because getting it backwards
 is not a wrong picture — it is a dead process.
 
+### Three: build 8 moved the refusal, it did not remove it
+
+17 Sep, iPhone 17 Pro Max, iOS 27.0, **1.0.1 (8)**: `SIGABRT` from
+`-[AVCaptureSession startRunning]`, 3.4 s after launch. The format was chosen after the
+commit, but against a session that was **not running yet**, so nothing validated it until
+`startRunning` — where AVFoundation checks the format against the graph and raises. The
+`configure()` comment claimed the session was "already live"; it was not.
+
+`startRunning` now goes through `Hardware.perform`, and on refusal the device is put back on
+the format the session picked at commit (`sessionFormat`) and started again; the view model
+re-applies exposure against that format. Measured cause: the crash frame. That the chosen
+format is what it refused is inference — the report carries no exception reason.
+
 ### What was kept, and labelled honestly
 
 The pixel budget in `FormatChoice` was written for a **different** theory: that a 48 MP format

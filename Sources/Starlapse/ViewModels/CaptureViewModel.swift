@@ -174,7 +174,11 @@ final class CaptureViewModel {
             // compose — which a one-second frame at low ISO would not. The engine has to
             // be told to display these frames, or it drops them and the screen stays black.
             stack.begin(.framing)
-            await capture.start()
+            if try await capture.start() {
+                // The sensor is on a different format than the one the settings were
+                // clamped to; clamp again against the one it actually runs.
+                try await capture.apply(activeSettings)
+            }
             state = .aiming
         } catch {
             logger.error("Prepare failed: \(error.localizedDescription, privacy: .public)")
