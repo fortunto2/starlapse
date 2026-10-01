@@ -15,6 +15,12 @@ struct FormatFacts: Sendable, Equatable {
     let longestFrame: Double
     let shortestFrame: Double
     let isoRange: ClosedRange<Float>
+    /// Plain 8-bit 4:2:0 video (`420v`/`420f`) — the only kind the BGRA output is known to
+    /// convert on every iPhone. Newer phones list 10-bit, Apple Log and ProRes variants at
+    /// the same size and frame rate, so without this they tie with the safe one and can win.
+    var isEightBitVideo = true
+    /// Stable name for this format on this device, for the crash quarantine.
+    var key = ""
 }
 
 /// Which format to shoot with. Pure arithmetic over `FormatFacts`, so the rules are
@@ -45,8 +51,8 @@ enum FormatChoice {
     ///
     /// Longest frame first, ties broken by resolution: frame length decides how many
     /// frames a given hour of sky costs, and every frame is a fresh helping of read noise.
-    static func longExposureRanking(from facts: [FormatFacts]) -> [Int] {
-        let (affordable, tooBig) = split(facts)
+    static func longExposureRanking(from facts: [FormatFacts], excluding quarantined: Set<String> = []) -> [Int] {
+        let (affordable, tooBig) = split(facts, excluding: quarantined)
         let best = affordable.sorted { left, right in
             if abs(left.fact.longestFrame - right.fact.longestFrame) > 0.01 {
                 return left.fact.longestFrame > right.fact.longestFrame
@@ -67,11 +73,11 @@ enum FormatChoice {
     /// Resolution is the thing to give up here. A meteor is a bright streak tens of pixels
     /// long, perfectly visible at 1080p, and dropping from 12 MP cuts the detector's ring
     /// buffer and its per-frame copy by roughly 6×.
-    static func detectorRanking(from facts: [FormatFacts]) -> [Int] {
+    static func detectorRanking(from facts: [FormatFacts], excluding quarantined: Set<String> = []) -> [Int] {
         let target = 1920 * 1080
-        let (affordable, tooBig) = split(facts)
+        let (affordable, tooBig) = split(facts, excluding: quarantined)
         let usable = affordable.filter { $0.fact.longestFrame >= 0.2 }
-        guard !usable.isEmpty else { return longExposureRanking(from: facts) }
+        guard !usable.isEmpty else { return longExposureRanking(from: facts, excluding: quarantined) }
 
         let best = usable.sorted { abs($0.fact.pixels - target) < abs($1.fact.pixels - target) }
         let rest = affordable.filter { $0.fact.longestFrame < 0.2 }
@@ -84,18 +90,27 @@ enum FormatChoice {
         detectorRanking(from: facts).first
     }
 
-    /// Inside the memory budget, and outside it.
+    /// Inside the memory budget, outside it, and not to be trusted.
     ///
     /// Over-budget formats stay in the ranking, last and smallest first: a device where
     /// every format is enormous should still take a photograph. Shooting big beats not
     /// shooting, and being killed at launch beats neither.
+    ///
+    /// Formats that are not plain 8-bit video come after all of those: build 8 died in
+    /// `startRunning` on an iPhone 17 Pro Max, and a 10-bit or Log variant handed to a BGRA
+    /// output is the likeliest refusal. Quarantined formats — ones that already killed the
+    /// process once on this phone — are not listed at all.
     private static func split(
-        _ facts: [FormatFacts]
+        _ facts: [FormatFacts], excluding quarantined: Set<String>
     ) -> (affordable: [(index: Int, fact: FormatFacts)], tooBig: [(index: Int, fact: FormatFacts)]) {
-        let all = facts.enumerated().map { (index: $0.offset, fact: $0.element) }
+        let all = facts.enumerated()
+            .map { (index: $0.offset, fact: $0.element) }
+            .filter { $0.fact.key.isEmpty || !quarantined.contains($0.fact.key) }
+        let safe = all.filter(\.fact.isEightBitVideo)
+        let risky = all.filter { !$0.fact.isEightBitVideo }.sorted { $0.fact.pixels < $1.fact.pixels }
         return (
-            all.filter { $0.fact.pixels <= pixelBudget },
-            all.filter { $0.fact.pixels > pixelBudget }.sorted { $0.fact.pixels < $1.fact.pixels }
+            safe.filter { $0.fact.pixels <= pixelBudget },
+            safe.filter { $0.fact.pixels > pixelBudget }.sorted { $0.fact.pixels < $1.fact.pixels } + risky
         )
     }
 
@@ -142,5 +157,19 @@ extension FormatFacts {
         longestFrame = max(ceiling, floor)
         shortestFrame = min(ceiling, floor)
         isoRange = min(format.minISO, format.maxISO)...max(format.minISO, format.maxISO)
+
+        let subtype = CMFormatDescriptionGetMediaSubType(format.formatDescription)
+        isEightBitVideo = subtype == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+            || subtype == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+        let fps = format.videoSupportedFrameRateRanges.map(\.maxFrameRate).max() ?? 0
+        key = "\(dimensions.width)x\(dimensions.height)-\(FormatFacts.fourCC(subtype))-\(Int(fps))fps"
+            + (format.isVideoBinned ? "-binned" : "")
+    }
+
+    /// `420v`, `x420` and friends, readable in a log line and a defaults key.
+    static func fourCC(_ code: FourCharCode) -> String {
+        let bytes = [24, 16, 8, 0].map { UInt8((code >> $0) & 0xFF) }
+        let printable = bytes.allSatisfy { (0x20...0x7E).contains($0) }
+        return printable ? String(bytes: bytes, encoding: .ascii) ?? String(code) : String(code)
     }
 }

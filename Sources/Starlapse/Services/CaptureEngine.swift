@@ -20,6 +20,7 @@ final class CaptureEngine: @unchecked Sendable {
     private var device: AVCaptureDevice?
     /// The format the session picked for itself at commit — the one it is known to start on.
     private var sessionFormat: AVCaptureDevice.Format?
+    private let quarantine = FormatQuarantine()
     private var receiver: FrameReceiver?
     #if DEBUG
     private var stubSky: StubSkySource?
@@ -66,7 +67,13 @@ final class CaptureEngine: @unchecked Sendable {
 
     func prepare(lens: LensOption, preference: FormatPreference = .longExposure) async throws {
         try await captureQueue.perform { [self] in
-            try configure(lens: lens, preference: preference)
+            do {
+                try configure(lens: lens, preference: preference)
+            } catch {
+                // A thrown error is the process surviving; only a death should quarantine.
+                quarantine.survived()
+                throw error
+            }
         }
     }
 
@@ -187,17 +194,27 @@ final class CaptureEngine: @unchecked Sendable {
     private func selectFormat(on device: AVCaptureDevice, preference: FormatPreference) -> Bool {
         let formats = device.formats
         let facts = formats.map(FormatFacts.init)
+        let scope = device.deviceType.rawValue
+        let blocked = quarantine.blocked(in: scope)
+        if !blocked.isEmpty {
+            logger.error("Quarantined formats skipped: \(blocked.sorted().joined(separator: ", "), privacy: .public)")
+        }
         let ranking = switch preference {
-        case .longExposure: FormatChoice.longExposureRanking(from: facts)
-        case .detector: FormatChoice.detectorRanking(from: facts)
+        case .longExposure: FormatChoice.longExposureRanking(from: facts, excluding: blocked)
+        case .detector: FormatChoice.detectorRanking(from: facts, excluding: blocked)
         }
 
         for index in ranking.prefix(Self.formatAttempts) where formats.indices.contains(index) {
             let format = formats[index]
+            // Written down before the camera sees it, erased once the session is running
+            // on it. See FormatQuarantine: the note only matters if we never get to erase it.
+            quarantine.begin(facts[index].key, in: scope)
             do {
                 try lockAndDisableAutomatics(device, format: format)
+                if session.isRunning { quarantine.survived() }
                 logger.info("""
                     Configured \(device.localizedName, privacy: .public): \
+                    \(facts[index].key, privacy: .public), \
                     \(facts[index].pixels / 1_000_000)MP, \
                     longest frame \(facts[index].longestFrame, format: .fixed(precision: 2))s, \
                     ISO \(facts[index].isoRange.lowerBound, format: .fixed(precision: 0))–\
@@ -205,6 +222,7 @@ final class CaptureEngine: @unchecked Sendable {
                     """)
                 return true
             } catch {
+                quarantine.survived()
                 logger.error("""
                     Format \(facts[index].pixels / 1_000_000)MP refused: \
                     \(error.localizedDescription, privacy: .public)
@@ -252,7 +270,12 @@ final class CaptureEngine: @unchecked Sendable {
 
     func apply(_ settings: CaptureSettings) async throws {
         try await captureQueue.perform { [self] in
-            try applyOnQueue(settings)
+            do {
+                try applyOnQueue(settings)
+            } catch {
+                quarantine.survived()
+                throw error
+            }
         }
     }
 
@@ -378,32 +401,6 @@ final class CaptureEngine: @unchecked Sendable {
         }
     }
 
-    /// Start the session; if it refuses the chosen format, fall back to its own and retry.
-    ///
-    /// Build 8 moved the format choice out of the commit, but the session was not running
-    /// yet, so nothing validated it there either: AVFoundation checks a format against the
-    /// graph at `startRunning`, and on an iPhone 17 Pro Max (iOS 27.0) that is where it
-    /// raised. Same refusal, one call later, still fatal.
-    ///
-    /// Returns whether the fallback was taken, so the caller can re-apply exposure limits
-    /// for the format the sensor actually ended up on.
-    @discardableResult
-    private func startOnQueue() throws -> Bool {
-        guard !session.isRunning else { return false }
-        do {
-            try Hardware.perform("start session") { session.startRunning() }
-            return false
-        } catch {
-            guard let device, let sessionFormat, device.activeFormat != sessionFormat else { throw error }
-            logger.error("Session refused the chosen format; falling back to its own")
-            try device.lockForConfiguration()
-            defer { device.unlockForConfiguration() }
-            try Hardware.perform("restore session format") { device.activeFormat = sessionFormat }
-            try Hardware.perform("start session on its own format") { session.startRunning() }
-            return true
-        }
-    }
-
     #if DEBUG
     private func startStubSky() {
         let source = StubSkySource()
@@ -436,44 +433,36 @@ final class CaptureEngine: @unchecked Sendable {
     }
 }
 
-// MARK: - Frame delivery
+// MARK: - Starting
 
-/// Bridges the Objective-C delegate callback into a closure.
-///
-/// Separate from `CaptureEngine` so the delegate conformance stays `nonisolated` without
-/// dragging the engine's queue discipline into the type system.
-private final class FrameReceiver: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
+extension CaptureEngine {
 
-    private let onFrame: @Sendable (SensorFrame) -> Void
-    private var index = 0
-
-    init(onFrame: @escaping @Sendable (SensorFrame) -> Void) {
-        self.onFrame = onFrame
-    }
-
-    func captureOutput(
-        _ output: AVCaptureOutput,
-        didOutput sampleBuffer: CMSampleBuffer,
-        from connection: AVCaptureConnection
-    ) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds
-
-        onFrame(SensorFrame(pixelBuffer: pixelBuffer, timestamp: timestamp, index: index))
-        index += 1
-    }
-}
-
-// MARK: - Clamping
-
-extension Double {
-    fileprivate func clamped(to range: ClosedRange<Double>) -> Double {
-        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
-    }
-}
-
-extension Float {
-    fileprivate func clamped(to range: ClosedRange<Float>) -> Float {
-        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
+    /// Start the session; if it refuses the chosen format, fall back to its own and retry.
+    ///
+    /// Build 8 moved the format choice out of the commit, but the session was not running
+    /// yet, so nothing validated it there either: AVFoundation checks a format against the
+    /// graph at `startRunning`, and on an iPhone 17 Pro Max (iOS 27.0) that is where it
+    /// raised. Same refusal, one call later, still fatal.
+    ///
+    /// Returns whether the fallback was taken, so the caller can re-apply exposure limits
+    /// for the format the sensor actually ended up on.
+    @discardableResult
+    private func startOnQueue() throws -> Bool {
+        guard !session.isRunning else { return false }
+        do {
+            try Hardware.perform("start session") { session.startRunning() }
+            quarantine.survived()
+            return false
+        } catch {
+            // Refused at start: retrying it next launch would cost a failed start every time.
+            quarantine.condemnPending()
+            guard let device, let sessionFormat, device.activeFormat != sessionFormat else { throw error }
+            logger.error("Session refused the chosen format; falling back to its own")
+            try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
+            try Hardware.perform("restore session format") { device.activeFormat = sessionFormat }
+            try Hardware.perform("start session on its own format") { session.startRunning() }
+            return true
+        }
     }
 }

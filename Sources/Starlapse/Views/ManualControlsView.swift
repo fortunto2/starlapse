@@ -9,6 +9,7 @@ import SwiftUI
 struct ManualControlsView: View {
 
     @Bindable var model: CaptureViewModel
+    @State private var crashReports = CrashDiagnostics.reports
 
     var body: some View {
         ScrollView {
@@ -20,6 +21,9 @@ struct ManualControlsView: View {
                     timelapseSection
                 }
                 toneSection
+                if !crashReports.isEmpty {
+                    diagnosticsSection
+                }
             }
             .padding(16)
         }
@@ -243,6 +247,35 @@ struct ManualControlsView: View {
                 """)
                 .font(NightTheme.mono(10))
                 .foregroundStyle(NightTheme.dim)
+        }
+        .nightPanel()
+    }
+
+    // MARK: - Diagnostics
+
+    /// Only shown after a crash. The report waits on the phone until its owner sends it.
+    private var diagnosticsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("CRASH REPORT")
+
+            Text("""
+                Starlapse closed unexpectedly on this phone. The report holds the camera's \
+                error message and the code path, no photos and no location. Sending it to \
+                info@superduperai.co tells us exactly what to fix.
+                """)
+                .font(NightTheme.mono(10))
+                .foregroundStyle(NightTheme.dim)
+
+            HStack(spacing: 16) {
+                ShareLink(items: crashReports) {
+                    Label("Send report", systemImage: "square.and.arrow.up")
+                }
+                Button("Delete", role: .destructive) {
+                    CrashDiagnostics.clear()
+                    crashReports = []
+                }
+            }
+            .font(NightTheme.mono(12, weight: .bold))
         }
         .nightPanel()
     }

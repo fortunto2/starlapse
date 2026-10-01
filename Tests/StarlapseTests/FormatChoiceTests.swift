@@ -1,3 +1,4 @@
+import CoreVideo
 import Testing
 @testable import Starlapse
 
@@ -138,6 +139,46 @@ struct FormatChoiceTests {
 
         #expect(ranking.first == 1)
         #expect(Set(ranking) == Set(facts.indices))
+    }
+
+    // MARK: - Formats the BGRA output may not take
+
+    @Test("A 10-bit twin never beats the 8-bit format of the same size")
+    func eightBitBeatsItsTenBitTwin() {
+        var tenBit = Self.format(megapixels: 12)
+        tenBit.isEightBitVideo = false
+        let facts = [tenBit, Self.format(megapixels: 12)]
+
+        #expect(FormatChoice.longExposure(from: facts) == 1)
+        #expect(FormatChoice.detector(from: facts) == 1)
+    }
+
+    @Test("Non-8-bit formats come after even the over-budget ones, but stay listed")
+    func riskyFormatsComeLast() {
+        var tenBit = Self.format(megapixels: 2)
+        tenBit.isEightBitVideo = false
+        let facts = [tenBit, Self.format(megapixels: 48), Self.format(megapixels: 12)]
+
+        #expect(FormatChoice.longExposureRanking(from: facts) == [2, 1, 0])
+    }
+
+    @Test("A format that killed the app once is never offered again")
+    func quarantinedFormatsAreDropped() {
+        var crashed = Self.format(megapixels: 12)
+        crashed.key = "4032x3024-420f-30fps"
+        var other = Self.format(megapixels: 8)
+        other.key = "3264x2448-420f-30fps"
+        let facts = [crashed, other]
+        let quarantine: Set = ["4032x3024-420f-30fps"]
+
+        #expect(FormatChoice.longExposureRanking(from: facts, excluding: quarantine) == [1])
+        #expect(FormatChoice.detectorRanking(from: facts, excluding: quarantine) == [1])
+    }
+
+    @Test("Four-character codes read the way AVFoundation documents them")
+    func fourCharCodes() {
+        #expect(FormatFacts.fourCC(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) == "420f")
+        #expect(FormatFacts.fourCC(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange) == "x420")
     }
 
     // MARK: - The order the two exposure calls have to go in

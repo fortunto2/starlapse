@@ -168,6 +168,22 @@ the format the session picked at commit (`sessionFormat`) and started again; the
 re-applies exposure against that format. Measured cause: the crash frame. That the chosen
 format is what it refused is inference — the report carries no exception reason.
 
+### Stop fixing the refusal of the day
+
+Three builds, three refusals, each fixed where it surfaced, each followed by the next one
+on a newer iPhone. 1.0.2 (build 11) stops treating it as a list of bugs:
+
+1. **Only 8-bit `420v`/`420f` formats compete.** `FormatFacts.isEightBitVideo`. Newer
+   phones list 10-bit, Apple Log and ProRes twins at the same size and frame rate, and the
+   ranking could not tell them apart. They stay in the list, after everything else.
+2. **`FormatQuarantine`: a format that kills the process kills it once.** Its name is
+   written to defaults before the camera sees it and erased once the session runs on it.
+   A note that survives to the next launch blocks that format on that lens for good.
+   This is the part that works against refusals nobody has seen yet.
+3. **`CrashDiagnostics` (MetricKit)** keeps the next crash *with* its
+   `exceptionReason.composedMessage` — the line Organizer reports leave out — and the
+   controls panel offers to share it. Nothing is sent automatically.
+
 ### What was kept, and labelled honestly
 
 The pixel budget in `FormatChoice` was written for a **different** theory: that a 48 MP format
