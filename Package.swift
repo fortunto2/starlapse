@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "SkyKit", targets: ["SkyKit"]),
         .library(name: "StackKit", targets: ["StackKit"]),
         .executable(name: "starlapse-sky", targets: ["SkyKitCLI"]),
+        .executable(name: "starlapse-stack", targets: ["StackKitCLI"]),
     ],
     targets: [
         .target(name: "SkyKit"),
@@ -24,6 +25,8 @@ let package = Package(
         // standing in a field at 2am.
         .target(name: "StackKit"),
         .executableTarget(name: "SkyKitCLI", dependencies: ["SkyKit"]),
+        // Emulated nights: every stacking pipeline scored against a sky with a known answer.
+        .executableTarget(name: "StackKitCLI", dependencies: ["StackKit"]),
         .testTarget(name: "SkyKitTests", dependencies: ["SkyKit"]),
         .testTarget(name: "StackKitTests", dependencies: ["StackKit"]),
     ]
