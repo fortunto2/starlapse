@@ -13,22 +13,63 @@ struct SkyOverlayView: View {
     let aim: HorizontalCoordinates
     let guidance: AimGuidance?
     let hasFix: Bool
+    /// Showers and radiants — the events, which are Pro.
+    let showsEvents: Bool
+    /// The aim target and the arrow to it.
+    let showsAim: Bool
 
     /// Horizontal field of view of the current lens, for projecting sky onto screen.
     let fieldOfView: Double
 
+    /// The landmark last tapped, with where it was drawn and how many times in a row.
+    @State private var tapped: StarTap?
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if let plan, hasFix {
-                    landmarks(plan: plan, in: geometry.size)
-                    targetMarker(plan: plan, in: geometry.size)
+                // The tap layer sits under the markers and takes the whole frame; the
+                // markers themselves never take a touch, so the hit area is a circle
+                // around where each is drawn, not its label's bounding box.
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture(coordinateSpace: .local) { point in
+                        tap(at: point, in: geometry.size)
+                    }
+                Group {
+                    if let plan, hasFix {
+                        landmarks(plan: plan, in: geometry.size)
+                        if showsAim {
+                            targetMarker(plan: plan, in: geometry.size)
+                        }
+                    }
+                    horizonLine(in: geometry.size)
+                    guidanceOverlay
+                    if let tapped {
+                        StarInfoBubble(tap: tapped)
+                            .position(x: tapped.point.x, y: max(60, tapped.point.y - 64))
+                    }
                 }
-                horizonLine(in: geometry.size)
-                guidanceOverlay
+                .allowsHitTesting(false)
             }
         }
-        .allowsHitTesting(false)
+    }
+
+    // MARK: - Tapping a star
+
+    private func tap(at point: CGPoint, in size: CGSize) {
+        guard let plan, hasFix else { return }
+        let nearest = plan.landmarks
+            .compactMap { landmark -> StarTap? in
+                guard let drawn = project(landmark.direction, in: size) else { return nil }
+                return StarTap(landmark: landmark, point: drawn, count: 1)
+            }
+            .min { $0.distance(to: point) < $1.distance(to: point) }
+        guard var hit = nearest, hit.distance(to: point) < 32 else {
+            tapped = nil
+            return
+        }
+        if tapped?.landmark.name == hit.landmark.name { hit.count = (tapped?.count ?? 0) + 1 }
+        tapped = hit
     }
 
     // MARK: - Projection
@@ -87,7 +128,7 @@ struct SkyOverlayView: View {
             }
 
             ForEach(Array(plan.showers.prefix(1).enumerated()), id: \.offset) { _, activity in
-                if activity.radiant.isAboveHorizon,
+                if showsEvents, activity.radiant.isAboveHorizon,
                    let point = project(activity.radiant, in: size) {
                     radiantMarker(name: activity.shower.name)
                         .position(point)
@@ -235,5 +276,55 @@ struct SkyOverlayView: View {
             }
         }
         .nightPanel()
+    }
+}
+
+/// A landmark someone put a finger on.
+struct StarTap: Equatable {
+    let landmark: SkyDirector.Landmark
+    let point: CGPoint
+    var count: Int
+
+    func distance(to other: CGPoint) -> CGFloat { hypot(point.x - other.x, point.y - other.y) }
+
+    /// Five taps on one of two particular stars.
+    var dedication: String? {
+        guard count >= 5 else { return nil }
+        switch landmark.name {
+        case "Alzirr": return "My son is named after this star ♥"
+        case "Almaaz": return "My other son shares its name ♥"
+        default: return nil
+        }
+    }
+}
+
+/// Name, constellation, brightness. And, for two stars, a little more.
+struct StarInfoBubble: View {
+    let tap: StarTap
+
+    var body: some View {
+        VStack(spacing: 3) {
+            Text(tap.landmark.name.uppercased())
+                .font(NightTheme.mono(11, weight: .bold))
+                .foregroundStyle(NightTheme.primary)
+            Text(detail)
+                .font(NightTheme.mono(9))
+                .foregroundStyle(NightTheme.secondary)
+            if let dedication = tap.dedication {
+                Text(dedication)
+                    .font(NightTheme.mono(10, weight: .semibold))
+                    .foregroundStyle(NightTheme.accent)
+                    .padding(.top, 2)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(NightTheme.background.opacity(0.85), in: RoundedRectangle(cornerRadius: 8))
+        .fixedSize()
+    }
+
+    private var detail: String {
+        let place = tap.landmark.constellation ?? "planet"
+        return String(format: "%@ · mag %.2f", place, tap.landmark.magnitude)
     }
 }

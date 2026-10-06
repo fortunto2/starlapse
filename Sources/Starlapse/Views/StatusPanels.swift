@@ -31,18 +31,38 @@ struct StatusPanels: View {
                     .font(NightTheme.mono(11, weight: .bold))
                     .foregroundStyle(NightTheme.primary)
 
-                if let shower = plan.headlineShower, shower.isWorthShooting {
-                    ReadoutRow(
-                        label: shower.shower.name,
-                        value: String(format: "~%.0f meteors/h", shower.expectedHourlyRate),
-                        highlighted: true
-                    )
+                if let shower = plan.headlineShower {
+                    if model.showsEvents {
+                        if shower.isWorthShooting {
+                            ReadoutRow(
+                                label: shower.shower.name,
+                                value: String(format: "~%.0f meteors/h", shower.expectedHourlyRate),
+                                highlighted: true
+                            )
+                        }
+                    } else {
+                        // The event is named for free; where to aim for it is Pro.
+                        Button {
+                            model.showsPaywall = true
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "lock.fill")
+                                Text("\(shower.shower.name.uppercased()) TONIGHT · WHERE TO AIM")
+                                Spacer()
+                                Text("PRO")
+                            }
+                            .font(NightTheme.mono(10, weight: .bold))
+                            .foregroundStyle(NightTheme.accent)
+                        }
+                    }
                 }
 
-                ReadoutRow(label: "Aim", value: "\(plan.aim.compass) · \(plan.aim.subject)")
-                Text(plan.aim.reason)
-                    .font(NightTheme.mono(9))
-                    .foregroundStyle(NightTheme.dim)
+                if model.showsAim {
+                    ReadoutRow(label: "Aim", value: "\(plan.aim.compass) · \(plan.aim.subject)")
+                    Text(plan.aim.reason)
+                        .font(NightTheme.mono(9))
+                        .foregroundStyle(NightTheme.dim)
+                }
 
                 let planets = plan.visiblePlanets
                 if !planets.isEmpty {

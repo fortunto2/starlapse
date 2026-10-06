@@ -1,0 +1,41 @@
+{
+  "identifier" : "A5E1D2C3-7B8F-4E9A-9C0D-1F2E3A4B5C6D",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "6819860398",
+      "localizations" : [
+        {
+          "description" : "Sky events with aim guidance, forever.",
+          "displayName" : "Starlapse Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "co.superduperai.starlapse.pro",
+      "referenceName" : "Starlapse Pro",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6801191027",
+    "_developerTeamID" : "8N495BBBLM",
+    "_failTransactionsEnabled" : false,
+    "_lastSynced" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

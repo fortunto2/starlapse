@@ -24,6 +24,8 @@ struct CaptureView: View {
                     aim: model.attitude.aim,
                     guidance: model.aimGuidance,
                     hasFix: model.attitude.hasFullFix,
+                    showsEvents: model.showsEvents,
+                    showsAim: model.showsAim,
                     fieldOfView: Double(model.settings.lens.fieldOfView)
                 )
                 .ignoresSafeArea()
@@ -64,6 +66,11 @@ struct CaptureView: View {
         .preferredColorScheme(.dark)
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
+        .sheet(isPresented: $model.showsPaywall) {
+            ProPaywallView(entitlements: model.entitlements)
+                .presentationDetents([.large])
+                .presentationBackground(NightTheme.background)
+        }
         .sheet(isPresented: $showsControls) {
             ManualControlsView(model: model)
                 .presentationDetents([.medium, .large])
@@ -91,6 +98,9 @@ struct CaptureView: View {
         }
         if environment["UITEST_PANEL"] == "controls" {
             showsControls = true
+        }
+        if environment["UITEST_PANEL"] == "paywall" {
+            model.showsPaywall = true
         }
         if environment["UITEST_CAPTURE"] == "1" {
             await model.start()

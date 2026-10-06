@@ -80,6 +80,19 @@ public enum SkyDirector {
         /// Apparent visual magnitude — lower is brighter.
         public let magnitude: Double
         public let direction: HorizontalCoordinates
+        /// Stars carry theirs; planets wander.
+        public let constellation: String?
+
+        public init(
+            name: String, kind: LandmarkKind, magnitude: Double,
+            direction: HorizontalCoordinates, constellation: String?
+        ) {
+            self.name = name
+            self.kind = kind
+            self.magnitude = magnitude
+            self.direction = direction
+            self.constellation = constellation
+        }
 
         public var isPlanet: Bool { kind == .planet }
     }
@@ -183,7 +196,8 @@ public enum SkyDirector {
                     name: planet.name,
                     kind: .planet,
                     magnitude: planet.magnitude,
-                    direction: planet.position.horizontal(at: location, date: date)
+                    direction: planet.position.horizontal(at: location, date: date),
+                    constellation: nil
                 )
             }
 
@@ -192,7 +206,8 @@ public enum SkyDirector {
                 name: star.name,
                 kind: .star,
                 magnitude: star.magnitude,
-                direction: star.position.horizontal(at: location, date: date)
+                direction: star.position.horizontal(at: location, date: date),
+                constellation: star.constellation
             )
         }
 

@@ -27,6 +27,9 @@ final class CaptureViewModel {
 
     var settings: CaptureSettings
     var mode: CaptureMode = .still
+    /// What this phone has bought. Sky events are Pro; the constant sky is not.
+    let entitlements = Entitlements()
+    var showsPaywall = false
     var tone = FrameAccumulator.ToneSettings()
     var timelapse = TimelapseSettings.default
     /// Dim the screen while capturing. On by default for battery and dark adaptation,
@@ -118,6 +121,7 @@ final class CaptureViewModel {
     /// the sky needs, and far cheaper than the camera pipeline running beside it.
     func startSkyUpdates() {
         attitude.start()
+        entitlements.start()
         refreshPlan()
         skyTimer?.invalidate()
         skyTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
@@ -138,8 +142,18 @@ final class CaptureViewModel {
 
     /// How far, and which way, to swing the phone to hit the recommended target.
     var aimGuidance: AimGuidance? {
-        guard let plan, attitude.hasFullFix else { return nil }
+        guard let plan, attitude.hasFullFix, showsAim else { return nil }
         return AimGuidance(from: attitude.aim, to: plan.aim.direction)
+    }
+
+    /// Showers, radiants, rates: the events.
+    var showsEvents: Bool { entitlements.isPro }
+
+    /// The aim target follows the headline shower when one is active, so it is an event
+    /// then; on a night with no shower it points at the Milky Way, which everyone gets.
+    var showsAim: Bool {
+        let eventDriven = plan.map { $0.aim.subject == $0.headlineShower?.shower.name } ?? false
+        return ProAccess.showsAim(isPro: entitlements.isPro, eventActive: eventDriven)
     }
 
     // MARK: - Camera lifecycle

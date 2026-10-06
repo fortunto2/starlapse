@@ -72,6 +72,16 @@ public enum SkyCatalog {
         NamedStar(name: "Dubhe", constellation: "Ursa Major",
                   position: EquatorialCoordinates(raHours: 11, raMinutes: 4, dec: 61.8),
                   magnitude: 1.79),
+        // The one entry that is not here for brightness. ξ Geminorum, 3.35: the Twins' foot,
+        // an hour of right ascension east of Sirius and a fine star to say hello to.
+        NamedStar(name: "Alzirr", constellation: "Gemini",
+                  position: EquatorialCoordinates(raHours: 6, raMinutes: 45, dec: 12.9),
+                  magnitude: 3.35),
+        // ε Aurigae, 3.0: every 27 years a dark disc the size of Saturn's orbit eclipses
+        // it for two years. Kept for the same reason as its neighbour above.
+        NamedStar(name: "Almaaz", constellation: "Auriga",
+                  position: EquatorialCoordinates(raHours: 5, raMinutes: 2, dec: 43.8),
+                  magnitude: 2.98),
     ]
 
     /// Polaris — the pivot the whole sky turns around. Point the camera at it and stars

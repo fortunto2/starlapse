@@ -96,8 +96,13 @@ targets:
     platform: iOS
     sources:
       - Tests/StarlapseTests
+      # The StoreKit configuration doubles as the test fixture: SKTestSession loads it from
+      # the test bundle, so a purchase can be made and checked with no App Store involved.
+      - path: Starlapse.storekit
+        buildPhase: resources
     dependencies:
       - target: Starlapse
+      - sdk: StoreKitTest.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.superduperai.starlapse.tests
@@ -109,6 +114,9 @@ schemes:
       targets:
         Starlapse: all
         StarlapseTests: [test]
+    run:
+      # Purchases in the simulator go against this file instead of the App Store.
+      storeKitConfiguration: Starlapse.storekit
     test:
       targets:
         - StarlapseTests
