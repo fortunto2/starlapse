@@ -38,14 +38,14 @@ struct MetalStackTests {
         case .biplanar(let tenBit, let fullRange):
             let decoder = YCbCrDecoder(bitDepth: tenBit ? 10 : 8, fullRange: fullRange)
             let y = decoder.lumaCode(TransferFunction.bt709.encode(linear))
-            let c = decoder.neutralChroma
+            let chroma = decoder.neutralChroma
             if tenBit {
                 // x420: ten bits in the top of each 16-bit word.
                 fill(buffer, plane: 0, bytesPerPixel: 2) { bytes(UInt16(y) << 6) }
-                fill(buffer, plane: 1, bytesPerPixel: 4) { bytes(UInt16(c) << 6) + bytes(UInt16(c) << 6) }
+                fill(buffer, plane: 1, bytesPerPixel: 4) { bytes(UInt16(chroma) << 6) + bytes(UInt16(chroma) << 6) }
             } else {
                 fill(buffer, plane: 0, bytesPerPixel: 1) { [UInt8(y)] }
-                fill(buffer, plane: 1, bytesPerPixel: 2) { [UInt8(c), UInt8(c)] }
+                fill(buffer, plane: 1, bytesPerPixel: 2) { [UInt8(chroma), UInt8(chroma)] }
             }
         case .unsupported:
             Issue.record("unsupported pixel format in test")
@@ -57,8 +57,8 @@ struct MetalStackTests {
 
     private static func fill(_ buffer: CVPixelBuffer, plane: Int, bytesPerPixel: Int, pixel: () -> [UInt8]) {
         let planar = CVPixelBufferIsPlanar(buffer)
-        guard let base = planar ? CVPixelBufferGetBaseAddressOfPlane(buffer, plane) : CVPixelBufferGetBaseAddress(buffer)
-        else { return }
+        let address = planar ? CVPixelBufferGetBaseAddressOfPlane(buffer, plane) : CVPixelBufferGetBaseAddress(buffer)
+        guard let base = address else { return }
         let stride = planar ? CVPixelBufferGetBytesPerRowOfPlane(buffer, plane) : CVPixelBufferGetBytesPerRow(buffer)
         let rows = planar ? CVPixelBufferGetHeightOfPlane(buffer, plane) : CVPixelBufferGetHeight(buffer)
         let columns = planar ? CVPixelBufferGetWidthOfPlane(buffer, plane) : CVPixelBufferGetWidth(buffer)

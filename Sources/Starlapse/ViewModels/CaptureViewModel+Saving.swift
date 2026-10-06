@@ -15,6 +15,7 @@ extension CaptureViewModel {
         do {
             try await PhotoLibraryWriter.write(rendered)
             lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
+            RatingPrompt.saved()
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
         }
@@ -28,6 +29,7 @@ extension CaptureViewModel {
         do {
             try await PhotoLibraryWriter.write(videoAt: url)
             lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
+            RatingPrompt.saved()
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
         }
