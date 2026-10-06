@@ -15,8 +15,8 @@ other territories. Reference name "Starlapse Pro".
 - [x] P4 `ProPaywallView`: what you get, price from StoreKit, Buy / Restore, privacy line
 - [x] P5 `Starlapse.storekit` config + scheme option so the simulator can buy
 - [x] P6 Tests: gating logic pure function; StoreKitTest purchase → isPro
-- [ ] P7 Description (1.0.3): PRIVACY paragraph mentions the one Apple call; Pro section
-- [ ] P8 Build, lint, screenshots of paywall on simulator, commit
+- [x] P7 Description (1.0.3): PRIVACY paragraph mentions the one Apple call; Pro section
+- [x] P8 Build, lint, screenshots of paywall on simulator, commit
 - [ ] P9 App Privacy: check whether "Purchases" needs declaring (StoreKit only: no)
 
 ## Free vs Pro

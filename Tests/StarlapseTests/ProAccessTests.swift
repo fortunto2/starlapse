@@ -37,12 +37,20 @@ struct ProAccessTests {
         session.resetToDefaultState()
         session.disableDialogs = true
         session.clearTransactions()
+        // The test host is the real app bundle: a purchase left here shows up as Pro the
+        // next time the app is launched on this simulator.
+        defer { session.clearTransactions() }
 
         let entitlements = Entitlements()
-        await entitlements.refresh()
+        // The local store takes a moment to come up when the whole suite runs at once.
+        for _ in 0..<10 where entitlements.product == nil {
+            await entitlements.refresh()
+            if entitlements.product == nil { try await Task.sleep(for: .milliseconds(200)) }
+        }
+        #expect(entitlements.product != nil, "store never came up")
         #expect(!entitlements.isPro)
 
         await entitlements.purchase()
-        #expect(entitlements.isPro)
+        #expect(entitlements.isPro, Comment(rawValue: entitlements.lastError ?? "no error reported"))
     }
 }
