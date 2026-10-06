@@ -34,7 +34,14 @@ constexpr sampler linearSampler(coord::normalized,
 // adds up in linear space. `starlapse-stack compare` measured what skipping this cost.
 
 struct DecodeParams {
-    uint fullRange;     // 420f / xf20: codes span the full range
+    // Where black and neutral chroma sit in the normalised plane values, and how wide
+    // the ranges are. Computed on the CPU per pixel format: 8-bit codes normalise by 255,
+    // ten bits in the top of a 16-bit word normalise by 65535/64, and video range keeps
+    // headroom (Y 16–235, C 16–240 at 8 bits) where full range does not.
+    float black;
+    float lumaRange;
+    float chromaMid;
+    float chromaRange;
     float hotRatio;     // cosmetic correction: spike over brightest neighbour, ×
     float hotFloor;     // and at least this much above the darkest one, linear
 };
@@ -54,15 +61,15 @@ static inline float3 bt709_to_linear(float3 value)
 // and for MSB-aligned 10-bit planes alike, so one path serves 420v/420f/x420/xf20.
 static inline float3 ycbcr_linear(texture2d<float, access::read> lumaPlane,
                                   texture2d<float, access::read> chromaPlane,
-                                  int2 site, bool fullRange)
+                                  int2 site, constant DecodeParams &params)
 {
     int2 size = int2(lumaPlane.get_width(), lumaPlane.get_height());
     int2 p = clamp(site, int2(0), size - 1);
     float y = lumaPlane.read(uint2(p)).r;
     float2 c = chromaPlane.read(uint2(p / 2)).rg;
 
-    float luma = fullRange ? y : (y - 16.0 / 255.0) / (219.0 / 255.0);
-    float2 chroma = fullRange ? c - 0.5 : (c - 128.0 / 255.0) / (224.0 / 255.0);
+    float luma = (y - params.black) / params.lumaRange;
+    float2 chroma = (c - params.chromaMid) / params.chromaRange;
 
     float3 rgb = float3(luma + 1.5748 * chroma.y,
                         luma - 0.1873 * chroma.x - 0.4681 * chroma.y,
@@ -104,12 +111,11 @@ kernel void decode_ycbcr(texture2d<float, access::read> lumaPlane [[texture(0)]]
     if (gid.x >= decoded.get_width() || gid.y >= decoded.get_height()) {
         return;
     }
-    bool fullRange = params.fullRange != 0;
     int2 site = int2(gid);
-    float3 centre = ycbcr_linear(lumaPlane, chromaPlane, site, fullRange);
+    float3 centre = ycbcr_linear(lumaPlane, chromaPlane, site, params);
     float3 neighbours[8];
     for (int i = 0; i < 8; i++) {
-        neighbours[i] = ycbcr_linear(lumaPlane, chromaPlane, site + neighbourOffsets[i], fullRange);
+        neighbours[i] = ycbcr_linear(lumaPlane, chromaPlane, site + neighbourOffsets[i], params);
     }
     decoded.write(float4(cosmetic(centre, neighbours, params), 1.0), gid);
 }

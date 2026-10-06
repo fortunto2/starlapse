@@ -36,7 +36,10 @@ final class FrameAccumulator: @unchecked Sendable {
     }
 
     private struct DecodeParams {
-        var fullRange: UInt32
+        var black: Float
+        var lumaRange: Float
+        var chromaMid: Float
+        var chromaRange: Float
         var hotRatio: Float
         var hotFloor: Float
     }
@@ -374,7 +377,7 @@ extension FrameAccumulator {
     /// own pixels, no conversion asked of AVFoundation) or BGRA (the detector, whose ring
     /// buffer copies single-plane frames). Waits for the GPU: the plane wrappers must
     /// outlive the work that reads them, and at one frame a second the wait is invisible.
-    private func decode(_ pixelBuffer: CVPixelBuffer) -> MTLTexture? {
+    func decode(_ pixelBuffer: CVPixelBuffer) -> MTLTexture? {
         guard let decoded,
               CVPixelBufferGetWidth(pixelBuffer) == decoded.width,
               CVPixelBufferGetHeight(pixelBuffer) == decoded.height else { return nil }
@@ -400,7 +403,12 @@ extension FrameAccumulator {
         guard let buffer = commandQueue.makeCommandBuffer(),
               let encoder = buffer.makeComputeCommandEncoder() else { return nil }
 
-        var params = DecodeParams(fullRange: layout.isFullRange ? 1 : 0, hotRatio: 3, hotFloor: 0.02)
+        let range = layout.codeRange
+        var params = DecodeParams(
+            black: range.black, lumaRange: range.lumaRange,
+            chromaMid: range.chromaMid, chromaRange: range.chromaRange,
+            hotRatio: 3, hotFloor: 0.02
+        )
         encoder.setComputePipelineState(pipeline)
         for (index, wrapper) in wrappers.enumerated() {
             encoder.setTexture(CVMetalTextureGetTexture(wrapper), index: index)
@@ -415,6 +423,35 @@ extension FrameAccumulator {
 
         decodedSource = pixelBuffer
         return decoded
+    }
+}
+
+// MARK: - Reading back (tests)
+
+extension FrameAccumulator {
+
+    /// The decoded frame as linear RGB triplets, row-major. For checking the GPU decode
+    /// against StackKit's CPU reference; a camera is not needed, Metal on a simulator is.
+    func linearPixels(from pixelBuffer: CVPixelBuffer) -> [SIMD3<Float>]? {
+        guard let texture = decode(pixelBuffer) else { return nil }
+        var halves = [Float16](repeating: 0, count: texture.width * texture.height * 4)
+        halves.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            texture.getBytes(
+                base, bytesPerRow: texture.width * 8,
+                from: MTLRegionMake2D(0, 0, texture.width, texture.height), mipmapLevel: 0
+            )
+        }
+        return stride(from: 0, to: halves.count, by: 4).map {
+            SIMD3(Float(halves[$0]), Float(halves[$0 + 1]), Float(halves[$0 + 2]))
+        }
+    }
+
+    /// Resolve with no stretch and hand back 8-bit BGRA, releasing the display texture.
+    func resolvedBytes(mode: StackMode) -> RenderedImage? {
+        guard let texture = resolve(tone: .neutral, mode: mode) else { return nil }
+        defer { displayPool.release(texture) }
+        return snapshot(of: texture)
     }
 }
 
@@ -449,9 +486,21 @@ enum FramePixels: Equatable {
         }
     }
 
-    var isFullRange: Bool {
-        if case .biplanar(_, let fullRange) = self { return fullRange }
-        return true
+    /// Where the codes sit once Metal has normalised the plane to 0...1.
+    ///
+    /// Matches StackKit's `YCbCrDecoder`: full range is `code / maxCode` with chroma
+    /// centred at half of it, video range is `(code − 16) / 219` and `(code − 128) / 224`
+    /// at 8 bits, four times those at 10. A 10-bit plane is wrapped as `r16Unorm` with the
+    /// ten bits in the top of the word, so a code normalises to `code × 64 / 65535`.
+    var codeRange: (black: Float, lumaRange: Float, chromaMid: Float, chromaRange: Float) {
+        guard case .biplanar(let tenBit, let fullRange) = self else { return (0, 1, 0.5, 1) }
+        let unit: Float = tenBit ? 64 / 65535 : 1 / 255   // one code, normalised
+        let maxCode: Float = tenBit ? 1023 : 255
+        let scale: Float = tenBit ? 4 : 1
+        if fullRange {
+            return (0, maxCode * unit, maxCode * unit / 2, maxCode * unit)
+        }
+        return (16 * scale * unit, 219 * scale * unit, 128 * scale * unit, 224 * scale * unit)
     }
 
     /// The output formats to ask the camera for when stacking, best first: the sensor's
