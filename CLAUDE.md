@@ -30,6 +30,7 @@ Sources/
   SkyKit/                where things are in the sky; what is worth shooting tonight
   StackKit/              star detection + frame registration (pure Float math)
   SkyKitCLI/             `starlapse-sky` — CLI-first entry to the domain
+  StackKitCLI/           `starlapse-stack` — compare stacking pipelines on an emulated sky
   Starlapse/
     App/                 @main
     Models/              CaptureSettings, TimelapseSettings, AimGuidance
@@ -37,7 +38,7 @@ Sources/
                          AttitudeProvider, Shaders/Stacking.metal
     ViewModels/          CaptureViewModel (@Observable @MainActor)
     Views/               CaptureView, ManualControlsView, SkyOverlayView, NightTheme
-Tests/                   SkyKitTests (19), StackKitTests (8)
+Tests/                   SkyKitTests, StackKitTests (emulated sky), StarlapseTests
 ```
 
 ## Commands
@@ -211,6 +212,33 @@ The same shape twice more, found while reviewing for it: `waitForReady` spun for
 writer that had failed (a frozen session, no log), and the detector's ring buffer sized itself
 in frames rather than bytes. **A number that comes from the hardware needs a budget, not a
 default.**
+
+## Stacking is argued from an emulated sky, not from taste
+
+`starlapse-stack compare` renders a linear sky with a known answer, pushes it through a
+camera model (shot and read noise, hot pixels, a satellite, field drift, the BT.709 curve,
+8- or 10-bit quantisation) and scores every pipeline against the truth. Same photons for
+every candidate. `starlapse-stack tone` derives the display defaults. Measured on it:
+
+- The shipped stack added **encoded** values as if they were light and divided by the
+  session's frame count, which halved the brightness at the edge of a rotating field.
+- 10-bit input buys under 2% faint-star SNR at phone noise levels. Not worth a riskier format.
+- 4σ clipping (after 8 samples) removes a one-frame satellite at no SNR cost; 3σ cost 8%.
+- Per-frame cosmetic correction (a lone spike 3× above its brightest neighbour) removes
+  95–99% of hot pixels with no dark frames. Dark-frame subtraction is a UI step away.
+
+The Metal path mirrors the CPU reference in `StackKit`: `decode_ycbcr`/`decode_bgra` into
+linear `rgba16Float`, accumulate with Welford variance in a second texture, resolve by each
+pixel's own coverage (alpha). The camera is asked for its native 4:2:0 planes when stacking;
+the detector keeps BGRA because its ring buffer copies single-plane frames.
+
+## The compass that froze
+
+iPhone 17 Pro, iOS 27: overlay markers drawn once, never moved. `.xTrueNorthZVertical` was
+requested before location was authorised, and CoreMotion delivered no samples and no error.
+`AttitudeProvider.preferredFrame` now asks for true north only once location is granted,
+magnetic north otherwise, and a 2-second watchdog steps down a frame that yields nothing.
+`isHeadingAvailable` is set by the first sample, not by the call that asked for them.
 
 ## Lessons from the first field test
 
