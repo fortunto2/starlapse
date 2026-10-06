@@ -94,7 +94,7 @@ public struct CameraModel: Sendable, Hashable {
     public func capture(_ linear: Float, linearize: Bool) -> Float {
         let decoder = YCbCrDecoder(bitDepth: bitDepth, fullRange: fullRange)
         let code = decoder.lumaCode(transfer.encode(linear))
-        let encoded = decoder.rgb(y: code, cb: decoder.neutralChroma, cr: decoder.neutralChroma).g
+        let encoded = decoder.rgb(y: code, cb: decoder.neutralChroma, cr: decoder.neutralChroma).green
         return linearize ? transfer.decode(encoded) : encoded
     }
 }

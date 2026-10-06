@@ -109,9 +109,11 @@ public struct StackExperiment: Sendable {
         var simulator = SkySimulator(scene: scene, camera: lens)
 
         var dark = pipeline.darkFrames > 0
-            ? MasterDark.average((0..<pipeline.darkFrames).map { _ in simulator.darkFrame(linearize: pipeline.linearize) })
+            ? DarkFrame.average((0..<pipeline.darkFrames).map { _ in
+                simulator.darkFrame(linearize: pipeline.linearize)
+            })
             : nil
-        if pipeline.hotPixelsOnly, let master = dark { dark = MasterDark.hotPixelMap(master) }
+        if pipeline.hotPixelsOnly, let averaged = dark { dark = DarkFrame.hotPixelMap(averaged) }
 
         var combiner = StackCombiner(width: scene.width, height: scene.height, mode: pipeline.mode)
         for index in 0..<frames {
@@ -120,7 +122,7 @@ public struct StackExperiment: Sendable {
                 satelliteRow: satellite?.frame == index ? satellite?.row : nil,
                 linearize: pipeline.linearize
             )
-            if let dark { frame = MasterDark.subtract(dark, from: frame) }
+            if let dark { frame = DarkFrame.subtract(dark, from: frame) }
             if pipeline.cosmetic {
                 frame = CosmeticCorrection.apply(frame, width: scene.width, height: scene.height)
             }

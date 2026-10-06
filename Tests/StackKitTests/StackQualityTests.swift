@@ -24,8 +24,8 @@ struct StackQualityTests {
             let scale = 1 << (bits - 8)
             let black = decoder.rgb(y: 16 * scale, cb: 128 * scale, cr: 128 * scale)
             let white = decoder.rgb(y: 235 * scale, cb: 128 * scale, cr: 128 * scale)
-            #expect(black.r == 0 && black.g == 0 && black.b == 0)
-            #expect(abs(white.r - 1) < 1e-5 && abs(white.g - 1) < 1e-5 && abs(white.b - 1) < 1e-5)
+            #expect(black == YCbCrDecoder.RGB(red: 0, green: 0, blue: 0))
+            #expect(abs(white.red - 1) < 1e-5 && abs(white.green - 1) < 1e-5 && abs(white.blue - 1) < 1e-5)
         }
     }
 
@@ -34,7 +34,7 @@ struct StackQualityTests {
         // Y = 0.2126, Cb = -0.1146, Cr = 0.5 for (1, 0, 0), full range 8-bit.
         let decoder = YCbCrDecoder(bitDepth: 8, fullRange: true)
         let rgb = decoder.rgb(y: 54, cb: 98, cr: 255)
-        #expect(rgb.r > 0.97 && rgb.g < 0.03 && rgb.b < 0.03)
+        #expect(rgb.red > 0.97 && rgb.green < 0.03 && rgb.blue < 0.03)
     }
 
     // MARK: - Combiner
@@ -88,7 +88,7 @@ struct StackQualityTests {
         var random = SeededRandom(seed: 5)
         var dark = (0..<400).map { _ in 0.003 + 0.001 * random.gaussian() }
         dark[17] = 0.3
-        let map = MasterDark.hotPixelMap(dark)
+        let map = DarkFrame.hotPixelMap(dark)
         #expect(map[17] > 0.29)
         #expect(map.enumerated().filter { $0.offset != 17 }.allSatisfy { $0.element == 0 })
     }

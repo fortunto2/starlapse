@@ -98,9 +98,9 @@ public struct StackCombiner: Sendable {
 /// Dark frames: shots with the lens covered, at the same exposure and ISO.
 ///
 /// What they hold is everything that is not sky — hot pixels, amplifier glow, the
-/// sensor's fixed pattern. Averaged into a master and subtracted from every light frame,
+/// sensor's fixed pattern. Averaged and subtracted from every light frame,
 /// they take it out before stacking can mistake it for a star.
-public enum MasterDark {
+public enum DarkFrame {
 
     public static func average(_ darks: [[Float]]) -> [Float]? {
         guard let first = darks.first else { return nil }
@@ -112,7 +112,7 @@ public enum MasterDark {
         return sum.map { $0 / n }
     }
 
-    /// Only the pixels that are actually hot: master dark values more than `kappa` noise
+    /// Only the pixels that are actually hot: averaged dark values more than `kappa` noise
     /// above the dark's own median, zero everywhere else.
     ///
     /// A phone's processed frames clip at black, so a full master dark is biased upward

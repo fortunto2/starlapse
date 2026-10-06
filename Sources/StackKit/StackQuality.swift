@@ -52,7 +52,8 @@ public struct StackQuality: Sendable, Hashable {
             return (result[index] - (scene.background + bias)) / noise
         }
 
-        let hotResidual = hot.filter { $0 % width >= edgeColumns }.compactMap { result[$0].isNaN ? nil : (result[$0] - truth[$0]) / noise }
+        let hotResidual = hot.filter { $0 % width >= edgeColumns }
+            .compactMap { result[$0].isNaN ? nil : (result[$0] - truth[$0]) / noise }
         let trail = satellite.subtracting(nearStar).subtracting(hot).filter { $0 % width >= edgeColumns }
             .compactMap { result[$0].isNaN ? nil : (result[$0] - truth[$0]) / noise }
 

@@ -13,10 +13,13 @@ final class FrameAccumulator: @unchecked Sendable {
 
     /// Tone-mapping controls, matching the `ToneParams` struct in Stacking.metal.
     struct ToneSettings: Sendable, Equatable {
-        /// Sky background to subtract. Light pollution raises this.
-        var blackPoint: Float = 0.02
+        /// Sky background to subtract, in linear light. Light pollution raises this.
+        ///
+        /// The defaults moved when the stack moved to linear light: `starlapse-stack tone`
+        /// fits the linear settings that reproduce the encoded 0.02 / 12 look to ±0.02.
+        var blackPoint: Float = 0.0064
         /// asinh strength. Higher digs deeper into the noise.
-        var stretch: Float = 12
+        var stretch: Float = 158
         var exposure: Float = 1.0
         var saturation: Float = 1.35
 
@@ -28,7 +31,20 @@ final class FrameAccumulator: @unchecked Sendable {
         var mode: UInt32
         var frameIndex: UInt32
         var useTransform: UInt32
+        var kappa: Float
+        var warmup: UInt32
     }
+
+    private struct DecodeParams {
+        var fullRange: UInt32
+        var hotRatio: Float
+        var hotFloor: Float
+    }
+
+    /// Sigma-clip settings, as `starlapse-stack compare` chose them: 3σ cost 8% of faint-star
+    /// SNR, 4σ cost nothing and still removed the satellite.
+    static let clipKappa: Float = 4
+    static let clipWarmup: UInt32 = 8
 
     private struct ToneParams {
         var blackPoint: Float
@@ -43,6 +59,8 @@ final class FrameAccumulator: @unchecked Sendable {
     private let clearPipeline: MTLComputePipelineState
     private let resolvePipeline: MTLComputePipelineState
     private let downsamplePipeline: MTLComputePipelineState
+    private let decodeYCbCrPipeline: MTLComputePipelineState
+    private let decodeBGRAPipeline: MTLComputePipelineState
     private var textureCache: CVMetalTextureCache?
 
     /// How many frames may be in flight between the capture queue and the screen.
@@ -54,6 +72,13 @@ final class FrameAccumulator: @unchecked Sendable {
     static let displayBufferCount = 3
 
     private var accumulator: MTLTexture?
+    /// Running M2 of luminance per pixel, for sigma clipping.
+    private var spread: MTLTexture?
+    /// The current camera frame in linear light, after cosmetic correction.
+    private var decoded: MTLTexture?
+    /// The camera buffer `decoded` holds. Held strongly, so the camera's pool cannot hand
+    /// the same buffer back with new contents while this identity check trusts it.
+    private var decodedSource: CVPixelBuffer?
     let displayPool = TexturePool()
     private var luma: MTLTexture?
 
@@ -93,6 +118,8 @@ final class FrameAccumulator: @unchecked Sendable {
         self.clearPipeline = try pipeline("clear_accumulator")
         self.resolvePipeline = try pipeline("resolve")
         self.downsamplePipeline = try pipeline("downsample_luma")
+        self.decodeYCbCrPipeline = try pipeline("decode_ycbcr")
+        self.decodeBGRAPipeline = try pipeline("decode_bgra")
 
         CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &textureCache)
     }
@@ -118,6 +145,15 @@ final class FrameAccumulator: @unchecked Sendable {
                 width: width, height: height, format: .rgba32Float,
                 usage: [.shaderRead, .shaderWrite]
             )
+            spread = makeTexture(
+                width: width, height: height, format: .r32Float,
+                usage: [.shaderRead, .shaderWrite]
+            )
+            decoded = makeTexture(
+                width: width, height: height, format: .rgba16Float,
+                usage: [.shaderRead, .shaderWrite]
+            )
+            decodedSource = nil
             try? displayPool.configure(
                 count: Self.displayBufferCount,
                 width: width,
@@ -138,12 +174,13 @@ final class FrameAccumulator: @unchecked Sendable {
 
     func clear() {
         frameCount = 0
-        guard let accumulator,
+        guard let accumulator, let spread,
               let buffer = commandQueue.makeCommandBuffer(),
               let encoder = buffer.makeComputeCommandEncoder() else { return }
 
         encoder.setComputePipelineState(clearPipeline)
         encoder.setTexture(accumulator, index: 0)
+        encoder.setTexture(spread, index: 1)
         dispatch(encoder, pipeline: clearPipeline, width: accumulator.width, height: accumulator.height)
         encoder.endEncoding()
         buffer.commit()
@@ -162,26 +199,10 @@ final class FrameAccumulator: @unchecked Sendable {
 
     // MARK: - Per-frame work
 
-    /// Wrap a camera pixel buffer as a Metal texture without copying it.
-    private func texture(from pixelBuffer: CVPixelBuffer) -> MTLTexture? {
-        guard let textureCache else { return nil }
-
-        let width = CVPixelBufferGetWidth(pixelBuffer)
-        let height = CVPixelBufferGetHeight(pixelBuffer)
-        var wrapped: CVMetalTexture?
-
-        let status = CVMetalTextureCacheCreateTextureFromImage(
-            kCFAllocatorDefault, textureCache, pixelBuffer, nil,
-            .bgra8Unorm, width, height, 0, &wrapped
-        )
-        guard status == kCVReturnSuccess, let wrapped else { return nil }
-        return CVMetalTextureGetTexture(wrapped)
-    }
-
     /// Pull the downsampled luminance back to the CPU for star detection.
     /// Returns nil until a frame has been through `downsample`.
     func readLuminance(from pixelBuffer: CVPixelBuffer) -> [Float]? {
-        guard let source = texture(from: pixelBuffer), let luma else { return nil }
+        guard let source = decode(pixelBuffer), let luma else { return nil }
         guard let buffer = commandQueue.makeCommandBuffer(),
               let encoder = buffer.makeComputeCommandEncoder() else { return nil }
 
@@ -224,10 +245,12 @@ final class FrameAccumulator: @unchecked Sendable {
         let shaderMode: UInt32 = replacingContents ? 2 : (mode == .trails ? 1 : 0)
         blend(pixelBuffer, transform: transform, shaderMode: shaderMode)
         frameCount = replacingContents ? 1 : frameCount + 1
+        // Done with this camera buffer: let the pool have it back.
+        decodedSource = nil
     }
 
     private func blend(_ pixelBuffer: CVPixelBuffer, transform: simd_float3x3?, shaderMode: UInt32) {
-        guard let source = texture(from: pixelBuffer), let accumulator else { return }
+        guard let source = decode(pixelBuffer), let accumulator, let spread else { return }
         guard let buffer = commandQueue.makeCommandBuffer(),
               let encoder = buffer.makeComputeCommandEncoder() else { return }
 
@@ -235,12 +258,15 @@ final class FrameAccumulator: @unchecked Sendable {
             transform: transform ?? matrix_identity_float3x3,
             mode: shaderMode,
             frameIndex: UInt32(frameCount),
-            useTransform: transform == nil ? 0 : 1
+            useTransform: transform == nil ? 0 : 1,
+            kappa: Self.clipKappa,
+            warmup: Self.clipWarmup
         )
 
         encoder.setComputePipelineState(accumulatePipeline)
         encoder.setTexture(source, index: 0)
         encoder.setTexture(accumulator, index: 1)
+        encoder.setTexture(spread, index: 2)
         encoder.setBytes(&params, length: MemoryLayout<StackParams>.stride, index: 0)
         dispatch(encoder, pipeline: accumulatePipeline, width: accumulator.width, height: accumulator.height)
         encoder.endEncoding()
@@ -264,14 +290,12 @@ final class FrameAccumulator: @unchecked Sendable {
             exposure: tone.exposure,
             saturation: tone.saturation
         )
-        var count = UInt32(max(frameCount, 1))
         var modeValue = UInt32(mode == .trails ? 1 : 0)
 
         encoder.setComputePipelineState(resolvePipeline)
         encoder.setTexture(accumulator, index: 0)
         encoder.setTexture(display, index: 1)
         encoder.setBytes(&toneParams, length: MemoryLayout<ToneParams>.stride, index: 0)
-        encoder.setBytes(&count, length: MemoryLayout<UInt32>.stride, index: 1)
         encoder.setBytes(&modeValue, length: MemoryLayout<UInt32>.stride, index: 2)
         dispatch(encoder, pipeline: resolvePipeline, width: display.width, height: display.height)
         encoder.endEncoding()
@@ -324,6 +348,76 @@ final class FrameAccumulator: @unchecked Sendable {
     }
 }
 
+// MARK: - Decoding
+
+extension FrameAccumulator {
+
+    /// Wrap one plane of a camera pixel buffer as a Metal texture without copying it.
+    private func wrap(
+        _ pixelBuffer: CVPixelBuffer, plane: Int, format: MTLPixelFormat
+    ) -> CVMetalTexture? {
+        guard let textureCache else { return nil }
+        let planar = CVPixelBufferIsPlanar(pixelBuffer)
+        let width = planar ? CVPixelBufferGetWidthOfPlane(pixelBuffer, plane) : CVPixelBufferGetWidth(pixelBuffer)
+        let height = planar ? CVPixelBufferGetHeightOfPlane(pixelBuffer, plane) : CVPixelBufferGetHeight(pixelBuffer)
+        var wrapped: CVMetalTexture?
+        let status = CVMetalTextureCacheCreateTextureFromImage(
+            kCFAllocatorDefault, textureCache, pixelBuffer, nil,
+            format, width, height, plane, &wrapped
+        )
+        return status == kCVReturnSuccess ? wrapped : nil
+    }
+
+    /// The camera frame in linear light, hot pixels removed. Decoded once per buffer.
+    ///
+    /// Takes whatever the camera delivers: biplanar 4:2:0 at 8 or 10 bits (the format's
+    /// own pixels, no conversion asked of AVFoundation) or BGRA (the detector, whose ring
+    /// buffer copies single-plane frames). Waits for the GPU: the plane wrappers must
+    /// outlive the work that reads them, and at one frame a second the wait is invisible.
+    private func decode(_ pixelBuffer: CVPixelBuffer) -> MTLTexture? {
+        guard let decoded,
+              CVPixelBufferGetWidth(pixelBuffer) == decoded.width,
+              CVPixelBufferGetHeight(pixelBuffer) == decoded.height else { return nil }
+        if decodedSource === pixelBuffer { return decoded }
+
+        let layout = FramePixels(CVPixelBufferGetPixelFormatType(pixelBuffer))
+        var wrappers: [CVMetalTexture] = []
+        let pipeline: MTLComputePipelineState
+        switch layout {
+        case .biplanar(let tenBit, _):
+            guard let luma = wrap(pixelBuffer, plane: 0, format: tenBit ? .r16Unorm : .r8Unorm),
+                  let chroma = wrap(pixelBuffer, plane: 1, format: tenBit ? .rg16Unorm : .rg8Unorm)
+            else { return nil }
+            wrappers = [luma, chroma]
+            pipeline = decodeYCbCrPipeline
+        case .bgra:
+            guard let frame = wrap(pixelBuffer, plane: 0, format: .bgra8Unorm_srgb) else { return nil }
+            wrappers = [frame]
+            pipeline = decodeBGRAPipeline
+        case .unsupported:
+            return nil
+        }
+        guard let buffer = commandQueue.makeCommandBuffer(),
+              let encoder = buffer.makeComputeCommandEncoder() else { return nil }
+
+        var params = DecodeParams(fullRange: layout.isFullRange ? 1 : 0, hotRatio: 3, hotFloor: 0.02)
+        encoder.setComputePipelineState(pipeline)
+        for (index, wrapper) in wrappers.enumerated() {
+            encoder.setTexture(CVMetalTextureGetTexture(wrapper), index: index)
+        }
+        encoder.setTexture(decoded, index: 2)
+        encoder.setBytes(&params, length: MemoryLayout<DecodeParams>.stride, index: 0)
+        dispatch(encoder, pipeline: pipeline, width: decoded.width, height: decoded.height)
+        encoder.endEncoding()
+        buffer.commit()
+        buffer.waitUntilCompleted()
+        withExtendedLifetime(wrappers) {}
+
+        decodedSource = pixelBuffer
+        return decoded
+    }
+}
+
 enum StackError: LocalizedError {
     case metalUnavailable
     case shaderLibraryMissing
@@ -336,4 +430,37 @@ enum StackError: LocalizedError {
         case .shaderMissing(let name): "Shader function '\(name)' not found."
         }
     }
+}
+
+/// What the camera put in a pixel buffer, as far as decoding cares.
+enum FramePixels: Equatable {
+    case biplanar(tenBit: Bool, fullRange: Bool)
+    case bgra
+    case unsupported
+
+    init(_ type: OSType) {
+        switch type {
+        case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange: self = .biplanar(tenBit: false, fullRange: false)
+        case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange: self = .biplanar(tenBit: false, fullRange: true)
+        case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange: self = .biplanar(tenBit: true, fullRange: false)
+        case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange: self = .biplanar(tenBit: true, fullRange: true)
+        case kCVPixelFormatType_32BGRA: self = .bgra
+        default: self = .unsupported
+        }
+    }
+
+    var isFullRange: Bool {
+        if case .biplanar(_, let fullRange) = self { return fullRange }
+        return true
+    }
+
+    /// The output formats to ask the camera for when stacking, best first: the sensor's
+    /// own 4:2:0 at full range, then video range, then 10-bit. BGRA is the last resort.
+    static let stackingPreference: [OSType] = [
+        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+        kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+        kCVPixelFormatType_420YpCbCr10BiPlanarFullRange,
+        kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange,
+        kCVPixelFormatType_32BGRA,
+    ]
 }

@@ -1,6 +1,7 @@
 import CoreLocation
 import CoreMotion
 import Foundation
+import os
 import SkyKit
 
 /// Where the camera is pointing, and where on Earth it stands.
@@ -17,6 +18,12 @@ final class AttitudeProvider: NSObject {
 
     private let motion = CMMotionManager()
     private let locationManager = CLLocationManager()
+    private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "attitude")
+
+    /// The reference frame the sensor fusion is running in, once a sample has arrived.
+    private(set) var referenceFrame: CMAttitudeReferenceFrame?
+    private var watchdog: Task<Void, Never>?
+    private var sampleCount = 0
 
     /// Direction the rear camera is currently aimed.
     private(set) var aim = HorizontalCoordinates(azimuth: 0, altitude: 0)
@@ -81,21 +88,72 @@ final class AttitudeProvider: NSObject {
             locationManager.startUpdatingLocation()
         }
 
-        guard motion.isDeviceMotionAvailable else { return }
-        motion.deviceMotionUpdateInterval = Cadence.interactive.interval
-        motion.startDeviceMotionUpdates(
-            using: .xTrueNorthZVertical,
-            to: .main
-        ) { [weak self] motion, _ in
-            guard let self, let motion else { return }
-            self.update(from: motion)
-        }
-        isHeadingAvailable = true
+        startMotion(using: Self.preferredFrame(
+            available: CMMotionManager.availableAttitudeReferenceFrames(),
+            locationAuthorized: locationManager.authorizationStatus.isAuthorized
+        ))
     }
 
     func stop() {
+        watchdog?.cancel()
         motion.stopDeviceMotionUpdates()
         locationManager.stopUpdatingLocation()
+    }
+
+    /// The best frame this phone can give right now.
+    ///
+    /// True north needs the magnetometer and a position for declination. Asked for before
+    /// location is authorised, CoreMotion delivered nothing on an iPhone 17 Pro (iOS 27):
+    /// the overlay drew its markers once and they never moved. Magnetic north works with no
+    /// location at all, and `.xArbitraryCorrectedZVertical` works with no magnetometer —
+    /// altitude is still right, and a wrong azimuth is better than a frozen one.
+    nonisolated static func preferredFrame(
+        available: CMAttitudeReferenceFrame, locationAuthorized: Bool
+    ) -> CMAttitudeReferenceFrame {
+        if locationAuthorized, available.contains(.xTrueNorthZVertical) { return .xTrueNorthZVertical }
+        if available.contains(.xMagneticNorthZVertical) { return .xMagneticNorthZVertical }
+        return .xArbitraryCorrectedZVertical
+    }
+
+    /// What to fall back to when a frame yields no samples.
+    nonisolated static func fallback(after frame: CMAttitudeReferenceFrame) -> CMAttitudeReferenceFrame? {
+        switch frame {
+        case .xTrueNorthZVertical: .xMagneticNorthZVertical
+        case .xMagneticNorthZVertical: .xArbitraryCorrectedZVertical
+        default: nil
+        }
+    }
+
+    private func startMotion(using frame: CMAttitudeReferenceFrame) {
+        guard motion.isDeviceMotionAvailable else {
+            logger.error("Device motion unavailable")
+            return
+        }
+        watchdog?.cancel()
+        motion.stopDeviceMotionUpdates()
+        sampleCount = 0
+        isHeadingAvailable = false
+        motion.deviceMotionUpdateInterval = Cadence.interactive.interval
+        motion.startDeviceMotionUpdates(using: frame, to: .main) { [weak self] motion, error in
+            guard let self else { return }
+            if let error { self.logger.error("Motion: \(error.localizedDescription, privacy: .public)") }
+            guard let motion else { return }
+            self.sampleCount += 1
+            if self.sampleCount == 1 {
+                self.referenceFrame = frame
+                self.isHeadingAvailable = true
+                self.logger.info("Attitude running in frame \(frame.rawValue)")
+            }
+            self.update(from: motion)
+        }
+
+        // A frame the phone lists but cannot actually serve yields no samples and no error.
+        watchdog = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard let self, !Task.isCancelled, sampleCount == 0 else { return }
+            logger.error("No motion samples in frame \(frame.rawValue) after 2 s")
+            if let next = Self.fallback(after: frame) { startMotion(using: next) }
+        }
     }
 
     /// Convert device attitude into a direction on the sky.
@@ -147,6 +205,15 @@ extension AttitudeProvider: CLLocationManagerDelegate {
             case .authorizedWhenInUse, .authorizedAlways:
                 self.authorizationDenied = false
                 self.locationManager.startUpdatingLocation()
+                // Now true north can be served; move to it if we started on something less.
+                let wanted = Self.preferredFrame(
+                    available: CMMotionManager.availableAttitudeReferenceFrames(),
+                    locationAuthorized: true
+                )
+                let running = self.motion.isDeviceMotionActive
+                if running, self.referenceFrame != wanted, self.sampleCount > 0 || self.referenceFrame == nil {
+                    self.startMotion(using: wanted)
+                }
             case .denied, .restricted:
                 self.authorizationDenied = true
             default:
@@ -154,4 +221,8 @@ extension AttitudeProvider: CLLocationManagerDelegate {
             }
         }
     }
+}
+
+extension CLAuthorizationStatus {
+    var isAuthorized: Bool { self == .authorizedWhenInUse || self == .authorizedAlways }
 }

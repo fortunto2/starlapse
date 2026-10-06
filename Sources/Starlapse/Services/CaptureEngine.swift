@@ -99,7 +99,7 @@ final class CaptureEngine: @unchecked Sendable {
             throw CameraError.noCameraAvailable
         }
 
-        let ownsFormat = try buildGraph(around: device)
+        let ownsFormat = try buildGraph(around: device, preference: preference)
         self.device = device
         sessionFormat = device.activeFormat
         // Without `.inputPriority` the session manages `activeFormat` itself and would
@@ -116,7 +116,7 @@ final class CaptureEngine: @unchecked Sendable {
     ///
     /// Returns whether the session handed over control of the sensor format.
     @discardableResult
-    private func buildGraph(around device: AVCaptureDevice) throws -> Bool {
+    private func buildGraph(around device: AVCaptureDevice, preference: FormatPreference) throws -> Bool {
         let input = try AVCaptureDeviceInput(device: device)
 
         session.beginConfiguration()
@@ -146,21 +146,23 @@ final class CaptureEngine: @unchecked Sendable {
             session.addOutput(output)
         }
 
-        // Pixel format after the output is attached, and only if the output says it has it.
+        // Pixel format after the output is attached, and only one the output says it has.
         //
-        // `availableVideoPixelFormatTypes` is empty until then, so asking for BGRA before
-        // attaching is asking a question nothing can answer yet — the validation lands at
-        // commit instead, which is where these crashes surfaced. Left unset, the camera
-        // delivers its native format: the preview goes dark because the Metal path reads
-        // BGRA, but a dark preview is a bug report, not a dead app.
-        if output.availableVideoPixelFormatTypes.contains(kCVPixelFormatType_32BGRA) {
-            Hardware.attempt("BGRA output") {
-                output.videoSettings = [
-                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
-                ]
+        // `availableVideoPixelFormatTypes` is empty until then, so asking before attaching
+        // is asking a question nothing can answer yet — the validation lands at commit
+        // instead, which is where these crashes surfaced.
+        //
+        // Stacking takes the sensor's own 4:2:0 planes and decodes them in Metal: no
+        // conversion asked of AVFoundation, and the stack adds linear light. The detector
+        // keeps BGRA because its ring buffer and clip writer copy single-plane frames.
+        let wanted = preference == .detector ? [kCVPixelFormatType_32BGRA] : FramePixels.stackingPreference
+        let offered = output.availableVideoPixelFormatTypes
+        if let chosen = wanted.first(where: offered.contains) {
+            Hardware.attempt("output \(FormatFacts.fourCC(chosen))") {
+                output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: chosen]
             }
         } else {
-            logger.error("Camera will not deliver BGRA; using its native pixel format")
+            logger.error("Camera offers none of the pixel formats this build decodes; using its native one")
         }
 
         let receiver = FrameReceiver(onFrame: onFrame)

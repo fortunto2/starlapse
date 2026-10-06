@@ -12,13 +12,13 @@ reaches Metal.
 - [x] A4 StackKit `StackQuality` metrics vs ground truth
 - [x] A5 `starlapse-stack compare` CLI: shipped pipeline vs variants, table
 - [x] A6 Tests for A1–A4
-- [ ] B1 Metal: decode biplanar 420 (8/10-bit) into linear rgba16Float; BGRA via `_srgb` view
-- [ ] B2 Metal: coverage-normalised resolve (divide by alpha, not frameCount)
-- [ ] B3 Metal: sigma-clip on luminance (extra r32Float M2 texture)
-- [ ] B4 Output: ask the camera for the format's native 420 subtype for stacking; BGRA stays for the detector
-- [ ] B5 FormatChoice: prefer 10-bit native, Log/ProRes still last
-- [ ] B6 Retune default tone for linear input (CLI computes the mapping)
-- [ ] C  Build, tests, lint, commit; device check is blocked on an iPhone
+- [x] B1 Metal: decode biplanar 420 (8/10-bit) into linear rgba16Float; BGRA via `_srgb` view
+- [x] B2 Metal: coverage-normalised resolve (divide by alpha, not frameCount)
+- [x] B3 Metal: sigma-clip on luminance (extra r32Float M2 texture)
+- [x] B4 Output: ask the camera for the format's native 420 subtype for stacking; BGRA stays for the detector
+- [x] B5 FormatChoice: prefer 10-bit native, Log/ProRes still last
+- [x] B6 Retune default tone for linear input (CLI computes the mapping)
+- [x] C  Build, tests, lint, commit; device check is blocked on an iPhone
 
 ## Decisions
 

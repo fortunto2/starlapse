@@ -13,22 +13,22 @@ public enum TransferFunction: Sendable, CaseIterable {
     case bt709
 
     public func decode(_ value: Float) -> Float {
-        let v = max(value, 0)
+        let input = max(value, 0)
         switch self {
         case .sRGB:
-            return v <= 0.04045 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4)
+            return input <= 0.04045 ? input / 12.92 : pow((input + 0.055) / 1.055, 2.4)
         case .bt709:
-            return v < 0.081 ? v / 4.5 : pow((v + 0.099) / 1.099, 1 / 0.45)
+            return input < 0.081 ? input / 4.5 : pow((input + 0.099) / 1.099, 1 / 0.45)
         }
     }
 
     public func encode(_ value: Float) -> Float {
-        let v = min(max(value, 0), 1)
+        let input = min(max(value, 0), 1)
         switch self {
         case .sRGB:
-            return v <= 0.0031308 ? v * 12.92 : 1.055 * pow(v, 1 / 2.4) - 0.055
+            return input <= 0.0031308 ? input * 12.92 : 1.055 * pow(input, 1 / 2.4) - 0.055
         case .bt709:
-            return v < 0.018 ? v * 4.5 : 1.099 * pow(v, 0.45) - 0.099
+            return input < 0.018 ? input * 4.5 : 1.099 * pow(input, 0.45) - 0.099
         }
     }
 }
@@ -50,8 +50,15 @@ public struct YCbCrDecoder: Sendable, Hashable {
     private var scale: Float { Float(1 << (bitDepth - 8)) }
     private var maxCode: Float { Float((1 << bitDepth) - 1) }
 
-    /// Codes → encoded (non-linear) RGB in 0...1. BT.709 matrix.
-    public func rgb(y: Int, cb: Int, cr: Int) -> (r: Float, g: Float, b: Float) {
+    /// Encoded (non-linear) RGB in 0...1.
+    public struct RGB: Sendable, Hashable {
+        public let red: Float
+        public let green: Float
+        public let blue: Float
+    }
+
+    /// Codes → encoded RGB. BT.709 matrix.
+    public func rgb(y: Int, cb: Int, cr: Int) -> RGB {
         let luma: Float
         let blue: Float
         let red: Float
@@ -64,10 +71,11 @@ public struct YCbCrDecoder: Sendable, Hashable {
             blue = (Float(cb) - 128 * scale) / (224 * scale)
             red = (Float(cr) - 128 * scale) / (224 * scale)
         }
-        let r = luma + 1.5748 * red
-        let g = luma - 0.1873 * blue - 0.4681 * red
-        let b = luma + 1.8556 * blue
-        return (min(max(r, 0), 1), min(max(g, 0), 1), min(max(b, 0), 1))
+        return RGB(
+            red: min(max(luma + 1.5748 * red, 0), 1),
+            green: min(max(luma - 0.1873 * blue - 0.4681 * red, 0), 1),
+            blue: min(max(luma + 1.8556 * blue, 0), 1)
+        )
     }
 
     /// The code a camera would write for an encoded luma value — the quantisation step.
