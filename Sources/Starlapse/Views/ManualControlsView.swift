@@ -336,6 +336,9 @@ struct ManualControlsView: View {
                 }
             }
         }
+        // Buttons do not stretch the way sliders and toggles do; without this the panel
+        // is narrower than its neighbours.
+        .frame(maxWidth: .infinity, alignment: .leading)
         .nightPanel()
     }
 
