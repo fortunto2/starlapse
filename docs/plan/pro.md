@@ -18,6 +18,11 @@ other territories. Reference name "Starlapse Pro".
 - [x] P7 Description (1.0.3): PRIVACY paragraph mentions the one Apple call; Pro section
 - [x] P8 Build, lint, screenshots of paywall on simulator, commit
 - [x] P9 App Privacy: check whether "Purchases" needs declaring (StoreKit only: no)
+- [x] P10 Review 1.0.3 (13) rejected, 3.1.1: Restore lived only on the paywall, and the paywall
+  opened only from the event row, which needs location and an active shower. On the review
+  iPad there was neither. Build 15: STARLAPSE PRO section in settings with UNLOCK PRO and
+  RESTORE PURCHASE, always present; paywall Restore is a bordered button. Rule: every purchase
+  entry point must be reachable with every permission denied.
 
 ## Free vs Pro
 
