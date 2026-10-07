@@ -64,9 +64,9 @@ archive: gen ## Archive signed for the App Store
 	@xcodebuild archive -project $(PROJECT) -scheme $(SCHEME) \
 		-destination 'generic/platform=iOS' \
 		-archivePath build/$(SCHEME).xcarchive -allowProvisioningUpdates \
-		DEVELOPMENT_TEAM=$(TEAM) CODE_SIGN_STYLE=Manual \
-		PROVISIONING_PROFILE_SPECIFIER="$(PROFILE)" \
-		CODE_SIGN_IDENTITY="$(SIGN_IDENTITY)" 2>&1 | \
+		DEVELOPMENT_TEAM=$(TEAM) STARLAPSE_SIGN_STYLE=Manual \
+		STARLAPSE_PROFILE="$(PROFILE)" \
+		STARLAPSE_SIGN_IDENTITY="$(SIGN_IDENTITY)" 2>&1 | \
 		grep -E "(error:|ARCHIVE SUCCEEDED)" | head -5
 	@plutil -p build/$(SCHEME).xcarchive/Info.plist | grep -E "SigningIdentity|CFBundleVersion"
 

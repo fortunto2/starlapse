@@ -46,6 +46,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: co.superduperai.starlapse
         TARGETED_DEVICE_FAMILY: "1"
+        # Signing for the App Store is manual, but only on this target: a value passed to
+        # xcodebuild applies to every target, and a Swift package target refuses a
+        # provisioning profile outright. The Makefile sets the STARLAPSE_* variables.
+        CODE_SIGN_STYLE: "$(STARLAPSE_SIGN_STYLE:default=Automatic)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(STARLAPSE_PROFILE)"
+        CODE_SIGN_IDENTITY: "$(STARLAPSE_SIGN_IDENTITY:default=Apple Development)"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MTL_FAST_MATH: YES
         # One Objective-C file, for one reason: AVCaptureDevice rejects an out-of-range
