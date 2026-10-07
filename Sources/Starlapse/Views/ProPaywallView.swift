@@ -1,3 +1,4 @@
+import SuperDuperAnalytics
 import SwiftUI
 
 /// What Pro is, what it costs, and what stays free. Shown from the status panel when
@@ -82,14 +83,20 @@ struct ProPaywallView: View {
                         .foregroundStyle(NightTheme.accent)
                 }
 
-                Text("The purchase is the only network call Starlapse makes, and it goes to Apple.")
+                Text("""
+                    The purchase goes to Apple. Starlapse sends nothing else, except a usage \
+                    counter you can switch off.
+                    """)
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)
             }
             .padding(16)
         }
         .background(NightTheme.background)
-        .task { if entitlements.product == nil { await entitlements.refresh() } }
+        .task {
+            Analytics.track("paywall_shown")
+            if entitlements.product == nil { await entitlements.refresh() }
+        }
     }
 
     private var buyTitle: String {

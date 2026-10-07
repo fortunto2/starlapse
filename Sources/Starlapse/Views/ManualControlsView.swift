@@ -1,3 +1,4 @@
+import SuperDuperAnalytics
 import SwiftUI
 
 /// The manual controls, and the honesty about what they can and cannot do.
@@ -10,6 +11,7 @@ struct ManualControlsView: View {
 
     @Bindable var model: CaptureViewModel
     @State private var crashReports = CrashDiagnostics.reports
+    @State private var countsUsage = Analytics.isEnabled
 
     var body: some View {
         ScrollView {
@@ -24,6 +26,7 @@ struct ManualControlsView: View {
                 if !crashReports.isEmpty {
                     diagnosticsSection
                 }
+                privacySection
             }
             .padding(16)
         }
@@ -34,6 +37,7 @@ struct ManualControlsView: View {
         .onChange(of: model.settings) {
             Task { await model.settingsChanged() }
         }
+        .onChange(of: countsUsage) { Analytics.isEnabled = countsUsage }
     }
 
     // MARK: - Lens
@@ -276,6 +280,31 @@ struct ManualControlsView: View {
                 }
             }
             .font(NightTheme.mono(12, weight: .bold))
+        }
+        .nightPanel()
+    }
+
+    // MARK: - Privacy
+
+    /// The one thing the app sends that is not a purchase, and the switch for it.
+    private var privacySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("USAGE COUNTER")
+
+            Toggle(isOn: $countsUsage) {
+                Text("Count launches and captures")
+                    .font(NightTheme.mono(12))
+            }
+            .tint(NightTheme.accent)
+
+            Text("""
+                Five events: app opened, capture started, capture saved, Pro page shown, Pro \
+                bought. No photos, no location, no name. The only id is a random one made on \
+                this phone and deleted with the app. It answers one question, whether anyone \
+                comes back. Off means nothing is sent.
+                """)
+                .font(NightTheme.mono(10))
+                .foregroundStyle(NightTheme.dim)
         }
         .nightPanel()
     }

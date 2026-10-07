@@ -1,5 +1,6 @@
 import Foundation
 import StoreKit
+import SuperDuperAnalytics
 
 /// What this phone has paid for. One product, bought once.
 ///
@@ -8,7 +9,8 @@ import StoreKit
 /// feature stay free. Events are the part that needs keeping up to date, which is what
 /// is being paid for; and a non-consumable is the only honest shape for "forever".
 ///
-/// StoreKit 2 only. The one network call this app makes is Apple's, from here.
+/// StoreKit 2 only. Apple's is one of the two network calls this app makes; the other is
+/// the usage counter, and it can be switched off.
 @MainActor
 @Observable
 final class Entitlements {
@@ -61,6 +63,7 @@ final class Entitlements {
             switch try await product.purchase() {
             case .success(let result):
                 await handle(result)
+                if isPro { Analytics.track("pro_purchased") }
             case .userCancelled, .pending:
                 break
             @unknown default:

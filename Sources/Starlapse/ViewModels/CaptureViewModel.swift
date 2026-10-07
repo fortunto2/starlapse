@@ -3,6 +3,7 @@ import Foundation
 import Metal
 import os
 import SkyKit
+import SuperDuperAnalytics
 import SwiftUI
 
 @MainActor
@@ -359,6 +360,10 @@ final class CaptureViewModel {
         }
 
         lastSavedMessage = nil
+        Analytics.track(
+            "capture_started",
+            props: ["mode": mode.analyticsName, "stack": settings.stackMode.rawValue]
+        )
         let plan: SegmentPlan = switch mode {
         case .still: .still(settings, tone: tone)
         case .timelapse(let timelapseSettings): .timelapse(settings, timelapse: timelapseSettings, tone: tone)

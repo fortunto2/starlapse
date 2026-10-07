@@ -5,11 +5,11 @@ permalink: /privacy/
 
 # Privacy Policy — Starlapse
 
-**Last updated: 13 August 2026**
+**Last updated: 6 October 2026**
 
-Starlapse collects nothing. There is no account, no server, no analytics, and no network
-code in the app at all. Nothing you do in it is transmitted anywhere, because there is
-nowhere for it to go.
+Starlapse has no account and no server of its own. Your photographs, your location and the
+direction you point the phone never leave it. The app makes two kinds of network request,
+both listed below, and one of them you can switch off.
 
 That is unusual enough for a camera app that the rest of this document exists mainly to be
 specific about it.
@@ -36,13 +36,32 @@ display only and never leaves the device.
 requests add-only access, which means it can put pictures in your library but cannot read,
 browse or scan what is already there.
 
+## What the app sends
+
+**Purchases.** Starlapse Pro is bought through Apple's App Store. The request goes to Apple
+and is governed by Apple's privacy policy; the app sees only whether this phone owns Pro.
+
+**A usage counter.** Five events, so we know whether anyone opens the app and comes back:
+app opened, capture started (with the mode: still, time-lapse or detector), capture saved
+(with the frame count), Pro page shown, Pro bought. They go to our own server at
+analytics.superduperai.co, not to a third party. Each event carries the app version, the
+platform and a random identifier generated on this phone when the counter first runs. That
+identifier is not your Apple ID, not the advertising identifier, not shared between apps,
+and is deleted with the app. No photos, no location, no heading, no name.
+
+You can switch the counter off in the controls panel, under **Usage counter**. Off means
+nothing is sent, including events already waiting to be sent.
+
+**Crash reports** are kept on the phone and sent only when you tap Send in the controls
+panel. They contain the camera's error message and the code path, never a photo or a
+location.
+
 ## What Starlapse does not do
 
-- No accounts, sign-in, or user identifiers
-- No analytics, telemetry, crash reporting, or advertising SDKs
-- No network requests of any kind
+- No accounts, sign-in, or user identifiers tied to you
+- No advertising SDKs, no third-party analytics
 - No tracking across apps or websites
-- No selling or sharing of data — there is no data to sell
+- No selling or sharing of data
 - No reading of your existing photos
 
 ## Where your captures live

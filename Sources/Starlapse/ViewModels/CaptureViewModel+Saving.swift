@@ -1,4 +1,5 @@
 import Foundation
+import SuperDuperAnalytics
 
 /// Writing results to the photo library, and saying what happened.
 ///
@@ -15,6 +16,9 @@ extension CaptureViewModel {
         do {
             try await PhotoLibraryWriter.write(rendered)
             lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
+            Analytics.track(
+                "capture_saved", props: ["kind": "photo"], metrics: ["frames": Double(progress.framesStacked)]
+            )
             RatingPrompt.saved()
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"
@@ -29,6 +33,9 @@ extension CaptureViewModel {
         do {
             try await PhotoLibraryWriter.write(videoAt: url)
             lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
+            Analytics.track(
+                "capture_saved", props: ["kind": "video"], metrics: ["frames": Double(progress.segmentsCompleted)]
+            )
             RatingPrompt.saved()
         } catch {
             lastSavedMessage = "Save failed: \(error.localizedDescription)"

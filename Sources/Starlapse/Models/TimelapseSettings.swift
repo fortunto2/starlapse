@@ -92,6 +92,15 @@ enum CaptureMode: Sendable, Equatable {
         return false
     }
 
+    /// The counter's name for the mode: the case, without its settings.
+    var analyticsName: String {
+        switch self {
+        case .still: "still"
+        case .timelapse: "timelapse"
+        case .detector: "detector"
+        }
+    }
+
     var isDetector: Bool {
         if case .detector = self { return true }
         return false
