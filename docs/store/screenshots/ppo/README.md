@@ -15,4 +15,8 @@ the simulator produces and what App Store Connect was given in August, which it 
 The API has no CLI for this in `asc`. Creating one is: `POST /v2/appStoreVersionExperiments`
 (type `appStoreVersionExperiments`, relationship `app`), then treatments, then a localization per
 treatment. The localization arrives with the control's screenshot sets copied in, so the frames are
-deleted and replaced rather than a set created. `PATCH {started: true}` submits it for review.
+deleted and replaced rather than a set created. `PATCH {started: true}` does not submit it:
+it answers 409 "must be reviewed" until the treatments pass App Review. Review goes through a
+`reviewSubmission` with an `appStoreVersionExperimentsV2` item, and that submission cannot also
+hold an `appStoreVersions` item (Apple: only one of the two per submission). Two submissions can
+be in WAITING_FOR_REVIEW at once, so the app version and the experiment go in separately.
