@@ -12,6 +12,8 @@ struct ManualControlsView: View {
     @Bindable var model: CaptureViewModel
     @State private var crashReports = CrashDiagnostics.reports
     @State private var countsUsage = Analytics.isEnabled
+    @State private var showsPaywall = false
+    @State private var restoreChecked = false
 
     var body: some View {
         ScrollView {
@@ -26,11 +28,17 @@ struct ManualControlsView: View {
                 if !crashReports.isEmpty {
                     diagnosticsSection
                 }
+                proSection
                 privacySection
             }
             .padding(16)
         }
         .background(NightTheme.background)
+        .sheet(isPresented: $showsPaywall) {
+            ProPaywallView(entitlements: model.entitlements)
+                .presentationDetents([.large])
+                .presentationBackground(NightTheme.background)
+        }
         // Push edits to the sensor as they happen. Previously settings only reached the
         // hardware at state transitions, which left the lens picker inert for the whole
         // lifetime of the app.
@@ -280,6 +288,53 @@ struct ManualControlsView: View {
                 }
             }
             .font(NightTheme.mono(12, weight: .bold))
+        }
+        .nightPanel()
+    }
+
+    // MARK: - Pro
+
+    /// Buying and restoring live here as well as on the paywall, because the paywall is only
+    /// offered when a shower is on and location is granted. App Review 1.0.3 (13), on an iPad
+    /// with neither, could not reach a Restore button at all: Guideline 3.1.1.
+    private var proSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("STARLAPSE PRO")
+
+            if model.entitlements.isPro {
+                Text("UNLOCKED. CLEAR SKIES.")
+                    .font(NightTheme.mono(12, weight: .bold))
+                    .foregroundStyle(NightTheme.accent)
+            } else {
+                Text("Tonight's events and where to aim for them. One purchase, no subscription.")
+                    .font(NightTheme.mono(10))
+                    .foregroundStyle(NightTheme.dim)
+
+                HStack(spacing: 10) {
+                    Button("UNLOCK PRO") { showsPaywall = true }
+                        .buttonStyle(.borderedProminent)
+                        .tint(NightTheme.accent)
+                    Button("RESTORE PURCHASE") {
+                        Task {
+                            await model.entitlements.restore()
+                            restoreChecked = true
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(NightTheme.secondary)
+                }
+                .font(NightTheme.mono(11, weight: .bold))
+
+                if let error = model.entitlements.lastError {
+                    Text(error)
+                        .font(NightTheme.mono(10))
+                        .foregroundStyle(NightTheme.accent)
+                } else if restoreChecked {
+                    Text("No Pro purchase on this Apple Account.")
+                        .font(NightTheme.mono(10))
+                        .foregroundStyle(NightTheme.dim)
+                }
+            }
         }
         .nightPanel()
     }

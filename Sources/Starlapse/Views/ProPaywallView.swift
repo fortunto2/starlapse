@@ -67,14 +67,22 @@ struct ProPaywallView: View {
                     .tint(NightTheme.accent)
                     .disabled(entitlements.isPurchasing)
 
-                    Button("Restore purchase") {
+                    // A distinct button, not a footnote: App Review (3.1.1) wants Restore
+                    // to be as findable as Buy.
+                    Button {
                         Task {
                             await entitlements.restore()
                             if entitlements.isPro { dismiss() }
                         }
+                    } label: {
+                        Text("RESTORE PURCHASE")
+                            .font(NightTheme.mono(12, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
                     }
-                    .font(NightTheme.mono(11))
-                    .foregroundStyle(NightTheme.secondary)
+                    .buttonStyle(.bordered)
+                    .tint(NightTheme.secondary)
+                    .disabled(entitlements.isPurchasing)
                 }
 
                 if let error = entitlements.lastError {
