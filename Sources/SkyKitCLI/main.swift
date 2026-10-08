@@ -23,6 +23,7 @@ func printUsage() {
       starlapse-sky tonight  --lat <deg> --lon <deg> [--at <ISO8601>]
       starlapse-sky showers  [--at <ISO8601>]
       starlapse-sky moon     --lat <deg> --lon <deg> [--at <ISO8601>]
+      starlapse-sky events   --lat <deg> --lon <deg> [--at <ISO8601>] [--days <n>]
 
     Longitude is east-positive. Times are UTC; omit --at for now.
     """)
@@ -104,6 +105,45 @@ case "tonight":
        ), best.rate > headline.expectedHourlyRate * 1.1 {
         print("")
         print("  Better later: \(isoFormatter.string(from: best.date)) → \(String(format: "%.1f", best.rate))/h")
+    }
+    print("")
+
+case "events":
+    let location = requireLocation()
+    let days = value(for: "--days").flatMap(Int.init) ?? 90
+    let forecasts = SkyDirector.forecast(at: location, from: date, days: days)
+    let dayFormatter = DateFormatter()
+    dayFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+    dayFormatter.dateFormat = "dd MMM"
+    let timeFormatter = DateFormatter()
+    timeFormatter.timeZone = TimeZone(secondsFromGMT: Int(location.longitude / 15 * 3600))
+    timeFormatter.dateFormat = "HH:mm"
+    print("")
+    let place = String(format: "%.2f, %.2f", location.latitude, location.longitude)
+    print("  METEOR SHOWERS, next \(days) days, for \(place)")
+    print("  Darkest night: \(dayFormatter.string(from: SkyDirector.nextNewMoon(after: date))) (new Moon)")
+    print("")
+    if forecasts.isEmpty {
+        print("  Nothing: no astronomical night here in this period, or no shower in the window.")
+    }
+    for forecast in forecasts {
+        let verdict = switch forecast.verdict {
+        case .excellent: "EXCELLENT"
+        case .good: "good"
+        case .marginal: "marginal"
+        case .faint: "faint"
+        case .moonWashed: "moon-washed"
+        case .belowHorizon: "below horizon"
+        }
+        let night = dayFormatter.string(from: forecast.bestNight)
+        let peak = dayFormatter.string(from: forecast.peak)
+        let when = timeFormatter.string(from: forecast.bestTime) + " local solar"
+        let moon = "Moon \(Int(forecast.moonIlluminationAtBest * 100))%\(forecast.moonUpAtBest ? " up" : " down")"
+        let rate = String(format: "%5.1f/h", forecast.bestRate)
+        print("  \(pad(night, 8))\(pad(forecast.shower.name, 26))\(pad(verdict, 15))\(rate)")
+        let peakRate = String(format: "%.1f", forecast.peakNightRate)
+        print("          peak \(peak) (\(peakRate)/h) · best \(when)")
+        print("          radiant \(formatDirection(forecast.radiantAtBest)) · \(moon)")
     }
     print("")
 

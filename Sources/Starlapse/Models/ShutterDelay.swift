@@ -20,7 +20,7 @@ enum ShutterDelay: Int, CaseIterable, Sendable {
     }
 
     var label: String {
-        self == .off ? "OFF" : "\(rawValue)s"
+        self == .off ? String(localized: "OFF") : "\(rawValue)s"
     }
 
     var isOn: Bool { self != .off }

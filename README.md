@@ -26,8 +26,14 @@ stars or as star trails after the fact.
   - *Clean landscape* — averaged as shot
 - **Star alignment** — sub-pixel centroids, closed-form rotation fit, hot pixels rejected
 - **Night time-lapse** — every output frame is its own stack ("holy grail" night lapse)
-- **Aiming overlay** — meteor shower radiants, the Moon, bright stars, and where to
-  actually point (40° off the radiant, away from the Moon, at a workable height)
+- **Aiming overlay** — meteor shower radiants, the Moon, bright stars, the Milky Way as
+  the band it is, and where to actually point (40° off the radiant, away from the Moon, at
+  a workable height)
+- **Events** (Pro) — the season's showers forecast for *your* latitude and this year's
+  Moon: the night and hour that deliver, which is often not the catalogue peak, and an
+  honest "below horizon" for showers that never rise in darkness where you are
+- **Ten languages** on the store, nine in the app: English, Hindi, Chinese, Japanese,
+  French, Arabic, German, Italian, Turkish, Spanish — see `docs/l10n/README.md`
 - **asinh stretch** — the curve professional astronomical imaging uses, not gamma
 - **Red on black, dimmed** — keeps 20–30 minutes of dark adaptation intact
 

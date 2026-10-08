@@ -71,6 +71,11 @@ struct CaptureView: View {
                 .presentationDetents([.large])
                 .presentationBackground(NightTheme.background)
         }
+        .sheet(isPresented: $model.showsEventsSheet) {
+            EventsView(model: model)
+                .presentationDetents([.medium, .large])
+                .presentationBackground(NightTheme.background)
+        }
         .sheet(isPresented: $showsControls) {
             ManualControlsView(model: model)
                 .presentationDetents([.medium, .large])
@@ -137,7 +142,7 @@ struct CaptureView: View {
                 // The focus hint: autofocus is useless against a dark sky, so you set
                 // infinity by hand and confirm it on the brightest point source available.
                 if let focus = plan.focusTarget {
-                    Text("FOCUS ON \(focus.name.uppercased())")
+                    Text(String(format: String(localized: "FOCUS ON %@"), focus.name.uppercased()))
                         .font(NightTheme.mono(10, weight: .semibold))
                         .foregroundStyle(NightTheme.accent)
                         .skyLegible()
@@ -205,7 +210,7 @@ struct CaptureView: View {
         .padding(.top, 8)
     }
 
-    private func modeButton(_ title: String, isOn: Bool, action: @escaping () -> Void) -> some View {
+    private func modeButton(_ title: LocalizedStringKey, isOn: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(NightTheme.mono(11, weight: isOn ? .bold : .regular))
@@ -292,7 +297,7 @@ struct CaptureView: View {
 
                 if model.countdown > 0 {
                     // The count itself is the button — tapping again cancels.
-                    Text("\(model.countdown)")
+                    Text(verbatim: "\(model.countdown)")
                         .font(NightTheme.mono(30, weight: .bold))
                         .foregroundStyle(NightTheme.accent)
                         .monospacedDigit()

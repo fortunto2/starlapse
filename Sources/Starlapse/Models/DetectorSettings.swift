@@ -47,17 +47,17 @@ struct DetectorSettings: Sendable, Equatable {
 
     var summary: String {
         String(
-            format: "%.1fs before + %.1fs after → %.1fs clip at %d fps",
+            format: String(localized: "%.1fs before + %.1fs after → %.1fs clip at %d fps"),
             preRoll, postRoll, clipDuration, outputFrameRate
         )
     }
 
     var warning: String? {
         if clipDuration < 0.8 {
-            return "Clip under a second. Lengthen the windows or lower the output frame rate."
+            return String(localized: "Clip under a second. Lengthen the windows or lower the output frame rate.")
         }
         if frameExposure > 0.5 {
-            return "Long frames blur the meteor into the background between exposures."
+            return String(localized: "Long frames blur the meteor into the background between exposures.")
         }
         return nil
     }

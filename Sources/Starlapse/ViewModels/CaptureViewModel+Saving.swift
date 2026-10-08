@@ -15,13 +15,13 @@ extension CaptureViewModel {
         }
         do {
             try await PhotoLibraryWriter.write(rendered)
-            lastSavedMessage = "Saved \(progress.framesStacked) frames to Photos."
+            lastSavedMessage = String(format: String(localized: "Saved %d frames to Photos."), progress.framesStacked)
             Analytics.track(
                 "capture_saved", props: ["kind": "photo"], metrics: ["frames": Double(progress.framesStacked)]
             )
             RatingPrompt.saved()
         } catch {
-            lastSavedMessage = "Save failed: \(error.localizedDescription)"
+            lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }
     }
 
@@ -32,13 +32,15 @@ extension CaptureViewModel {
         }
         do {
             try await PhotoLibraryWriter.write(videoAt: url)
-            lastSavedMessage = "Saved \(progress.segmentsCompleted)-frame time-lapse to Photos."
+            lastSavedMessage = String(
+                format: String(localized: "Saved %d-frame time-lapse to Photos."), progress.segmentsCompleted
+            )
             Analytics.track(
                 "capture_saved", props: ["kind": "video"], metrics: ["frames": Double(progress.segmentsCompleted)]
             )
             RatingPrompt.saved()
         } catch {
-            lastSavedMessage = "Save failed: \(error.localizedDescription)"
+            lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }
     }
 }

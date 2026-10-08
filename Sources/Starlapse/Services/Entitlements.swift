@@ -56,7 +56,7 @@ final class Entitlements {
         lastError = nil
         if product == nil { await refresh() }
         guard let product else {
-            lastError = "The App Store is not reachable right now."
+            lastError = String(localized: "The App Store is not reachable right now.")
             return
         }
         do {

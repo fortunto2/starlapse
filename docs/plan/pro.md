@@ -23,6 +23,12 @@ other territories. Reference name "Starlapse Pro".
   iPad there was neither. Build 15: STARLAPSE PRO section in settings with UNLOCK PRO and
   RESTORE PURCHASE, always present; paywall Restore is a bordered button. Rule: every purchase
   entry point must be reachable with every permission denied.
+- [x] P11 1.0.4: the paywall promised "peak nights" and the app showed one line. `SkyDirector.forecast`
+  walks every night of every shower window for the location (20-minute steps, astronomical
+  night only) and returns best night, hour, rate, radiant, Moon and a verdict; `EventsView`
+  lists the season, `eventsRow` names the next one above the shutter (free sees name and
+  date, Pro the sheet). CLI: `starlapse-sky events`. Milky Way drawn as the galactic equator
+  (free, it is constant sky). Store and app localized for the download countries.
 
 ## Free vs Pro
 

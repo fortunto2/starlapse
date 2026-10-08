@@ -29,12 +29,16 @@ struct AimGuidance: Sendable, Equatable {
     var instruction: String {
         var parts: [String] = []
         if abs(azimuth) > 3 {
-            parts.append(String(format: "%@ %.0f°", azimuth > 0 ? "right" : "left", abs(azimuth)))
+            parts.append(String(
+                format: "%@ %.0f°", azimuth > 0 ? String(localized: "right") : String(localized: "left"), abs(azimuth)
+            ))
         }
         if abs(altitude) > 3 {
-            parts.append(String(format: "%@ %.0f°", altitude > 0 ? "up" : "down", abs(altitude)))
+            parts.append(String(
+                format: "%@ %.0f°", altitude > 0 ? String(localized: "up") : String(localized: "down"), abs(altitude)
+            ))
         }
-        return parts.isEmpty ? "on target" : parts.joined(separator: " · ")
+        return parts.isEmpty ? String(localized: "on target") : parts.joined(separator: " · ")
     }
 
     /// Rotation for an arrow that points along the shortest path to the target.

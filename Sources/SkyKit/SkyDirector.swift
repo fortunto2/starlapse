@@ -97,6 +97,13 @@ public enum SkyDirector {
         public var isPlanet: Bool { kind == .planet }
     }
 
+    /// One resolved sample of the Milky Way's band.
+    public struct MilkyWayPoint: Sendable, Hashable {
+        public let direction: HorizontalCoordinates
+        /// 0…1, see `GalacticPoint.brightness`.
+        public let brightness: Double
+    }
+
     public struct Plan: Sendable {
         public let date: Date
         public let location: GeographicCoordinates
@@ -105,6 +112,9 @@ public enum SkyDirector {
         /// Bright stars and visible planets, positions already resolved.
         public let landmarks: [Landmark]
         public let milkyWayCore: HorizontalCoordinates
+        /// The galactic equator as directions, in longitude order from the centre, with the
+        /// brightness of each stretch. The overlay joins them into the band.
+        public let milkyWay: [MilkyWayPoint]
         public let celestialPole: HorizontalCoordinates
         public let aim: AimPoint
         /// The best thing to focus on. Autofocus is useless against a dark sky, so manual
@@ -153,6 +163,12 @@ public enum SkyDirector {
             .sorted { $0.expectedHourlyRate > $1.expectedHourlyRate }
 
         let milkyWay = SkyCatalog.galacticCenter.horizontal(at: location, date: date)
+        let band = SkyCatalog.galacticEquator().map { point in
+            MilkyWayPoint(
+                direction: point.position.horizontal(at: location, date: date),
+                brightness: point.brightness
+            )
+        }
         let pole = SkyCatalog.polaris.position.horizontal(at: location, date: date)
         let landmarks = resolveLandmarks(at: location, date: date, jd: jd)
 
@@ -163,6 +179,7 @@ public enum SkyDirector {
             showers: showers,
             landmarks: landmarks,
             milkyWayCore: milkyWay,
+            milkyWay: band,
             celestialPole: pole,
             aim: aimPoint(
                 showers: showers,

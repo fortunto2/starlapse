@@ -59,20 +59,24 @@ struct TimelapseSettings: Sendable, Equatable {
         let shootingTime = hours >= 1
             ? String(format: "%.1f h", hours)
             : String(format: "%.0f min", totalDuration / 60)
-        return "\(frameCount) frames over \(shootingTime) → "
-            + String(format: "%.1f s", videoDuration)
-            + " of video at \(outputFrameRate) fps"
+        return String(
+            format: String(localized: "%d frames over %@ → %.1f s of video at %d fps"),
+            frameCount, shootingTime, videoDuration, outputFrameRate
+        )
     }
 
     var warning: String? {
         if videoDuration < 2 {
-            return "Under 2 seconds of video. Shorten the interval or shoot longer."
+            return String(localized: "Under 2 seconds of video. Shorten the interval or shoot longer.")
         }
         if !isSmooth {
-            return String(format: "Sky moves %.1f° between frames — motion will look steppy.", skyMotionPerFrame)
+            return String(
+                format: String(localized: "Sky moves %.1f° between frames — motion will look steppy."),
+                skyMotionPerFrame
+            )
         }
         if lightPerFrame > interval {
-            return "Light per frame exceeds the interval — frames would overlap."
+            return String(localized: "Light per frame exceeds the interval — frames would overlap.")
         }
         return nil
     }
@@ -108,17 +112,17 @@ enum CaptureMode: Sendable, Equatable {
 
     var title: String {
         switch self {
-        case .still: "Exposure"
-        case .timelapse: "Time-lapse"
-        case .detector: "Detector"
+        case .still: String(localized: "Exposure")
+        case .timelapse: String(localized: "Time-lapse")
+        case .detector: String(localized: "Detector")
         }
     }
 
     var explanation: String {
         switch self {
-        case .still: "One deep stack, developed when it finishes."
-        case .timelapse: "Every frame of the video is its own stack."
-        case .detector: "Watches for meteors and saves a clip around each one."
+        case .still: String(localized: "One deep stack, developed when it finishes.")
+        case .timelapse: String(localized: "Every frame of the video is its own stack.")
+        case .detector: String(localized: "Watches for meteors and saves a clip around each one.")
         }
     }
 }

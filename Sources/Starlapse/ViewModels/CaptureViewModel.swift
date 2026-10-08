@@ -66,6 +66,15 @@ final class CaptureViewModel {
     }
     private(set) var capabilities: CameraCapabilities
     private(set) var plan: SkyDirector.Plan?
+    /// The season's meteor showers for this place, best night first. Computed off the main
+    /// actor once per day and per degree of movement; a shower calendar does not change
+    /// between ten-second plan refreshes.
+    var forecasts: [ShowerForecast] = []
+    var nextNewMoon: Date?
+    /// Day and place the forecasts were computed for. Written by the forecast extension in
+    /// the file next door, so not `private`.
+    var forecastKey: String?
+    var showsEventsSheet = false
     /// Written by the saving extension in the file next door, so no `private(set)` here —
     /// Swift scopes that to the declaring file, not the type.
     var lastSavedMessage: String?
@@ -139,22 +148,13 @@ final class CaptureViewModel {
     private func refreshPlan() {
         guard let location = attitude.location else { return }
         plan = SkyDirector.plan(at: location, date: planDate)
+        refreshForecast(at: location)
     }
 
     /// How far, and which way, to swing the phone to hit the recommended target.
     var aimGuidance: AimGuidance? {
         guard let plan, attitude.hasFullFix, showsAim else { return nil }
         return AimGuidance(from: attitude.aim, to: plan.aim.direction)
-    }
-
-    /// Showers, radiants, rates: the events.
-    var showsEvents: Bool { entitlements.isPro }
-
-    /// The aim target follows the headline shower when one is active, so it is an event
-    /// then; on a night with no shower it points at the Milky Way, which everyone gets.
-    var showsAim: Bool {
-        let eventDriven = plan.map { $0.aim.subject == $0.headlineShower?.shower.name } ?? false
-        return ProAccess.showsAim(isPro: entitlements.isPro, eventActive: eventDriven)
     }
 
     // MARK: - Camera lifecycle
@@ -232,8 +232,8 @@ final class CaptureViewModel {
         }
         let saved = await PhotoLibraryWriter.write(videosAt: events.map(\.url))
         lastSavedMessage = saved == events.count
-            ? "Saved \(saved) clips to Photos."
-            : "Saved \(saved) of \(events.count) clips."
+            ? String(format: String(localized: "Saved %d clips to Photos."), saved)
+            : String(format: String(localized: "Saved %d of %d clips."), saved, events.count)
     }
 
     func clearEvents() {
@@ -430,7 +430,7 @@ final class CaptureViewModel {
         } else if let rendered = await stackEngine?.exportResult() {
             await save(image: rendered)
         } else {
-            lastSavedMessage = "Nothing to save."
+            lastSavedMessage = String(localized: "Nothing to save.")
         }
     }
 

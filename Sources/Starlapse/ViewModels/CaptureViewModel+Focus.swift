@@ -95,9 +95,9 @@ extension CaptureViewModel {
         var message: String {
             switch self {
             case .found(let position, let size):
-                String(format: "Focused at %.3f — stars %.1f px", position, size)
+                String(format: String(localized: "Focused at %.3f — stars %.1f px"), position, size)
             case .noStars:
-                "No stars to focus on. Point at open sky, or wait for cloud to pass."
+                String(localized: "No stars to focus on. Point at open sky, or wait for cloud to pass.")
             }
         }
     }

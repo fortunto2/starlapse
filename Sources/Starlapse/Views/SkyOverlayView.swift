@@ -37,6 +37,7 @@ struct SkyOverlayView: View {
                     }
                 Group {
                     if let plan, hasFix {
+                        milkyWayBand(plan: plan, in: geometry.size)
                         landmarks(plan: plan, in: geometry.size)
                         if showsAim {
                             targetMarker(plan: plan, in: geometry.size)
@@ -101,6 +102,58 @@ struct SkyOverlayView: View {
 
     // MARK: - Layers
 
+    /// The Milky Way as the band it is: the galactic equator joined point to point, heavier
+    /// where the band is bright. Segments that leave the projection are simply not drawn,
+    /// so the band fades at the edges instead of tearing across the screen.
+    private func milkyWayBand(plan: SkyDirector.Plan, in size: CGSize) -> some View {
+        let points = plan.milkyWay
+        let projected = points.map { project($0.direction, in: size) }
+        return ZStack {
+            ForEach(points.indices, id: \.self) { index in
+                let next = (index + 1) % points.count
+                // Both ends on screen (with a margin), and no further apart than a 10°
+                // step can honestly be: the projection is only a sketch past the edges, and
+                // a segment to a badly placed point draws a line across the whole frame.
+                if let from = projected[index], let to = projected[next],
+                   points[index].direction.isAboveHorizon || points[next].direction.isAboveHorizon,
+                   isNearScreen(from, in: size), isNearScreen(to, in: size),
+                   hypot(to.x - from.x, to.y - from.y) < size.width * 0.5 {
+                    let brightness = (points[index].brightness + points[next].brightness) / 2
+                    let segment = Path { path in
+                        path.move(to: from)
+                        path.addLine(to: to)
+                    }
+                    // A soft wide glow for the band, and a faint crisp line so it still
+                    // reads where the glow is too dim: the outer arm, or a bright horizon.
+                    segment
+                        .stroke(
+                            NightTheme.secondary.opacity(0.35 + 0.5 * brightness),
+                            style: StrokeStyle(lineWidth: 4 + 16 * brightness, lineCap: .round)
+                        )
+                        .blur(radius: 3 + 5 * brightness)
+                    segment
+                        .stroke(
+                            NightTheme.secondary.opacity(0.35),
+                            style: StrokeStyle(lineWidth: 1, dash: [2, 5])
+                        )
+                }
+            }
+            if let core = projected.first.flatMap({ $0 }), plan.milkyWayCore.isAboveHorizon {
+                Text("MILKY WAY")
+                    .font(NightTheme.mono(9, weight: .semibold))
+                    .foregroundStyle(NightTheme.secondary.opacity(0.9))
+                    .skyLegible()
+                    .position(x: core.x, y: core.y + 18)
+            }
+        }
+    }
+
+    private func isNearScreen(_ point: CGPoint, in size: CGSize) -> Bool {
+        let margin: CGFloat = 60
+        return point.x > -margin && point.x < size.width + margin
+            && point.y > -margin && point.y < size.height + margin
+    }
+
     private func landmarks(plan: SkyDirector.Plan, in size: CGSize) -> some View {
         ZStack {
             // Directions were resolved when the plan was built. This body re-runs at
@@ -120,7 +173,9 @@ struct SkyOverlayView: View {
                     Circle()
                         .strokeBorder(NightTheme.accent, lineWidth: 2)
                         .frame(width: 26, height: 26)
-                    Text("MOON \(Int(plan.conditions.moon.illuminatedFraction * 100))%")
+                    Text(String(
+                        format: String(localized: "MOON %d%%"), Int(plan.conditions.moon.illuminatedFraction * 100)
+                    ))
                         .font(NightTheme.mono(9))
                         .foregroundStyle(NightTheme.accent)
                 }
@@ -190,7 +245,7 @@ struct SkyOverlayView: View {
                     .strokeBorder(NightTheme.primary, lineWidth: 1.5)
                     .frame(width: 12, height: 12)
             }
-            Text("RADIANT · \(name.uppercased())")
+            Text(String(format: String(localized: "RADIANT · %@"), name.uppercased()))
                 .font(NightTheme.mono(9, weight: .semibold))
                 .foregroundStyle(NightTheme.primary)
         }
@@ -235,7 +290,7 @@ struct SkyOverlayView: View {
                     Text(compassPoint(forAzimuth: aim.azimuth))
                         .font(NightTheme.mono(22, weight: .bold))
                         .foregroundStyle(NightTheme.primary)
-                    Text(String(format: "%.0f° az · %.0f° up", aim.azimuth, aim.altitude))
+                    Text(String(format: String(localized: "%.0f° az · %.0f° up"), aim.azimuth, aim.altitude))
                         .font(NightTheme.mono(11))
                         .foregroundStyle(NightTheme.dim)
                 }
@@ -267,7 +322,7 @@ struct SkyOverlayView: View {
                 .foregroundStyle(NightTheme.accent)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text(String(format: "%.0f° to target", guidance.separation))
+                Text(String(format: String(localized: "%.0f° to target"), guidance.separation))
                     .font(NightTheme.mono(13, weight: .semibold))
                     .foregroundStyle(NightTheme.accent)
                 Text(guidance.instruction)
@@ -324,7 +379,7 @@ struct StarInfoBubble: View {
     }
 
     private var detail: String {
-        let place = tap.landmark.constellation ?? "planet"
-        return String(format: "%@ · mag %.2f", place, tap.landmark.magnitude)
+        let place = tap.landmark.constellation ?? String(localized: "planet")
+        return String(format: String(localized: "%@ · mag %.2f"), place, tap.landmark.magnitude)
     }
 }

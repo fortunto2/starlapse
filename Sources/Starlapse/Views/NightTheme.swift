@@ -17,8 +17,8 @@ enum ThemeMode: String, CaseIterable, Sendable, Identifiable {
 
     var title: String {
         switch self {
-        case .bright: "Bright"
-        case .nightVision: "Night vision"
+        case .bright: String(localized: "Bright")
+        case .nightVision: String(localized: "Night vision")
         }
     }
 }
@@ -125,7 +125,7 @@ extension View {
 
 /// A label/value row, the shape most of this UI takes.
 struct ReadoutRow: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
     var highlighted = false
 
@@ -145,7 +145,7 @@ struct ReadoutRow: View {
 
 /// A slider that shows its value and never animates — motion draws the eye at night.
 struct NightSlider: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: Binding<Double>
     let range: ClosedRange<Double>
     let format: (Double) -> String

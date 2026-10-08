@@ -1,0 +1,1 @@
+Starlapse now speaks Hindi, Chinese, Japanese, French, Arabic, German, Italian, Turkish and Spanish. Restore Purchase is reachable from Settings without location access.

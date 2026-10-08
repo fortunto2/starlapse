@@ -1,0 +1,46 @@
+Den Nachthimmel richtig fotografieren, mit einem Telefon, das dafür nie gedacht war.
+
+Starlapse sperrt die Kamera. ISO, Verschlusszeit, Fokus, Weißabgleich: einmal einstellen, und sie bleiben die ganze Session so. Keine driftende Belichtung, kein Autofokus, der im Dunkeln sucht, kein oranger Himmel unter der Straßenlaterne.
+
+Ein iPhone-Sensor belichtet ein Bild höchstens etwa eine Sekunde, also entstehen längere Belichtungen aus Hunderten gestapelten Bildern. Das ist besser als eine echte Langzeitbelichtung: Das Rauschen fällt mit der Wurzel der Bildzahl, und dasselbe Licht lässt sich später als Punktsterne oder als Sternspuren entwickeln, weil nichts verworfen wird.
+
+WAS ES KANN
+
+• Manuelle Kamera, die hält: ISO, Belichtung pro Bild, Fokus, Weißabgleich, Objektiv
+• Autofokus auf Sternenlicht: misst die Sterngröße je Linsenposition, wie eine Sternwarte
+• Selbstauslöser, 3 oder 10 s, damit das Antippen nichts verwackelt
+• Stacking von 10 Sekunden bis zu einer vollen Stunde Licht
+• Punktsterne: Bilder an den Sternen selbst ausgerichtet
+• Sternspuren: die Drehung des Himmels als Bögen, der Boden bleibt scharf
+• Nacht-Zeitraffer, bei dem jedes Videobild ein eigener Stack ist
+• Meteordetektor: sichert einen kurzen Clip um alles, was den Himmel kreuzt
+• Ziel-Overlay mit Planeten, hellen Sternen und Mond; Antippen zeigt Name, Sternbild und Helligkeit
+
+WOHIN ZIELEN
+
+Andere Apps zeigen den Radianten eines Meteorstroms. Starlapse sagt, wohin die Kamera soll, und das ist nicht derselbe Ort: Meteore laufen vom Radianten weg, die längsten Spuren erscheinen 40° seitlich. Berechnet aus Standort und Uhrzeit, mit Abstand zum Mond, in einer Höhe, die ein Stativ halten kann.
+
+FOKUS, DER SCHWIERIGE TEIL
+
+Autofokus sieht keinen Nachthimmel, es fehlt der Kontrast. Und die Unendlich-Marke ist ein mechanischer Anschlag, nicht unendlich: Der scharfe Punkt liegt etwas davor, je Objektiv anders, und wandert, wenn das Telefon abkühlt. Starlapse fährt die Linse durch, misst an jeder Position die Sterngröße und bleibt bei der kleinsten. Etwa eine Minute.
+
+NACHTRÄGLICH ENTWICKELN
+
+Der Stack wird als gesammeltes Licht gespeichert, nicht als fertiges Bild. Nach der Belichtung lässt sich die Kurve verschieben (Stretch, Schwarzpunkt, Belichtung, Sättigung), und alles wird aus den Originaldaten neu entwickelt. Der Spielraum einer RAW-Datei, nützlich beim Beurteilen im Dunkeln auf einem Display.
+
+Die Kurve ist asinh, wie in der professionellen Astronomie: Sie hebt die schwache Milchstraße aus dem Rauschen, helle Sterne behalten Kern und Farbe, statt zu weißen Scheiben auszubrennen.
+
+EHRLICHE GRENZEN
+
+• Die Blende ist beim iPhone fest. Sie ist eine Eigenschaft des Objektivs, keine Einstellung. Die App zeigt die Blendenzahl und was jedes Objektiv aufgibt, und lässt wählen: Mehr kann hier keine App.
+• Ein einzelnes Bild dauert etwa eine Sekunde. Alles Längere wird gestackt, und die Oberfläche zeigt immer die Rechnung: „10 min Licht = 600 × 1,00 s“.
+• Die Aufnahme läuft nicht im Hintergrund. iOS stoppt die Kamera, sobald eine App den Bildschirm verlässt. Starlapse hält den Bildschirm stattdessen an und dunkelt ihn ab.
+• Ein Stativ ist nötig. Eine Stunde Stacking aus der Hand ist eine Stunde nichts.
+
+DATENSCHUTZ
+
+Kein Konto, kein eigener Server. Standort und Bewegung dienen auf dem Gerät der Zielberechnung und verlassen es nie. Nur zwei Dinge gehen hinaus: der optionale Kauf unten, an Apple, und ein abschaltbarer Nutzungszähler. Der Quellcode ist offen: github.com/fortunto2/starlapse.
+
+STARLAPSE PRO
+
+Alles oben ist kostenlos und bleibt es. Pro sind die Ereignisse des Himmels, einmal gekauft: Meteorströme der Nacht mit Raten, Ziel 40° neben dem Radianten und abseits des Mondes, Maximumsnächte. Kometen, Finsternisse und Dunkelbilder kommen ohne Aufpreis dazu.

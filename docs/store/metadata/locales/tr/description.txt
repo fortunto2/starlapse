@@ -1,0 +1,46 @@
+Gece gökyüzünü, bunun için yapılmamış bir telefonla düzgün çekin.
+
+Starlapse kamerayı kilitler ve kilitli tutar. ISO, enstantane, odak, beyaz ayarı: bir kez ayarlayın, tüm oturum boyunca öyle kalır. Kayan pozlama yok, karanlıkta boşa dolaşan otomatik odak yok, sokak lambasında gökyüzünü turuncuya boyayan otomatik beyaz ayarı yok.
+
+Sonra donanımın tek başına yapamadığını yapar. iPhone sensörü tek kareyi yaklaşık bir saniyeyle sınırlar; daha uzun pozlamalar yüzlerce karenin yığınlanmasıyla oluşur. Bu geçici çözüm değil, daha iyisi: gürültü kare sayısının karekökü oranında düşer ve aynı gecenin ışığı sonradan nokta yıldız ya da yıldız izi olarak işlenebilir, çünkü hiçbir şey atılmaz.
+
+NE YAPAR
+
+• Sabit kalan manuel kamera: ISO, kare pozlaması, odak, beyaz ayarı, lens seçimi
+• Yıldız ışığıyla otomatik odak: lensi adım adım kaydırıp yıldız boyutunu ölçer, gözlemevleri gibi
+• 3 veya 10 saniyelik zamanlayıcı; telefona dokunmanız ilk kareleri sarsmaz
+• 10 saniyeden tam bir saatlik toplanmış ışığa kadar yığınlama
+• Nokta yıldızlar: kareler yıldızların kendisine hizalanır, yıldızlar nokta kalır
+• Yıldız izleri: gökyüzünün dönüşü yay olarak çizilir, zemin net kalır
+• Gece timelapse; videonun her karesi kendi yığınıdır
+• Meteor dedektörü: gökyüzünü izler, geçen her şeyin etrafında kısa bir klip kaydeder
+• Gezegenler, parlak yıldızlar ve Ay'ı gösteren nişan katmanı; dokunun, adı, takımyıldızı ve parlaklığı görünür
+
+NEREYE NİŞAN ALMALI
+
+Çoğu uygulama meteor yağmurunun radyantını gösterir. Starlapse nereye nişan alacağınızı söyler ve bu aynı yer değildir: meteorlar radyanttan uzaklaşarak çizer, en uzun izler 40° yanda görünür. Bunu konumunuz ve saatten hesaplar, sizi Ay'dan uzak tutar ve tripodun gerçekten tutabileceği bir yükseklik seçer.
+
+ODAK, YANİ ZOR KISIM
+
+Otomatik odak gece gökyüzünü göremez; kilitlenecek kontrast yoktur. Sonsuz işareti de tam sonsuz değildir: mekanik bir uç noktadır, net nokta biraz içinde durur, lensten lense değişir ve telefon soğudukça kayar. Starlapse lensi tüm aralığında adım adım kaydırır, her konumda yıldız boyutunu ölçer ve en küçüğünde durur. Yaklaşık bir dakika sürer.
+
+SONRADAN İŞLEYİN
+
+Yığın, bitmiş resim değil, biriken ışık olarak saklanır. Pozlama bitince eğriyi oynatabilirsiniz: germe, siyah noktası, pozlama, doygunluk. Orijinal veriden yeniden işlenir. RAW dosyasının verdiği esneklikle aynı; karanlıkta telefon ekranında gece gökyüzünü değerlendirirken bu önemlidir.
+
+Eğri asinh, profesyonel astronomik görüntülemenin kullandığı eğri. Sönük Samanyolu'nu gürültüden çıkarır; parlak yıldızlar beyaz diske dönüşmez, çekirdeğini ve rengini korur.
+
+DÜRÜST SINIRLAR
+
+• iPhone'da diyafram sabittir. Bir ayar değil, lensin özelliğidir. Uygulama f sayısını ve her lensin neyden vazgeçtiğini gösterir, seçmenize izin verir; burada herhangi bir uygulamanın yapabileceği budur.
+• Tek kare yaklaşık bir saniyedir. Daha uzun her şey yığınlanır ve arayüz hesabı her zaman gösterir: "10 min of light = 600 × 1.00s".
+• Çekim arka planda çalışamaz. Uygulama ekrandan ayrılınca iOS kamerayı durdurur. Starlapse bunun yerine ekranı açık tutar ve karartır.
+• Tripod gerekir. Elde tutulan telefonda bir saat yığınlama, bir saat hiçliktir.
+
+GİZLİLİK
+
+Hesap yok, bize ait sunucu yok. Konum ve hareket verileri nişan yönünü hesaplamak için cihazda kullanılır ve cihazı asla terk etmez. Telefondan iki şey çıkar: aşağıdaki isteğe bağlı satın alma, Apple'a; ve kapatabileceğiniz bir kullanım sayacı. Kaynak kodu açıktır: github.com/fortunto2/starlapse
+
+STARLAPSE PRO
+
+Yukarıdakilerin tümü ücretsizdir ve öyle kalır. Pro gökyüzünün olaylarıdır, bir kez satın alınır: bu gecenin meteor yağmurları ve oranları, radyanttan 40° uzakta ve Ay'dan uzak nişan hedefi, zirve geceleri. Kuyruklu yıldızlar, tutulmalar ve dark frame'ler ek ücret olmadan Pro'ya eklenir.

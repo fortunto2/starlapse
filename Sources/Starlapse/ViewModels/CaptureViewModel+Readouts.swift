@@ -16,13 +16,16 @@ extension CaptureViewModel {
         let duration = minutes >= 1
             ? String(format: "%.0f min", minutes)
             : String(format: "%.0f s", total)
-        return "\(duration) of light = \(frames) × "
-            + String(format: "%.2fs", settings.frameExposure)
+        return String(
+            format: String(localized: "%@ of light = %d × %.2fs"), duration, frames, settings.frameExposure
+        )
     }
 
     var hardwareCeilingNote: String {
         String(
-            format: "This sensor caps a single frame at %.2fs — longer exposures are stacked, not held.",
+            format: String(
+                localized: "This sensor caps a single frame at %.2fs — longer exposures are stacked, not held."
+            ),
             capabilities.maxFrameExposure
         )
     }

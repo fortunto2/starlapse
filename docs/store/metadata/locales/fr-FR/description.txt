@@ -1,0 +1,46 @@
+Photographiez le ciel nocturne correctement, avec un téléphone qui n'y était pas destiné.
+
+Starlapse verrouille l'appareil photo. ISO, obturation, mise au point, balance des blancs : réglés une fois, ils tiennent toute la session. Pas d'exposition qui dérive, pas d'autofocus qui cherche dans le noir, pas de ciel orange sous un lampadaire.
+
+Un capteur d'iPhone plafonne à environ une seconde par image : toute pose plus longue est construite en empilant des centaines d'images. C'est mieux qu'une vraie pose longue : le bruit diminue comme la racine carrée du nombre d'images, et la même lumière se développe ensuite en étoiles ponctuelles ou en filé, car rien n'est jeté.
+
+CE QU'IL FAIT
+
+• Appareil manuel qui tient : ISO, exposition par image, mise au point, balance des blancs, objectif
+• Autofocus sur les étoiles : déplace la lentille et mesure la taille des étoiles, comme un observatoire
+• Retardateur de 3 ou 10 s, pour ne pas secouer les premières images
+• Empilement de 10 secondes à une heure entière de lumière
+• Étoiles ponctuelles : images alignées sur les étoiles elles-mêmes
+• Filé d'étoiles : la rotation du ciel en arcs, le sol reste net
+• Time-lapse de nuit où chaque image de la vidéo est un empilement
+• Détecteur de météores : enregistre un court extrait autour de tout ce qui traverse le ciel
+• Visée avec planètes, étoiles brillantes et Lune ; touchez-en une : nom, constellation, magnitude
+
+OÙ VISER
+
+Les autres apps montrent le radiant d'une pluie. Starlapse dit où viser, et ce n'est pas pareil : les météores s'éloignent du radiant, les plus longues traînées sont à 40° sur le côté. Calculé d'après votre position et l'heure, à l'écart de la Lune, à une hauteur qu'un trépied peut tenir.
+
+LA MISE AU POINT, LE PLUS DUR
+
+L'autofocus ne voit pas un ciel nocturne : aucun contraste. Et le repère infini n'est pas l'infini : c'est une butée mécanique, le point net est un peu en dedans, varie selon l'objectif et dérive quand le téléphone refroidit. Starlapse parcourt la course de la lentille, mesure les étoiles à chaque position et s'arrête sur la plus petite. Environ une minute.
+
+DÉVELOPPER APRÈS
+
+L'empilement est conservé comme lumière accumulée, pas comme image finie. Après la pose, déplacez la courbe (étirement, point noir, exposition, saturation) : tout est redéveloppé depuis les données d'origine. La latitude d'un RAW, utile quand on juge un ciel sur un écran dans le noir.
+
+La courbe est asinh, celle de l'astronomie professionnelle : elle sort la Voie lactée du bruit, et les étoiles brillantes gardent cœur et couleur au lieu de saturer en disques blancs.
+
+LIMITES HONNÊTES
+
+• L'ouverture est fixe sur iPhone. C'est une propriété de l'objectif, pas un réglage. L'app affiche le nombre f et ce que chaque objectif sacrifie, et vous laisse choisir : aucune app ne peut faire plus.
+• Une image dure environ une seconde. Tout ce qui est plus long est empilé, et l'interface montre toujours le calcul : « 10 min de lumière = 600 × 1,00 s ».
+• La capture ne tourne pas en arrière-plan. iOS coupe la caméra quand une app quitte l'écran. Starlapse garde l'écran allumé et l'assombrit.
+• Il vous faut un trépied. Une heure d'empilement à main levée, c'est une heure pour rien.
+
+CONFIDENTIALITÉ
+
+Pas de compte, pas de serveur chez nous. Position et mouvements servent sur l'appareil à calculer où viser et n'en sortent jamais. Deux choses sortent : l'achat facultatif ci-dessous, vers Apple, et un compteur d'utilisation désactivable. Le code est public : github.com/fortunto2/starlapse.
+
+STARLAPSE PRO
+
+Tout ce qui précède est gratuit et le reste. Pro, ce sont les événements du ciel, achetés une fois : pluies de ce soir et leurs taux, cible à 40° du radiant et à l'écart de la Lune, nuits de pic. Comètes, éclipses et darks rejoindront Pro sans surcoût.

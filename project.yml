@@ -1,5 +1,6 @@
 name: Starlapse
 options:
+  developmentLanguage: en
   bundleIdPrefix: co.superduperai
   deploymentTarget:
     iOS: "18.0"
@@ -24,8 +25,8 @@ settings:
     # through. Keeps a team identifier out of a public repository.
     DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "1.0.3"
-    CURRENT_PROJECT_VERSION: "15"
+    MARKETING_VERSION: "1.0.4"
+    CURRENT_PROJECT_VERSION: "16"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 targets:

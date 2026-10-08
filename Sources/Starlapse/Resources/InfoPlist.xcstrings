@@ -1,0 +1,262 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse needs the camera to capture long-exposure photographs of the night sky."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحتاج Starlapse إلى الكاميرا لتصوير صور بتعريض طويل لسماء الليل."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse braucht die Kamera, um Langzeitbelichtungen des Nachthimmels aufzunehmen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse necesita la cámara para capturar fotografías de larga exposición del cielo nocturno."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse a besoin de la caméra pour capturer des photographies du ciel nocturne en longue exposition."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse को रात के आकाश की लंबी-एक्सपोज़र तस्वीरें लेने के लिए कैमरे की ज़रूरत है।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse usa la fotocamera per scattare fotografie a lunga esposizione del cielo notturno."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapseは夜空の長時間露光写真を撮影するためにカメラを使用します。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse, gece gökyüzünün uzun pozlamalı fotoğraflarını çekmek için kameraya ihtiyaç duyar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse需要使用相机来拍摄夜空长曝光照片。"
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location and compass heading are used to compute where meteor shower radiants, the Moon and bright stars sit in the sky right now, so the app can point you at them."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يُستخدم موقعك واتجاه البوصلة لحساب مواضع نقاط إشعاع زخات الشهب والقمر والنجوم الساطعة في السماء الآن، كي يوجّهك التطبيق نحوها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standort und Kompassrichtung werden genutzt, um zu berechnen, wo Radianten von Meteorströmen, der Mond und helle Sterne gerade am Himmel stehen, damit die App dorthin weisen kann."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu ubicación y el rumbo de la brújula se usan para calcular dónde están ahora en el cielo los radiantes de las lluvias de meteoros, la Luna y las estrellas brillantes, para que la app pueda señalártelos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre position et le cap de la boussole servent à calculer où se trouvent en ce moment les radiants des pluies de météores, la Lune et les étoiles brillantes, pour que l'app puisse vous les indiquer."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी लोकेशन और कंपास दिशा से यह गणना होती है कि उल्का वर्षा के रेडियंट, चंद्रमा और चमकीले तारे अभी आकाश में कहाँ हैं, ताकि ऐप आपको उनकी ओर इंगित कर सके।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La posizione e la direzione della bussola servono a calcolare dove si trovano in questo momento nel cielo i radianti degli sciami meteorici, la Luna e le stelle luminose, così l'app può indicarteli."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報とコンパスの方位は、流星群の放射点、月、明るい星が今どこにあるかを計算し、その方向を示すために使用します。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konumunuz ve pusula yönü, meteor yağmuru radyantlarının, Ay'ın ve parlak yıldızların şu anda gökyüzünde nerede olduğunu hesaplamak için kullanılır; böylece uygulama sizi onlara yöneltebilir."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "您的位置和罗盘方向用于计算流星雨放射点、月亮和亮星此刻在天空中的位置，以便为您指引方向。"
+          }
+        }
+      }
+    },
+    "NSMotionUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device motion tells the app where the camera is aimed, so the sky overlay stays aligned with what you see. It works in complete darkness, unlike ARKit."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تخبر حركة الجهاز التطبيق بالاتجاه الذي تشير إليه الكاميرا، كي تبقى الطبقة السماوية محاذية لما تراه. يعمل ذلك في الظلام الكامل، على خلاف ARKit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Bewegungssensoren verraten der App, wohin die Kamera zeigt, damit das Himmels-Overlay mit dem Sichtfeld ausgerichtet bleibt. Das funktioniert im Gegensatz zu ARKit auch in völliger Dunkelheit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El movimiento del dispositivo indica a la app hacia dónde apunta la cámara, para que la superposición del cielo se mantenga alineada con lo que ves. Funciona en oscuridad total, a diferencia de ARKit."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les mouvements de l'appareil indiquent à l'app où la caméra est pointée, pour que la superposition du ciel reste alignée avec ce que vous voyez. Cela fonctionne dans l'obscurité totale, contrairement à ARKit."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिवाइस मोशन से ऐप जानता है कि कैमरा किस ओर है, ताकि आकाश ओवरले आपके दृश्य से मिला रहे। ARKit के विपरीत, यह पूर्ण अंधेरे में काम करता है।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il movimento del dispositivo indica all'app dove è puntata la fotocamera, così l'overlay del cielo resta allineato con ciò che vedi. Funziona nel buio totale, a differenza di ARKit."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスのモーションからカメラの向きを取得し、空のオーバーレイを実際の視界に合わせます。ARKitと異なり、完全な暗闇でも動作します。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cihaz hareketi, kameranın nereye yöneltildiğini uygulamaya bildirir; böylece gökyüzü katmanı gördüğünüzle hizalı kalır. ARKit'in aksine tam karanlıkta çalışır."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备运动数据告知应用相机的指向，使星空叠层与您所见保持对齐。与ARKit不同，它在完全黑暗中也能工作。"
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse saves your finished star stacks and time-lapses to your photo library."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يحفظ Starlapse تكديسات النجوم والفواصل الزمنية المكتملة في مكتبة الصور لديك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse sichert fertige Sternen-Stacks und Zeitraffer in der Fotomediathek."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse guarda tus apilados de estrellas y time-lapses terminados en tu fototeca."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse enregistre vos empilements d'étoiles et time-lapses terminés dans votre photothèque."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse आपके तैयार स्टार स्टैक और टाइम-लैप्स आपकी फ़ोटो लाइब्रेरी में सहेजता है।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse salva gli stack di stelle e i time-lapse finiti nella tua libreria foto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapseは完成した星のスタックとタイムラプスをフォトライブラリに保存します。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse, tamamlanan yıldız yığınlarınızı ve time-lapse'lerinizi fotoğraf arşivinize kaydeder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse会将完成的星空叠加和延时视频保存到您的照片图库。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

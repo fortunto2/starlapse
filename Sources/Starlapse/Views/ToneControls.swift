@@ -33,7 +33,7 @@ struct ToneControls: View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(Self.controls, id: \.label) { control in
                 NightSlider(
-                    label: control.label,
+                    label: LocalizedStringKey(control.label),
                     value: Binding(
                         get: { Double(tone[keyPath: control.path]) },
                         set: {

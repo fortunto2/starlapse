@@ -53,27 +53,31 @@ struct ReviewView: View {
     private var summary: String {
         if model.mode.isDetector {
             let clips = model.events.count
-            return clips == 0
-                ? "Nothing crossed the frame"
-                : "\(clips) clip\(clips == 1 ? "" : "s") · \(model.progress.eventsDetected) detected"
+            if clips == 0 { return String(localized: "Nothing crossed the frame") }
+            let clipsText = clips == 1
+                ? String(localized: "1 clip")
+                : String(format: String(localized: "%d clips"), clips)
+            return clipsText + String(format: String(localized: " · %d detected"), model.progress.eventsDetected)
         }
         if model.reviewVideoURL != nil {
-            return "\(model.progress.segmentsCompleted) frames · "
+            return String(format: String(localized: "%d frames"), model.progress.segmentsCompleted) + " · "
                 + String(format: "%.1fs", model.timelapse.videoDuration)
         }
-        var parts = ["\(model.progress.framesStacked) frames"]
+        var parts = [String(format: String(localized: "%d frames"), model.progress.framesStacked)]
         if model.progress.noiseReductionStops > 0 {
-            parts.append(String(format: "−%.1f stops noise", model.progress.noiseReductionStops))
+            parts.append(String(format: String(localized: "−%.1f stops noise"), model.progress.noiseReductionStops))
         }
         if model.progress.framesRejected > 0 {
-            parts.append("\(model.progress.framesRejected) dropped")
+            parts.append(String(format: String(localized: "%d dropped"), model.progress.framesRejected))
         }
         return parts.joined(separator: " · ")
     }
 
     private var headline: String {
-        if model.mode.isDetector { return "WATCH ENDED" }
-        return model.reviewVideoURL == nil ? "STACK COMPLETE" : "TIME-LAPSE COMPLETE"
+        if model.mode.isDetector { return String(localized: "WATCH ENDED") }
+        return model.reviewVideoURL == nil
+            ? String(localized: "STACK COMPLETE")
+            : String(localized: "TIME-LAPSE COMPLETE")
     }
 
     // MARK: - Events
@@ -115,7 +119,7 @@ struct ReviewView: View {
                     .font(NightTheme.mono(12, weight: .semibold))
                     .foregroundStyle(NightTheme.primary)
                 Text(event.date.formatted(date: .omitted, time: .standard)
-                     + String(format: " · %.0f° across frame", event.angle))
+                     + String(format: String(localized: " · %.0f° across frame"), event.angle))
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)
             }
@@ -220,7 +224,9 @@ struct ReviewView: View {
                         await model.dismissReview()
                     }
                 } label: {
-                    Text(model.mode.isDetector ? "Save \(model.events.count) to Photos" : "Save to Photos")
+                    Text(model.mode.isDetector
+                         ? String(format: String(localized: "Save %d to Photos"), model.events.count)
+                         : String(localized: "Save to Photos"))
                         .font(NightTheme.mono(13, weight: .bold))
                         .foregroundStyle(.black)
                         .frame(maxWidth: .infinity, minHeight: 48)

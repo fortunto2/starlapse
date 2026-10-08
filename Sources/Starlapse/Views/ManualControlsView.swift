@@ -73,7 +73,9 @@ struct ManualControlsView: View {
             if let fastest = model.capabilities.fastestLens, fastest != model.settings.lens {
                 let stops = model.settings.lens.stopsDarker(than: fastest)
                 Text(String(
-                    format: "%.1f stops darker than %@ — you cannot open this up, only pick a faster lens.",
+                    format: String(
+                        localized: "%.1f stops darker than %@ — you cannot open this up, only pick a faster lens."
+                    ),
                     stops, fastest.displayName
                 ))
                 .font(NightTheme.mono(10))
@@ -367,7 +369,7 @@ struct ManualControlsView: View {
         .nightPanel()
     }
 
-    private func sectionTitle(_ text: String) -> some View {
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(NightTheme.mono(11, weight: .bold))
             .foregroundStyle(NightTheme.secondary)

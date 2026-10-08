@@ -39,17 +39,20 @@ enum StackMode: String, CaseIterable, Sendable, Identifiable {
 
     var title: String {
         switch self {
-        case .stars: "Pinpoint stars"
-        case .trails: "Star trails"
-        case .smooth: "Clean landscape"
+        case .stars: String(localized: "Pinpoint stars")
+        case .trails: String(localized: "Star trails")
+        case .smooth: String(localized: "Clean landscape")
         }
     }
 
     var explanation: String {
         switch self {
-        case .stars: "Frames aligned on the stars, then averaged. Stars stay sharp, noise drops as √N."
-        case .trails: "Brightest pixel wins. The sky's rotation draws arcs, the ground stays sharp."
-        case .smooth: "Averaged as shot. Stars trail a little, the landscape gets very clean."
+        case .stars:
+            String(localized: "Frames aligned on the stars, then averaged. Stars stay sharp, noise drops as √N.")
+        case .trails:
+            String(localized: "Brightest pixel wins. The sky's rotation draws arcs, the ground stays sharp.")
+        case .smooth:
+            String(localized: "Averaged as shot. Stars trail a little, the landscape gets very clean.")
         }
     }
 

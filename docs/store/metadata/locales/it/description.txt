@@ -1,0 +1,46 @@
+Fotografa il cielo notturno come si deve, con un telefono non fatto per questo.
+
+Starlapse blocca la fotocamera. ISO, otturatore, fuoco, bilanciamento del bianco: li imposti una volta e restano così per tutta la sessione. Niente esposizione che scivola, niente autofocus che cerca nel buio, niente cielo arancione sotto un lampione.
+
+Un sensore di iPhone si ferma a circa un secondo per scatto, quindi le esposizioni più lunghe si costruiscono impilando centinaia di scatti. È meglio di una vera lunga esposizione: il rumore scende come la radice quadrata del numero di scatti, e la stessa luce può essere sviluppata dopo come stelle puntiformi o come scie, perché nulla viene buttato.
+
+COSA FA
+
+• Fotocamera manuale che tiene: ISO, esposizione per scatto, fuoco, bilanciamento del bianco, obiettivo
+• Autofocus sulle stelle: misura la loro dimensione a ogni posizione della lente, come un osservatorio
+• Autoscatto da 3 o 10 s, per non muovere i primi scatti
+• Stacking da 10 secondi a un'ora intera di luce
+• Stelle puntiformi: scatti allineati sulle stelle stesse
+• Scie stellari: la rotazione del cielo in archi, con il terreno nitido
+• Time-lapse notturno in cui ogni fotogramma del video è uno stack
+• Rilevatore di meteore: salva una breve clip di tutto ciò che attraversa il cielo
+• Overlay di puntamento con pianeti, stelle brillanti e Luna; toccane uno per nome, costellazione e luminosità
+
+DOVE PUNTARE
+
+Le altre app mostrano il radiante di uno sciame. Starlapse dice dove puntare, che non è lo stesso posto: le meteore si allontanano dal radiante, quindi le scie più lunghe compaiono a 40° di lato. Calcolato dalla tua posizione e dall'ora, lontano dalla Luna, a un'altezza che un treppiede riesce a tenere.
+
+IL FUOCO, LA PARTE DIFFICILE
+
+L'autofocus non vede un cielo notturno: non c'è contrasto. E il segno di infinito non è l'infinito: è un fermo meccanico, il punto nitido sta poco più dentro, cambia da obiettivo a obiettivo e si sposta mentre il telefono si raffredda. Starlapse percorre la corsa della lente, misura le stelle in ogni posizione e si ferma sulla più piccola. Circa un minuto.
+
+SVILUPPA DOPO
+
+Lo stack è conservato come luce accumulata, non come immagine finita. Finita l'esposizione puoi muovere la curva (stretch, punto di nero, esposizione, saturazione) e tutto viene risviluppato dai dati originali. La latitudine di un RAW, utile quando giudichi un cielo sullo schermo al buio.
+
+La curva è asinh, quella dell'astronomia professionale: tira fuori la Via Lattea debole dal rumore, e le stelle brillanti mantengono nucleo e colore invece di bruciare in dischi bianchi.
+
+LIMITI ONESTI
+
+• L'apertura su iPhone è fissa. È una proprietà dell'obiettivo, non un'impostazione. L'app mostra il numero f e cosa rinuncia ogni obiettivo, e ti lascia scegliere: nessuna app può fare di più.
+• Un singolo scatto dura circa un secondo. Tutto ciò che è più lungo viene impilato, e l'interfaccia mostra sempre il conto: "10 min di luce = 600 × 1,00 s".
+• La cattura non può girare in background. iOS ferma la fotocamera quando un'app lascia lo schermo. Starlapse tiene lo schermo acceso e lo oscura.
+• Serve un treppiede. Un'ora di stacking a mano libera è un'ora di niente.
+
+PRIVACY
+
+Nessun account, nessun server nostro. Posizione e movimento sono usati sul dispositivo per calcolare dove puntare e non lo lasciano mai. Solo due cose escono: l'acquisto facoltativo qui sotto, verso Apple, e un contatore di utilizzo disattivabile. Il codice è pubblico: github.com/fortunto2/starlapse.
+
+STARLAPSE PRO
+
+Tutto quanto sopra è gratuito e lo resta. Pro sono gli eventi del cielo, acquistati una volta: sciami di stanotte con i tassi, punto da inquadrare a 40° dal radiante e lontano dalla Luna, notti di picco. Comete, eclissi e dark frame entreranno in Pro senza costi extra.

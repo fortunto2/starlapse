@@ -94,22 +94,9 @@ public enum SkyCatalog {
     /// Milky Way and the single best wide-field target of the northern summer.
     public static let galacticCenter = EquatorialCoordinates(raHours: 17, raMinutes: 46, dec: -28.9)
 
-    /// Points along the galactic plane, so the overlay can draw the Milky Way as an arc
-    /// rather than a dot. Sampled every 30° of galactic longitude and converted to J2000.
-    public static let milkyWayPlane: [EquatorialCoordinates] = [
-        EquatorialCoordinates(raHours: 17, raMinutes: 46, dec: -28.9),
-        EquatorialCoordinates(raHours: 19, raMinutes: 3, dec: -6.3),
-        EquatorialCoordinates(raHours: 19, raMinutes: 52, dec: 16.8),
-        EquatorialCoordinates(raHours: 20, raMinutes: 37, dec: 40.0),
-        EquatorialCoordinates(raHours: 21, raMinutes: 51, dec: 61.7),
-        EquatorialCoordinates(raHours: 0, raMinutes: 51, dec: 73.0),
-        EquatorialCoordinates(raHours: 4, raMinutes: 15, dec: 59.4),
-        EquatorialCoordinates(raHours: 5, raMinutes: 45, dec: 39.6),
-        EquatorialCoordinates(raHours: 6, raMinutes: 40, dec: 16.9),
-        EquatorialCoordinates(raHours: 7, raMinutes: 27, dec: -6.4),
-        EquatorialCoordinates(raHours: 8, raMinutes: 37, dec: -28.5),
-        EquatorialCoordinates(raHours: 11, raMinutes: 8, dec: -45.2),
-        EquatorialCoordinates(raHours: 14, raMinutes: 45, dec: -44.6),
-        EquatorialCoordinates(raHours: 16, raMinutes: 27, dec: -28.4),
-    ]
+    /// Points along the galactic plane every 30°, so the overlay can draw the Milky Way as
+    /// an arc rather than a dot. Computed from the galactic frame; see `Galactic.swift`.
+    public static var milkyWayPlane: [EquatorialCoordinates] {
+        galacticEquator(step: 30).map(\.position)
+    }
 }

@@ -73,7 +73,13 @@ final class AttitudeProvider: NSObject {
         // The positions are still computed for real — this only supplies where and which way.
         if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
             location = GeographicCoordinates(latitude: 28.754, longitude: -17.885)
-            aim = HorizontalCoordinates(azimuth: 96, altitude: 44)
+            // UITEST_AIM=az,alt points the phone elsewhere: 235,30 looks into the galactic
+            // core on the screenshot night.
+            let parts = (ProcessInfo.processInfo.environment["UITEST_AIM"] ?? "")
+                .split(separator: ",").compactMap { Double($0) }
+            aim = parts.count == 2
+                ? HorizontalCoordinates(azimuth: parts[0], altitude: parts[1])
+                : HorizontalCoordinates(azimuth: 96, altitude: 44)
             isHeadingAvailable = true
             return
         }

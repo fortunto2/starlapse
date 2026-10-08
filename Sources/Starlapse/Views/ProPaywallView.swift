@@ -9,10 +9,14 @@ struct ProPaywallView: View {
     @Environment(\.dismiss) private var dismiss
 
     private static let included: [(String, String)] = [
-        ("Tonight's events", "Active meteor showers with the expected rate, every night of the year."),
-        ("Where to aim", "The target 40° off the radiant and clear of the Moon, with the arrow to it."),
-        ("Peak nights", "When each shower peaks, and the Moon-free window around it."),
-        ("Everything coming", "Comets, conjunctions, eclipses, dark frames: added to Pro, never charged again."),
+        (String(localized: "Tonight's events"),
+         String(localized: "Active meteor showers with the expected rate, every night of the year.")),
+        (String(localized: "Where to aim"),
+         String(localized: "The target 40° off the radiant and clear of the Moon, with the arrow to it.")),
+        (String(localized: "Peak nights"),
+         String(localized: "When each shower peaks, and the Moon-free window around it.")),
+        (String(localized: "Everything coming"),
+         String(localized: "Comets, conjunctions, eclipses, dark frames: added to Pro, never charged again.")),
     ]
 
     var body: some View {
@@ -39,11 +43,7 @@ struct ProPaywallView: View {
                 }
                 .nightPanel()
 
-                Text("""
-                    Free, and staying free: the manual camera, stacking, star trails, \
-                    time-lapse, the meteor detector, and the overlay with planets, bright \
-                    stars and the Moon.
-                    """)
+                Text("Free, and staying free: the manual camera, stacking, star trails, time-lapse, the meteor detector, and the overlay with planets, bright stars and the Moon.") // swiftlint:disable:this line_length
                     .font(NightTheme.mono(10))
                     .foregroundStyle(NightTheme.dim)
 
@@ -91,10 +91,8 @@ struct ProPaywallView: View {
                         .foregroundStyle(NightTheme.accent)
                 }
 
-                Text("""
-                    The purchase goes to Apple. Starlapse sends nothing else, except a usage \
-                    counter you can switch off.
-                    """)
+                Text("The purchase goes to Apple. Starlapse sends nothing else, except a usage counter you can switch off.")
+                    // swiftlint:disable:previous line_length
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)
             }
@@ -108,7 +106,9 @@ struct ProPaywallView: View {
     }
 
     private var buyTitle: String {
-        if let price = entitlements.product?.displayPrice { return "UNLOCK FOR \(price)" }
-        return "UNLOCK"
+        if let price = entitlements.product?.displayPrice {
+            return String(format: String(localized: "UNLOCK FOR %@"), price)
+        }
+        return String(localized: "UNLOCK")
     }
 }
