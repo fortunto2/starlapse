@@ -29,6 +29,9 @@ other territories. Reference name "Starlapse Pro".
   lists the season, `eventsRow` names the next one above the shutter (free sees name and
   date, Pro the sheet). CLI: `starlapse-sky events`. Milky Way drawn as the galactic equator
   (free, it is constant sky). Store and app localized for the download countries.
+- [x] P12 1.0.4 (17): the aim is a menu. Pill under the toolbar "AIM · PERSEIDS" with the arrow beside
+  it; tap lists `plan.aimCandidates` (Auto, showers, galactic core, pole, planets). Showers are
+  events: a free account gets the Pro page. Default stays the plan's pick.
 
 ## Free vs Pro
 

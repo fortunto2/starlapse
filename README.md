@@ -29,6 +29,8 @@ stars or as star trails after the fact.
 - **Aiming overlay** — meteor shower radiants, the Moon, bright stars, the Milky Way as
   the band it is, and where to actually point (40° off the radiant, away from the Moon, at
   a workable height)
+- **Pick the target** — the app's choice by default, or any of tonight's candidates from a
+  menu: a shower, the galactic core, Polaris for circular trails, a planet
 - **Events** (Pro) — the season's showers forecast for *your* latitude and this year's
   Moon: the night and hour that deliver, which is often not the catalogue peak, and an
   honest "below horizon" for showers that never rise in darkness where you are
