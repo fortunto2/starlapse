@@ -162,5 +162,7 @@
  "radiant %@ %.0f° up": "放射点 %@ 高度%.0f°",
  "~%.0f/h at %@": "%2$@に約%1$.0f/h",
  "FAINT": "微弱",
- "~%.1f/h at best from here. Not worth a night.": "ここでは最大でも約%.1f個/時。夜を費やす価値はありません。"
+ "~%.1f/h at best from here. Not worth a night.": "ここでは最大でも約%.1f個/時。夜を費やす価値はありません。",
+ "AIM · %@": "狙い · %@",
+ "Auto · %@": "自動 · %@"
 }

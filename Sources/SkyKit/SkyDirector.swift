@@ -60,7 +60,7 @@ public enum SkyDirector {
 
     // MARK: - Aim
 
-    public struct AimPoint: Sendable {
+    public struct AimPoint: Sendable, Hashable {
         public let direction: HorizontalCoordinates
         public let subject: String
         public let reason: String
@@ -117,6 +117,9 @@ public enum SkyDirector {
         public let milkyWay: [MilkyWayPoint]
         public let celestialPole: HorizontalCoordinates
         public let aim: AimPoint
+        /// Every target the aim could be, in the order the app ranks them: showers worth
+        /// shooting, the galactic core, the pole, the visible planets.
+        public let aimCandidates: [AimCandidate]
         /// The best thing to focus on. Autofocus is useless against a dark sky, so manual
         /// focus needs a bright point source — a planet is the brightest one available
         /// short of the Moon, and unlike the Moon it never blows out the frame.
@@ -187,17 +190,28 @@ public enum SkyDirector {
                 pole: pole,
                 conditions: conditions
             ),
-            // Brightest thing high enough to be clear of horizon haze. Planets win over
-            // stars at equal magnitude — they are disc sources, so they cut through
-            // seeing better and snap into focus more decisively.
-            focusTarget: landmarks
-                .filter { $0.direction.altitude > 15 }
-                .min { left, right in
-                    let leftScore = left.magnitude - (left.isPlanet ? 0.5 : 0)
-                    let rightScore = right.magnitude - (right.isPlanet ? 0.5 : 0)
-                    return leftScore < rightScore
-                }
+            aimCandidates: aimCandidates(
+                showers: showers,
+                milkyWay: milkyWay,
+                pole: pole,
+                landmarks: landmarks,
+                conditions: conditions
+            ),
+            focusTarget: focusTarget(among: landmarks)
         )
+    }
+
+    /// Brightest thing high enough to be clear of horizon haze. Planets win over stars at
+    /// equal magnitude — they are disc sources, so they cut through seeing better and snap
+    /// into focus more decisively.
+    static func focusTarget(among landmarks: [Landmark]) -> Landmark? {
+        landmarks
+            .filter { $0.direction.altitude > 15 }
+            .min { left, right in
+                let leftScore = left.magnitude - (left.isPlanet ? 0.5 : 0)
+                let rightScore = right.magnitude - (right.isPlanet ? 0.5 : 0)
+                return leftScore < rightScore
+            }
     }
 
     /// Resolve every drawable object to a direction, once per plan.
@@ -281,105 +295,6 @@ public enum SkyDirector {
         let moonlight = moon.illuminatedFraction * sin(max(0, moonPosition.altitude).radians)
         return (twilightScore * (1.0 - 0.7 * moonlight)).clamped(to: 0 ... 1)
     }
-
-    // MARK: - Where to point
-
-    /// Pick a direction to actually aim the camera.
-    ///
-    /// With an active shower we orbit the radiant at 40° and choose the offset that sits
-    /// highest and furthest from the Moon. With no shower worth chasing we fall back to the
-    /// Milky Way core, and failing that to the celestial pole, where a long stack turns
-    /// into concentric star trails instead of a smear.
-    static func aimPoint(
-        showers: [ShowerActivity],
-        milkyWay: HorizontalCoordinates,
-        pole: HorizontalCoordinates,
-        conditions: Conditions
-    ) -> AimPoint {
-        if let shower = showers.first, shower.isWorthShooting, shower.radiant.isAboveHorizon {
-            let direction = bestOffset(from: shower.radiant, conditions: conditions)
-            return AimPoint(
-                direction: direction,
-                subject: shower.shower.name,
-                reason: "40° off the radiant — that is where the trails are longest"
-            )
-        }
-
-        if milkyWay.altitude > 15 {
-            return AimPoint(
-                direction: milkyWay,
-                subject: "Milky Way core",
-                reason: "Galactic centre is \(Int(milkyWay.altitude))° up — the richest wide-field target"
-            )
-        }
-
-        return AimPoint(
-            direction: pole,
-            subject: "Star trails around Polaris",
-            reason: "Nothing bright is up — stack on the pole and let the sky draw circles"
-        )
-    }
-
-    /// Search a ring of candidate directions around the radiant.
-    private static func bestOffset(
-        from radiant: HorizontalCoordinates,
-        conditions: Conditions
-    ) -> HorizontalCoordinates {
-        let offsetDegrees = 40.0
-        var best = radiant
-        var bestScore = -Double.infinity
-
-        // Aim for a comfortable working height rather than "as high as possible". Below 25°
-        // you shoot through several airmasses of haze and whatever town sits on that
-        // horizon; past 65° the tripod head runs out of tilt and you are lying on your back
-        // under it. Around 50° is where framing a foreground is still possible.
-        let idealAltitude = 50.0
-
-        for bearing in stride(from: 0.0, to: 360.0, by: 15.0) {
-            let candidate = offset(from: radiant, by: offsetDegrees, towards: bearing)
-            guard candidate.altitude > 25, candidate.altitude < 65 else { continue }
-
-            var score = 1.0 - abs(candidate.altitude - idealAltitude) / 40.0
-            if conditions.isMoonUp {
-                // Every degree away from the Moon is worth having, up to a point.
-                score += min(candidate.separation(from: conditions.moonPosition), 120.0) / 120.0 * 1.5
-            }
-
-            if score > bestScore {
-                bestScore = score
-                best = candidate
-            }
-        }
-
-        return best
-    }
-
-    /// Walk `distance` degrees away from a point along a given bearing, on the sphere.
-    /// Same great-circle step as navigation, with altitude standing in for latitude.
-    static func offset(
-        from origin: HorizontalCoordinates,
-        by distance: Double,
-        towards bearing: Double
-    ) -> HorizontalCoordinates {
-        let lat = origin.altitude.radians
-        let angular = distance.radians
-        let course = bearing.radians
-
-        let sinLat = sin(lat) * cos(angular) + cos(lat) * sin(angular) * cos(course)
-        let newLat = asin(sinLat.clamped(to: -1 ... 1))
-
-        let deltaLon = atan2(
-            sin(course) * sin(angular) * cos(lat),
-            cos(angular) - sin(lat) * sinLat
-        )
-
-        return HorizontalCoordinates(
-            azimuth: origin.azimuth + deltaLon.degrees,
-            altitude: newLat.degrees
-        )
-    }
-
-    // MARK: - Timing
 
     /// When tonight this shower is at its best, scanning forward in ten-minute steps.
     ///

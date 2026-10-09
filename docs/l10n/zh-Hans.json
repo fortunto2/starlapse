@@ -162,5 +162,7 @@
  "radiant %@ %.0f° up": "放射点%@ 高%.0f°",
  "~%.0f/h at %@": "%2$@ 约%1$.0f/h",
  "FAINT": "微弱",
- "~%.1f/h at best from here. Not worth a night.": "在此地最多约 %.1f 颗/小时，不值得熬夜。"
+ "~%.1f/h at best from here. Not worth a night.": "在此地最多约 %.1f 颗/小时，不值得熬夜。",
+ "AIM · %@": "瞄准 · %@",
+ "Auto · %@": "自动 · %@"
 }

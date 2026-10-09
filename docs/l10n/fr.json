@@ -162,5 +162,7 @@
  "radiant %@ %.0f° up": "radiant %@ à %.0f° de haut",
  "~%.0f/h at %@": "~%.0f/h à %@",
  "FAINT": "FAIBLE",
- "~%.1f/h at best from here. Not worth a night.": "~%.1f/h au mieux d'ici. Ça ne vaut pas une nuit."
+ "~%.1f/h at best from here. Not worth a night.": "~%.1f/h au mieux d'ici. Ça ne vaut pas une nuit.",
+ "AIM · %@": "VISÉE · %@",
+ "Auto · %@": "Auto · %@"
 }

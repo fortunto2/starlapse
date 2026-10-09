@@ -11,7 +11,8 @@ struct SkyOverlayView: View {
 
     let plan: SkyDirector.Plan?
     let aim: HorizontalCoordinates
-    let guidance: AimGuidance?
+    /// Where the arrow leads: the plan's pick or the person's.
+    let target: HorizontalCoordinates?
     let hasFix: Bool
     /// Showers and radiants — the events, which are Pro.
     let showsEvents: Bool
@@ -39,8 +40,8 @@ struct SkyOverlayView: View {
                     if let plan, hasFix {
                         milkyWayBand(plan: plan, in: geometry.size)
                         landmarks(plan: plan, in: geometry.size)
-                        if showsAim {
-                            targetMarker(plan: plan, in: geometry.size)
+                        if showsAim, let target {
+                            targetMarker(target, in: geometry.size)
                         }
                     }
                     horizonLine(in: geometry.size)
@@ -251,9 +252,9 @@ struct SkyOverlayView: View {
         }
     }
 
-    private func targetMarker(plan: SkyDirector.Plan, in size: CGSize) -> some View {
+    private func targetMarker(_ target: HorizontalCoordinates, in size: CGSize) -> some View {
         Group {
-            if let point = project(plan.aim.direction, in: size) {
+            if let point = project(target, in: size) {
                 ZStack {
                     Circle()
                         .strokeBorder(NightTheme.accent, style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
@@ -306,31 +307,7 @@ struct SkyOverlayView: View {
             .padding(.top, 12)
 
             Spacer()
-
-            if let guidance, !guidance.isOnTarget {
-                turnInstruction(guidance)
-                    .padding(.bottom, 8)
-            }
         }
-    }
-
-    private func turnInstruction(_ guidance: AimGuidance) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "arrow.up")
-                .font(.system(size: 20, weight: .bold))
-                .rotationEffect(guidance.arrowAngle)
-                .foregroundStyle(NightTheme.accent)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(String(format: String(localized: "%.0f° to target"), guidance.separation))
-                    .font(NightTheme.mono(13, weight: .semibold))
-                    .foregroundStyle(NightTheme.accent)
-                Text(guidance.instruction)
-                    .font(NightTheme.mono(10))
-                    .foregroundStyle(NightTheme.dim)
-            }
-        }
-        .nightPanel()
     }
 }
 

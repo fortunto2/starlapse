@@ -162,5 +162,7 @@
  "radiant %@ %.0f° up": "radyant %@ %.0f° yükseklikte",
  "~%.0f/h at %@": "saat %2$@ ~%1$.0f/h",
  "FAINT": "ZAYIF",
- "~%.1f/h at best from here. Not worth a night.": "Buradan en fazla ~%.1f/sa. Bir geceye değmez."
+ "~%.1f/h at best from here. Not worth a night.": "Buradan en fazla ~%.1f/sa. Bir geceye değmez.",
+ "AIM · %@": "HEDEF · %@",
+ "Auto · %@": "Otomatik · %@"
 }

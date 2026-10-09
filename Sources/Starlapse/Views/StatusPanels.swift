@@ -64,9 +64,9 @@ struct StatusPanels: View {
                     eventsRow(next)
                 }
 
-                if model.showsAim {
-                    ReadoutRow(label: "Aim", value: "\(plan.aim.compass) · \(plan.aim.subject)")
-                    Text(plan.aim.reason)
+                if model.showsAim, let aim = model.aimPoint {
+                    ReadoutRow(label: "Aim", value: "\(aim.compass) · \(aim.subject)")
+                    Text(aim.reason)
                         .font(NightTheme.mono(9))
                         .foregroundStyle(NightTheme.dim)
                 }

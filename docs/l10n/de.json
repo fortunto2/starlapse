@@ -162,5 +162,7 @@
  "radiant %@ %.0f° up": "Radiant %@ %.0f° hoch",
  "~%.0f/h at %@": "~%.0f/h um %@",
  "FAINT": "SCHWACH",
- "~%.1f/h at best from here. Not worth a night.": "Höchstens ~%.1f/h von hier. Keine Nacht wert."
+ "~%.1f/h at best from here. Not worth a night.": "Höchstens ~%.1f/h von hier. Keine Nacht wert.",
+ "AIM · %@": "ZIEL · %@",
+ "Auto · %@": "Auto · %@"
 }

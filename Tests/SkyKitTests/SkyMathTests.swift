@@ -274,4 +274,17 @@ struct SkyMathTests {
         #expect(SkyDirector.moonPenalty(conditions: dark) == 1.0)
         #expect(SkyDirector.moonPenalty(conditions: bright) < 0.5)
     }
+
+    @Test("Aim candidates list what the plan chose between, and the auto pick is one of them")
+    func aimCandidates() throws {
+        let plan = SkyDirector.plan(at: Self.laPalma, date: Self.referenceDate)
+        let kinds = plan.aimCandidates.map(\.kind)
+        #expect(kinds.contains(.shower(code: "PER")))
+        #expect(kinds.contains(.pole))
+        #expect(plan.aimCandidates.contains { $0.aim == plan.aim })
+        // Every candidate is something you can actually point at.
+        #expect(plan.aimCandidates.allSatisfy { $0.aim.direction.isAboveHorizon })
+        // Only showers are events.
+        #expect(plan.aimCandidates.filter(\.isEvent).allSatisfy { if case .shower = $0.kind { true } else { false } })
+    }
 }

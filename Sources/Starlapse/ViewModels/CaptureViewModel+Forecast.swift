@@ -38,7 +38,30 @@ extension CaptureViewModel {
     /// The aim target follows the headline shower when one is active, so it is an event
     /// then; on a night with no shower it points at the Milky Way, which everyone gets.
     var showsAim: Bool {
-        let eventDriven = plan.map { $0.aim.subject == $0.headlineShower?.shower.name } ?? false
+        let eventDriven = chosenCandidate?.isEvent ?? false
         return ProAccess.showsAim(isPro: entitlements.isPro, eventActive: eventDriven)
+    }
+
+    // MARK: - Where the arrow points
+
+    /// The plan's pick, unless the person chose otherwise and that choice is still up.
+    var aimPoint: SkyDirector.AimPoint? { chosenCandidate?.aim ?? plan?.aim }
+
+    var chosenCandidate: AimCandidate? {
+        guard let plan else { return nil }
+        if let aimChoice, let chosen = plan.aimCandidates.first(where: { $0.kind == aimChoice }) {
+            return chosen
+        }
+        return plan.aimCandidates.first { $0.aim == plan.aim }
+    }
+
+    /// Point the arrow somewhere else; nil hands the choice back to the plan. A shower is
+    /// an event, so for a free account it opens the Pro page instead.
+    func choose(_ candidate: AimCandidate?) {
+        if let candidate, candidate.isEvent, !entitlements.isPro {
+            showsPaywall = true
+            return
+        }
+        aimChoice = candidate?.kind
     }
 }

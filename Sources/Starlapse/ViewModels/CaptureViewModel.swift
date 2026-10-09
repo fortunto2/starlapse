@@ -75,6 +75,8 @@ final class CaptureViewModel {
     /// the file next door, so not `private`.
     var forecastKey: String?
     var showsEventsSheet = false
+    /// The person's pick from `plan.aimCandidates`; nil lets the plan choose.
+    var aimChoice: AimCandidate.Kind?
     /// Written by the saving extension in the file next door, so no `private(set)` here —
     /// Swift scopes that to the declaring file, not the type.
     var lastSavedMessage: String?
@@ -153,8 +155,8 @@ final class CaptureViewModel {
 
     /// How far, and which way, to swing the phone to hit the recommended target.
     var aimGuidance: AimGuidance? {
-        guard let plan, attitude.hasFullFix, showsAim else { return nil }
-        return AimGuidance(from: attitude.aim, to: plan.aim.direction)
+        guard let aimPoint, attitude.hasFullFix, showsAim else { return nil }
+        return AimGuidance(from: attitude.aim, to: aimPoint.direction)
     }
 
     // MARK: - Camera lifecycle

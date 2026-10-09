@@ -22,7 +22,7 @@ struct CaptureView: View {
                 SkyOverlayView(
                     plan: model.plan,
                     aim: model.attitude.aim,
-                    guidance: model.aimGuidance,
+                    target: model.aimPoint?.direction,
                     hasFix: model.attitude.hasFullFix,
                     showsEvents: model.showsEvents,
                     showsAim: model.showsAim,
@@ -46,6 +46,9 @@ struct CaptureView: View {
             } else {
                 VStack {
                     topBar
+                    if showsOverlay, model.plan != nil, !model.state.isCapturing {
+                        targetRow
+                    }
                     Spacer()
                     if model.state.isCapturing || showsOverlay {
                         StatusPanels(model: model)
@@ -328,5 +331,95 @@ struct CaptureView: View {
         .padding(24)
         .nightPanel()
         .padding(40)
+    }
+}
+
+/// The target row: a menu over the plan's candidates and the arrow to the chosen one.
+/// Same file, so it can reach the view's private state.
+extension CaptureView {
+
+    // MARK: - Target
+
+    /// What the arrow leads to, and how far off it is. The target is a menu: the plan's
+    /// pick by default, the rest of what is up tonight behind a tap.
+    private var targetRow: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Menu {
+                if let plan = model.plan {
+                    Button {
+                        model.choose(nil)
+                    } label: {
+                        Label(
+                            String(format: String(localized: "Auto · %@"), plan.aim.subject),
+                            systemImage: model.aimChoice == nil ? "checkmark" : "sparkles"
+                        )
+                    }
+                    ForEach(plan.aimCandidates) { candidate in
+                        Button {
+                            model.choose(candidate)
+                        } label: {
+                            Label(
+                                candidate.aim.subject,
+                                systemImage: model.aimChoice == candidate.kind
+                                    ? "checkmark"
+                                    : (candidate.isEvent && !model.showsEvents ? "lock.fill" : candidateIcon(candidate))
+                            )
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "scope")
+                    Text(String(
+                        format: String(localized: "AIM · %@"),
+                        (model.aimPoint?.subject ?? "").uppercased()
+                    ))
+                    .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                }
+                .font(NightTheme.mono(10, weight: .bold))
+                .foregroundStyle(NightTheme.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .overlay(Capsule().stroke(NightTheme.accent.opacity(0.5), lineWidth: 1))
+            }
+
+            Spacer(minLength: 6)
+
+            if let guidance = model.aimGuidance {
+                turnInstruction(guidance)
+            }
+        }
+        .padding(.top, 8)
+    }
+
+    private func candidateIcon(_ candidate: AimCandidate) -> String {
+        switch candidate.kind {
+        case .shower: "sparkles"
+        case .milkyWay: "cloud.fill"
+        case .pole: "circle.dotted"
+        case .planet: "circle.fill"
+        }
+    }
+
+    private func turnInstruction(_ guidance: AimGuidance) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: guidance.isOnTarget ? "checkmark" : "arrow.up")
+                .font(.system(size: 16, weight: .bold))
+                .rotationEffect(guidance.isOnTarget ? .zero : guidance.arrowAngle)
+                .foregroundStyle(NightTheme.accent)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(String(format: String(localized: "%.0f° to target"), guidance.separation))
+                    .font(NightTheme.mono(11, weight: .semibold))
+                    .foregroundStyle(NightTheme.accent)
+                Text(guidance.instruction)
+                    .font(NightTheme.mono(9))
+                    .foregroundStyle(NightTheme.dim)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(NightTheme.background.opacity(0.75), in: Capsule())
     }
 }
