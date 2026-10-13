@@ -164,5 +164,12 @@
  "FAINT": "ZAYIF",
  "~%.1f/h at best from here. Not worth a night.": "Buradan en fazla ~%.1f/sa. Bir geceye değmez.",
  "AIM · %@": "HEDEF · %@",
- "Auto · %@": "Otomatik · %@"
+ "Auto · %@": "Otomatik · %@",
+ "%@ tonight": "Bu gece %@",
+ "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": "En iyi saat %1$@, ~%2$.0f/sa. Radyant %3$@ %4$.0f° yukarıda, Ay %5$@.",
+ "Remind me on good meteor nights": "İyi meteor gecelerinde hatırlat",
+ "SHOWER ALERTS": "METEOR UYARILARI",
+ "The best night for it from where you are. Open Starlapse to see when and where to aim.": "Bulunduğun yerden bunun için en iyi gece. Ne zaman ve nereye çevireceğini görmek için Starlapse'ı aç.",
+ "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": "Buradan her iyi geceden önceki akşam, adıyla. Pro saati, oranı ve nişan yönünü ekler. Bu telefonda hesaplanır, hiçbir şey gönderilmez.",
+ "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": "Buradan her iyi geceden önceki akşam: saat, oran, radyantın yeri ve Ay. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
 }

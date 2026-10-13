@@ -164,5 +164,12 @@
  "FAINT": "DEBOLE",
  "~%.1f/h at best from here. Not worth a night.": "Al massimo ~%.1f/h da qui. Non vale una notte.",
  "AIM · %@": "MIRA · %@",
- "Auto · %@": "Auto · %@"
+ "Auto · %@": "Auto · %@",
+ "%@ tonight": "%@ stanotte",
+ "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": "Meglio alle %@, ~%.0f/h. Radiante %@ a %.0f°, Luna %@.",
+ "Remind me on good meteor nights": "Avvisami nelle notti buone per le meteore",
+ "SHOWER ALERTS": "AVVISI METEORE",
+ "The best night for it from where you are. Open Starlapse to see when and where to aim.": "La notte migliore da dove ti trovi. Apri Starlapse per vedere quando e dove puntare.",
+ "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": "La sera prima di ogni notte buona da qui, con il nome. Pro aggiunge l'ora, il tasso e dove puntare. Calcolato su questo telefono, non viene inviato nulla.",
+ "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": "La sera prima di ogni notte buona da qui: l'ora, il tasso, la posizione del radiante e la Luna. Calcolato su questo telefono, non viene inviato nulla."
 }

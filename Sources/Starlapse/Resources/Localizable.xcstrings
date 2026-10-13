@@ -465,6 +465,64 @@
         }
       }
     },
+    "%@ tonight": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ الليلة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ heute Nacht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ esta noche"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ce soir"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आज रात %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ stanotte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今夜は%@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu gece %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今晚%@"
+          }
+        }
+      }
+    },
     "%@ · mag %.2f": {
       "localizations": {
         "ar": {
@@ -1447,6 +1505,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "地平线下"
+          }
+        }
+      }
+    },
+    "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأفضل عند %1$@، نحو %2$.0f/ساعة. نقطة الإشعاع %3$@ على ارتفاع %4$.0f°، القمر %5$@."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am besten um %@, ~%.0f/h. Radiant %@ %.0f° hoch, Mond %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mejor a las %@, ~%.0f/h. Radiante %@ a %.0f°, Luna %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meilleur moment à %@, ~%.0f/h. Radiant %@ à %.0f°, Lune en %@."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सबसे अच्छा %1$@ पर, ~%2$.0f/घंटा। रेडियंट %3$@ %4$.0f° ऊपर, चंद्रमा %5$@।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meglio alle %@, ~%.0f/h. Radiante %@ a %.0f°, Luna %@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベストは%1$@、約%2$.0f個/時。放射点は%3$@ %4$.0f°、月は地平線%5$@。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En iyi saat %1$@, ~%2$.0f/sa. Radyant %3$@ %4$.0f° yukarıda, Ay %5$@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最佳时间 %1$@，约 %2$.0f 颗/小时。放射点 %3$@ %4$.0f° 高，月亮在地平线%5$@。"
           }
         }
       }
@@ -5801,6 +5917,64 @@
         }
       }
     },
+    "Remind me on good meteor nights": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ذكّرني بليالي الشهب الجيدة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An guten Meteornächten erinnern"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avisarme en las buenas noches de meteoros"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Me prévenir des bonnes nuits de météores"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अच्छी उल्का रातों पर याद दिलाएँ"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvisami nelle notti buone per le meteore"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流星の好条件の夜に知らせる"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İyi meteor gecelerinde hatırlat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流星好夜提醒我"
+          }
+        }
+      }
+    },
     "Result": {
       "localizations": {
         "ar": {
@@ -5855,6 +6029,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "结果"
+          }
+        }
+      }
+    },
+    "SHOWER ALERTS": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنبيهات الشهب"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "METEOR-ERINNERUNGEN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AVISOS DE METEOROS"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ALERTES MÉTÉORES"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "उल्का अलर्ट"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AVVISI METEORE"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流星アラート"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "METEOR UYARILARI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流星提醒"
           }
         }
       }
@@ -7247,6 +7479,180 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前无法连接App Store。"
+          }
+        }
+      }
+    },
+    "The best night for it from where you are. Open Starlapse to see when and where to aim.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أفضل ليلة لها من موقعك. افتح Starlapse لترى متى وإلى أين توجّه الكاميرا."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die beste Nacht dafür von deinem Standort. Öffne Starlapse für Uhrzeit und Blickrichtung."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La mejor noche para verla desde donde estás. Abre Starlapse para ver cuándo y hacia dónde apuntar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La meilleure nuit pour cette pluie depuis chez vous. Ouvrez Starlapse pour l'heure et la direction."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी जगह से इसके लिए सबसे अच्छी रात। कब और कहाँ निशाना लगाना है, देखने के लिए Starlapse खोलें।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La notte migliore da dove ti trovi. Apri Starlapse per vedere quando e dove puntare."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この場所から見て一番良い夜です。Starlapseを開いて、時間と狙う方向を確認してください。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bulunduğun yerden bunun için en iyi gece. Ne zaman ve nereye çevireceğini görmek için Starlapse'ı aç."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从你所在的位置看，这是最好的一晚。打开 Starlapse 查看时间和瞄准方向。"
+          }
+        }
+      }
+    },
+    "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مساء اليوم السابق لكل ليلة جيدة من هنا، باسم الزخة. يضيف Pro الوقت والمعدل واتجاه التصويب. يُحسب على هذا الهاتف، ولا يُرسل شيء."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am Abend vor jeder guten Nacht von hier, mit Namen. Pro ergänzt Uhrzeit, Rate und Zielrichtung. Auf diesem iPhone berechnet, nichts wird gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tarde anterior a cada buena noche desde aquí, con el nombre. Pro añade la hora, la tasa y hacia dónde apuntar. Se calcula en este teléfono, no se envía nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La veille au soir de chaque bonne nuit d'ici, avec le nom. Pro ajoute l'heure, le taux et où viser. Calculé sur ce téléphone, rien n'est envoyé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यहाँ से हर अच्छी रात से पहले की शाम, नाम के साथ। Pro में समय, दर और निशाने की दिशा भी। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sera prima di ogni notte buona da qui, con il nome. Pro aggiunge l'ora, il tasso e dove puntare. Calcolato su questo telefono, non viene inviato nulla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好条件の夜の前日夕方に、流星群の名前でお知らせ。Proでは時刻、出現数、狙う方向も。この端末で作成し、何も送信しません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buradan her iyi geceden önceki akşam, adıyla. Pro saati, oranı ve nişan yönünü ekler. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个好夜的前一晚提醒，附流星雨名称。Pro 另含时间、流量和瞄准方向。在本机生成，不发送任何内容。"
+          }
+        }
+      }
+    },
+    "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مساء اليوم السابق لكل ليلة جيدة من هنا: الوقت والمعدل وموضع نقطة الإشعاع والقمر. يُحسب على هذا الهاتف، ولا يُرسل شيء."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am Abend vor jeder guten Nacht von hier: Uhrzeit, Rate, Lage des Radianten und Mond. Auf diesem iPhone berechnet, nichts wird gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tarde anterior a cada buena noche desde aquí: la hora, la tasa, la posición del radiante y la Luna. Se calcula en este teléfono, no se envía nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La veille au soir de chaque bonne nuit d'ici : l'heure, le taux, la position du radiant et la Lune. Calculé sur ce téléphone, rien n'est envoyé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यहाँ से हर अच्छी रात से पहले की शाम: समय, दर, रेडियंट कहाँ है और चंद्रमा। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sera prima di ogni notte buona da qui: l'ora, il tasso, la posizione del radiante e la Luna. Calcolato su questo telefono, non viene inviato nulla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好条件の夜の前日夕方にお知らせ：時刻、出現数、放射点の位置、月。この端末で作成し、何も送信しません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buradan her iyi geceden önceki akşam: saat, oran, radyantın yeri ve Ay. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个好夜的前一晚提醒：时间、流量、放射点位置和月亮。在本机生成，不发送任何内容。"
           }
         }
       }

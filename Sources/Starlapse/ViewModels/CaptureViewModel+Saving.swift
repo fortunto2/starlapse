@@ -20,6 +20,8 @@ extension CaptureViewModel {
                 "capture_saved", props: ["kind": "photo"], metrics: ["frames": Double(progress.framesStacked)]
             )
             RatingPrompt.saved()
+            await ShowerAlerts.askAfterSaveIfNeeded()
+            rescheduleAlerts()
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }
@@ -39,6 +41,8 @@ extension CaptureViewModel {
                 "capture_saved", props: ["kind": "video"], metrics: ["frames": Double(progress.segmentsCompleted)]
             )
             RatingPrompt.saved()
+            await ShowerAlerts.askAfterSaveIfNeeded()
+            rescheduleAlerts()
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }

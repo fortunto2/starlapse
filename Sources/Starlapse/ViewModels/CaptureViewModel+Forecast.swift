@@ -25,6 +25,16 @@ extension CaptureViewModel {
         guard key == forecastKey else { return }
         self.forecasts = forecasts
         nextNewMoon = newMoon
+        rescheduleAlerts()
+    }
+
+    /// Rebuild the pending shower reminders from the current forecast, or clear them when
+    /// switched off. Cheap: at most eight requests, replaced by identifier.
+    func rescheduleAlerts() {
+        let alerts = ShowerAlerts.isEnabled
+            ? ShowerAlerts.schedule(forecasts, now: Date(), calendar: .current, isPro: entitlements.isPro)
+            : []
+        Task { await ShowerAlerts.apply(alerts) }
     }
 
     /// The first shower worth a night, for the one-line row above the shutter.

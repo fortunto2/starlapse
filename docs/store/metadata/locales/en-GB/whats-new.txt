@@ -1,1 +1,1 @@
-Starlapse now speaks Hindi, Chinese, Japanese, French, Arabic, German, Italian, Turkish and Spanish. Restore Purchase is reachable from Settings without location access.
+Meteor night reminders: the evening before a good shower night from where you are, Starlapse tells you. Pro adds the hour, the rate, where the radiant is and the Moon. Worked out on your phone, nothing is sent. Turn them off in Settings › SHOWER ALERTS.

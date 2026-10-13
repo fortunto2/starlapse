@@ -1,1 +1,1 @@
-Starlapse artık Hintçe, Çince, Japonca, Fransızca, Arapça, Almanca, İtalyanca, Türkçe ve İspanyolca konuşuyor. Satın Alımı Geri Yükle, konum izni olmadan Ayarlar'dan erişilebilir.
+Meteor gecesi hatırlatıcıları: Bulunduğun yerden iyi bir meteor gecesinden önceki akşam Starlapse haber verir. Pro saati, oranı, radyantın yerini ve Ay'ı ekler. Telefonunda hesaplanır, hiçbir şey gönderilmez. Ayarlar › METEOR UYARILARI'ndan kapatabilirsin.

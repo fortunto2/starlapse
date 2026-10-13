@@ -164,5 +164,12 @@
  "FAINT": "微弱",
  "~%.1f/h at best from here. Not worth a night.": "在此地最多约 %.1f 颗/小时，不值得熬夜。",
  "AIM · %@": "瞄准 · %@",
- "Auto · %@": "自动 · %@"
+ "Auto · %@": "自动 · %@",
+ "%@ tonight": "今晚%@",
+ "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": "最佳时间 %1$@，约 %2$.0f 颗/小时。放射点 %3$@ %4$.0f° 高，月亮在地平线%5$@。",
+ "Remind me on good meteor nights": "流星好夜提醒我",
+ "SHOWER ALERTS": "流星提醒",
+ "The best night for it from where you are. Open Starlapse to see when and where to aim.": "从你所在的位置看，这是最好的一晚。打开 Starlapse 查看时间和瞄准方向。",
+ "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": "每个好夜的前一晚提醒，附流星雨名称。Pro 另含时间、流量和瞄准方向。在本机生成，不发送任何内容。",
+ "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": "每个好夜的前一晚提醒：时间、流量、放射点位置和月亮。在本机生成，不发送任何内容。"
 }

@@ -36,6 +36,12 @@ display only and never leaves the device.
 requests add-only access, which means it can put pictures in your library but cannot read,
 browse or scan what is already there.
 
+**Notifications, if you allow them.** Reminders on the evening before a good meteor night
+from where you are. They are worked out on your device from the same forecast the app shows
+and scheduled with iOS as local notifications: nothing is sent to us or anyone else to make
+them, and no push service is involved. Switch them off in Settings › SHOWER ALERTS, or in the
+iOS Settings app.
+
 ## What the app sends
 
 **Purchases.** Starlapse Pro is bought through Apple's App Store. The request goes to Apple

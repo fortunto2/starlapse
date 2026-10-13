@@ -164,5 +164,12 @@
  "FAINT": "ضعيف",
  "~%.1f/h at best from here. Not worth a night.": "نحو %.1f/ساعة على الأكثر من هنا. لا يستحق ليلة.",
  "AIM · %@": "التوجيه · %@",
- "Auto · %@": "تلقائي · %@"
+ "Auto · %@": "تلقائي · %@",
+ "%@ tonight": "%@ الليلة",
+ "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": "الأفضل عند %1$@، نحو %2$.0f/ساعة. نقطة الإشعاع %3$@ على ارتفاع %4$.0f°، القمر %5$@.",
+ "Remind me on good meteor nights": "ذكّرني بليالي الشهب الجيدة",
+ "SHOWER ALERTS": "تنبيهات الشهب",
+ "The best night for it from where you are. Open Starlapse to see when and where to aim.": "أفضل ليلة لها من موقعك. افتح Starlapse لترى متى وإلى أين توجّه الكاميرا.",
+ "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": "مساء اليوم السابق لكل ليلة جيدة من هنا، باسم الزخة. يضيف Pro الوقت والمعدل واتجاه التصويب. يُحسب على هذا الهاتف، ولا يُرسل شيء.",
+ "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": "مساء اليوم السابق لكل ليلة جيدة من هنا: الوقت والمعدل وموضع نقطة الإشعاع والقمر. يُحسب على هذا الهاتف، ولا يُرسل شيء."
 }

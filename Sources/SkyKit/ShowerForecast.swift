@@ -28,6 +28,23 @@ public struct ShowerForecast: Sendable, Identifiable {
     public let peakNightRate: Double
     public let verdict: Verdict
 
+    public init(
+        shower: MeteorShower, peak: Date, bestNight: Date, bestTime: Date, bestRate: Double,
+        radiantAtBest: HorizontalCoordinates, moonIlluminationAtBest: Double, moonUpAtBest: Bool,
+        peakNightRate: Double, verdict: Verdict
+    ) {
+        self.shower = shower
+        self.peak = peak
+        self.bestNight = bestNight
+        self.bestTime = bestTime
+        self.bestRate = bestRate
+        self.radiantAtBest = radiantAtBest
+        self.moonIlluminationAtBest = moonIlluminationAtBest
+        self.moonUpAtBest = moonUpAtBest
+        self.peakNightRate = peakNightRate
+        self.verdict = verdict
+    }
+
     public enum Verdict: Sendable, Hashable {
         /// 20/h and up: a night to plan around.
         case excellent

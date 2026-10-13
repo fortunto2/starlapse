@@ -1,1 +1,1 @@
-Starlapse ahora habla hindi, chino, japonés, francés, árabe, alemán, italiano, turco y español. «Restaurar compra» está disponible desde Configuración sin acceso a la ubicación.
+Recordatorios de noches de meteoros: la tarde anterior a una buena noche desde donde estás, Starlapse te avisa. Pro añade la hora, la tasa, la posición del radiante y la Luna. Se calcula en tu teléfono, no se envía nada. Desactívalos en Ajustes › AVISOS DE METEOROS.

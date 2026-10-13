@@ -164,5 +164,12 @@
  "FAINT": "बहुत कम",
  "~%.1f/h at best from here. Not worth a night.": "यहाँ से ज़्यादा से ज़्यादा ~%.1f/घंटा। रात खर्च करने लायक नहीं।",
  "AIM · %@": "निशाना · %@",
- "Auto · %@": "ऑटो · %@"
+ "Auto · %@": "ऑटो · %@",
+ "%@ tonight": "आज रात %@",
+ "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": "सबसे अच्छा %1$@ पर, ~%2$.0f/घंटा। रेडियंट %3$@ %4$.0f° ऊपर, चंद्रमा %5$@।",
+ "Remind me on good meteor nights": "अच्छी उल्का रातों पर याद दिलाएँ",
+ "SHOWER ALERTS": "उल्का अलर्ट",
+ "The best night for it from where you are. Open Starlapse to see when and where to aim.": "आपकी जगह से इसके लिए सबसे अच्छी रात। कब और कहाँ निशाना लगाना है, देखने के लिए Starlapse खोलें।",
+ "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": "यहाँ से हर अच्छी रात से पहले की शाम, नाम के साथ। Pro में समय, दर और निशाने की दिशा भी। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।",
+ "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": "यहाँ से हर अच्छी रात से पहले की शाम: समय, दर, रेडियंट कहाँ है और चंद्रमा। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
 }

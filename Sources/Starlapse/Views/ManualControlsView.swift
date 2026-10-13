@@ -12,6 +12,7 @@ struct ManualControlsView: View {
     @Bindable var model: CaptureViewModel
     @State private var crashReports = CrashDiagnostics.reports
     @State private var countsUsage = Analytics.isEnabled
+    @State private var showerAlerts = ShowerAlerts.isEnabled
     @State private var showsPaywall = false
     @State private var restoreChecked = false
 
@@ -29,6 +30,7 @@ struct ManualControlsView: View {
                     diagnosticsSection
                 }
                 proSection
+                alertsSection
                 privacySection
             }
             .padding(16)
@@ -46,6 +48,13 @@ struct ManualControlsView: View {
             Task { await model.settingsChanged() }
         }
         .onChange(of: countsUsage) { Analytics.isEnabled = countsUsage }
+        .onChange(of: showerAlerts) {
+            ShowerAlerts.isEnabled = showerAlerts
+            Task {
+                if showerAlerts { _ = await ShowerAlerts.requestPermission() }
+                model.rescheduleAlerts()
+            }
+        }
     }
 
     // MARK: - Lens
@@ -346,8 +355,18 @@ struct ManualControlsView: View {
 
     // MARK: - Privacy
 
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(NightTheme.mono(11, weight: .bold))
+            .foregroundStyle(NightTheme.secondary)
+    }
+}
+
+/// Same file, so the section can reach the view's private state and helpers.
+extension ManualControlsView {
+
     /// The one thing the app sends that is not a purchase, and the switch for it.
-    private var privacySection: some View {
+    var privacySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             sectionTitle("USAGE COUNTER")
 
@@ -369,9 +388,23 @@ struct ManualControlsView: View {
         .nightPanel()
     }
 
-    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
-        Text(text)
-            .font(NightTheme.mono(11, weight: .bold))
-            .foregroundStyle(NightTheme.secondary)
+    // MARK: - Alerts
+
+    var alertsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle("SHOWER ALERTS")
+            Toggle(isOn: $showerAlerts) {
+                Text("Remind me on good meteor nights")
+                    .font(NightTheme.mono(12))
+            }
+            .tint(NightTheme.accent)
+            Text(model.showsEvents
+                 ? String(localized: "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.") // swiftlint:disable:this line_length
+                 : String(localized: "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.")) // swiftlint:disable:this line_length
+                .font(NightTheme.mono(10))
+                .foregroundStyle(NightTheme.dim)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .nightPanel()
     }
 }

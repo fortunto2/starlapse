@@ -164,5 +164,12 @@
  "FAINT": "微弱",
  "~%.1f/h at best from here. Not worth a night.": "ここでは最大でも約%.1f個/時。夜を費やす価値はありません。",
  "AIM · %@": "狙い · %@",
- "Auto · %@": "自動 · %@"
+ "Auto · %@": "自動 · %@",
+ "%@ tonight": "今夜は%@",
+ "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": "ベストは%1$@、約%2$.0f個/時。放射点は%3$@ %4$.0f°、月は地平線%5$@。",
+ "Remind me on good meteor nights": "流星の好条件の夜に知らせる",
+ "SHOWER ALERTS": "流星アラート",
+ "The best night for it from where you are. Open Starlapse to see when and where to aim.": "この場所から見て一番良い夜です。Starlapseを開いて、時間と狙う方向を確認してください。",
+ "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": "好条件の夜の前日夕方に、流星群の名前でお知らせ。Proでは時刻、出現数、狙う方向も。この端末で作成し、何も送信しません。",
+ "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": "好条件の夜の前日夕方にお知らせ：時刻、出現数、放射点の位置、月。この端末で作成し、何も送信しません。"
 }
