@@ -19,9 +19,7 @@ extension CaptureViewModel {
             Analytics.track(
                 "capture_saved", props: ["kind": "photo"], metrics: ["frames": Double(progress.framesStacked)]
             )
-            RatingPrompt.saved()
-            await ShowerAlerts.askAfterSaveIfNeeded()
-            rescheduleAlerts()
+            await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }
@@ -40,11 +38,16 @@ extension CaptureViewModel {
             Analytics.track(
                 "capture_saved", props: ["kind": "video"], metrics: ["frames": Double(progress.segmentsCompleted)]
             )
-            RatingPrompt.saved()
-            await ShowerAlerts.askAfterSaveIfNeeded()
-            rescheduleAlerts()
+            await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }
+    }
+
+    /// Every kind of save, photo, time-lapse or detector clip, is the moment to ask once for
+    /// reminders, and to rebuild them.
+    func remindersAfterSave(ratingPromptShown: Bool = false) async {
+        await ShowerAlerts.askAfterSaveIfNeeded(ratingPromptShown: ratingPromptShown)
+        rescheduleAlerts()
     }
 }

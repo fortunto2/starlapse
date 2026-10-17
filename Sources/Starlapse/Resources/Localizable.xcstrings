@@ -987,6 +987,64 @@
         }
       }
     },
+    "A good night for it from where you are.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ليلة جيدة لها من موقعك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine gute Nacht dafür, von deinem Standort aus."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una buena noche para verla desde donde estás."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une bonne nuit pour elle depuis chez vous."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी जगह से इसके लिए अच्छी रात।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una buona notte per vederlo da dove sei."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの場所から見て好条件の夜です。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bulunduğun yerden bunun için iyi bir gece."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从你所在的位置看，今晚值得一看。"
+          }
+        }
+      }
+    },
     "A quiet sky, or the threshold is too strict.": {
       "localizations": {
         "ar": {
@@ -1509,60 +1567,60 @@
         }
       }
     },
-    "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@.": {
+    "Best at %@, ~%.0f/h. Radiant %@ %.0f° up. %@.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الأفضل عند %1$@، نحو %2$.0f/ساعة. نقطة الإشعاع %3$@ على ارتفاع %4$.0f°، القمر %5$@."
+            "value": "الأفضل عند %1$@، نحو %2$.0f/ساعة. نقطة الإشعاع %3$@ على ارتفاع %4$.0f°. %5$@."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Am besten um %@, ~%.0f/h. Radiant %@ %.0f° hoch, Mond %@."
+            "value": "Am besten um %@, ~%.0f/h. Radiant %@ %.0f° hoch. %@."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mejor a las %@, ~%.0f/h. Radiante %@ a %.0f°, Luna %@."
+            "value": "Mejor a las %@, ~%.0f/h. Radiante %@ a %.0f°. %@."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meilleur moment à %@, ~%.0f/h. Radiant %@ à %.0f°, Lune en %@."
+            "value": "Meilleur moment à %@, ~%.0f/h. Radiant %@ à %.0f°. %@."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "सबसे अच्छा %1$@ पर, ~%2$.0f/घंटा। रेडियंट %3$@ %4$.0f° ऊपर, चंद्रमा %5$@।"
+            "value": "सबसे अच्छा %1$@ पर, ~%2$.0f/घंटा। रेडियंट %3$@ %4$.0f° ऊपर। %5$@।"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meglio alle %@, ~%.0f/h. Radiante %@ a %.0f°, Luna %@."
+            "value": "Meglio alle %@, ~%.0f/h. Radiante %@ a %.0f°. %@."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ベストは%1$@、約%2$.0f個/時。放射点は%3$@ %4$.0f°、月は地平線%5$@。"
+            "value": "ベストは%1$@、約%2$.0f個/時。放射点は%3$@ %4$.0f°。%5$@。"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "En iyi saat %1$@, ~%2$.0f/sa. Radyant %3$@ %4$.0f° yukarıda, Ay %5$@."
+            "value": "En iyi saat %1$@, ~%2$.0f/sa. Radyant %3$@ %4$.0f° yukarıda. %5$@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最佳时间 %1$@，约 %2$.0f 颗/小时。放射点 %3$@ %4$.0f° 高，月亮在地平线%5$@。"
+            "value": "最佳时间 %1$@，约 %2$.0f 颗/小时。放射点 %3$@ %4$.0f° 高。%5$@。"
           }
         }
       }
@@ -4583,64 +4641,6 @@
         }
       }
     },
-    "Moon %d%% %@": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "القمر %d%% %@"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mond %d%% %@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Luna %d%% %@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lune %d%% en %@"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "चंद्रमा %d%% %@"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Luna %d%% %@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "月%d%% 地平線%@"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ay %%%d %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "月亮%d%% 地平线%@"
-          }
-        }
-      }
-    },
     "Moon %d%% up on every dark night of the window.": {
       "localizations": {
         "ar": {
@@ -4695,6 +4695,238 @@
           "stringUnit": {
             "state": "translated",
             "value": "窗口内的每个黑夜月亮都在天上，亮度%d%%。"
+          }
+        }
+      }
+    },
+    "Moon %d%%, above the horizon": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القمر %d%%، فوق الأفق"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond %d %%, über dem Horizont"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna %d %%, sobre el horizonte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune %d %%, au-dessus de l'horizon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चंद्रमा %d%%, क्षितिज के ऊपर"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna %d%%, sopra l'orizzonte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月%d%%、地平線の上"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay %%%d, ufkun üstünde"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮 %d%%，在地平线上"
+          }
+        }
+      }
+    },
+    "Moon %d%%, below the horizon": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القمر %d%%، تحت الأفق"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond %d %%, unter dem Horizont"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna %d %%, bajo el horizonte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune %d %%, sous l'horizon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चंद्रमा %d%%, क्षितिज के नीचे"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna %d%%, sotto l'orizzonte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月%d%%、地平線の下"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay %%%d, ufkun altında"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮 %d%%，在地平线下"
+          }
+        }
+      }
+    },
+    "Moon above the horizon": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القمر فوق الأفق"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond über dem Horizont"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna sobre el horizonte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune au-dessus de l'horizon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चंद्रमा क्षितिज के ऊपर"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna sopra l'orizzonte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月は地平線の上"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay ufkun üstünde"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮在地平线上"
+          }
+        }
+      }
+    },
+    "Moon below the horizon": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القمر تحت الأفق"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond unter dem Horizont"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna bajo el horizonte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune sous l'horizon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चंद्रमा क्षितिज के नीचे"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna sotto l'orizzonte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月は地平線の下"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay ufkun altında"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮在地平线下"
           }
         }
       }
@@ -5221,6 +5453,64 @@
         }
       }
     },
+    "Notifications are off for Starlapse in iOS Settings. Tap to turn them on.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إشعارات Starlapse متوقفة في إعدادات iOS. اضغط لتشغيلها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitteilungen für Starlapse sind in den iOS-Einstellungen aus. Tippen, um sie einzuschalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las notificaciones de Starlapse están desactivadas en Ajustes de iOS. Toca para activarlas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les notifications de Starlapse sont désactivées dans les Réglages iOS. Touchez pour les activer."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS सेटिंग्स में Starlapse की सूचनाएँ बंद हैं। चालू करने के लिए टैप करें।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le notifiche di Starlapse sono disattivate nelle Impostazioni di iOS. Tocca per attivarle."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOSの設定でStarlapseの通知がオフになっています。タップしてオンにしてください。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse bildirimleri iOS Ayarları'nda kapalı. Açmak için dokun."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 设置中已关闭 Starlapse 的通知。轻点以开启。"
+          }
+        }
+      }
+    },
     "OFF": {
       "localizations": {
         "ar": {
@@ -5275,6 +5565,122 @@
           "stringUnit": {
             "state": "translated",
             "value": "关"
+          }
+        }
+      }
+    },
+    "On the evening of each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "في مساء كل ليلة جيدة من هنا، باسم الزخة. يضيف Pro الوقت والمعدل واتجاه التصويب. يُحسب على هذا الهاتف، ولا يُرسل شيء."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am Abend jeder guten Nacht von hier, mit Namen. Pro ergänzt Uhrzeit, Rate und Zielrichtung. Auf diesem iPhone berechnet, nichts wird gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La misma tarde de cada buena noche desde aquí, con el nombre. Pro añade la hora, la tasa y hacia dónde apuntar. Se calcula en este teléfono, no se envía nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le soir même de chaque bonne nuit d'ici, avec le nom. Pro ajoute l'heure, le taux et où viser. Calculé sur ce téléphone, rien n'est envoyé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यहाँ से हर अच्छी रात की शाम को, नाम के साथ। Pro में समय, दर और निशाने की दिशा भी। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sera stessa di ogni notte buona da qui, con il nome. Pro aggiunge l'ora, il tasso e dove puntare. Calcolato su questo telefono, non viene inviato nulla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好条件の夜の当日夕方に、流星群の名前でお知らせ。Proでは時刻、出現数、狙う方向も。この端末で作成し、何も送信しません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buradan her iyi gecenin akşamı, adıyla. Pro saati, oranı ve nişan yönünü ekler. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个好夜当晚提醒，附流星雨名称。Pro 另含时间、流量和瞄准方向。在本机生成，不发送任何内容。"
+          }
+        }
+      }
+    },
+    "On the evening of each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "في مساء كل ليلة جيدة من هنا: الوقت والمعدل وموضع نقطة الإشعاع والقمر. يُحسب على هذا الهاتف، ولا يُرسل شيء."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am Abend jeder guten Nacht von hier: Uhrzeit, Rate, Lage des Radianten und Mond. Auf diesem iPhone berechnet, nichts wird gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La misma tarde de cada buena noche desde aquí: la hora, la tasa, la posición del radiante y la Luna. Se calcula en este teléfono, no se envía nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le soir même de chaque bonne nuit d'ici : l'heure, le taux, la position du radiant et la Lune. Calculé sur ce téléphone, rien n'est envoyé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यहाँ से हर अच्छी रात की शाम को: समय, दर, रेडियंट कहाँ है और चंद्रमा। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sera stessa di ogni notte buona da qui: l'ora, il tasso, la posizione del radiante e la Luna. Calcolato su questo telefono, non viene inviato nulla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好条件の夜の当日夕方にお知らせ：時刻、出現数、放射点の位置、月。この端末で作成し、何も送信しません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buradan her iyi gecenin akşamı: saat, oran, radyantın yeri ve Ay. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个好夜当晚提醒：时间、流量、放射点位置和月亮。在本机生成，不发送任何内容。"
           }
         }
       }
@@ -7479,180 +7885,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前无法连接App Store。"
-          }
-        }
-      }
-    },
-    "The best night for it from where you are. Open Starlapse to see when and where to aim.": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "أفضل ليلة لها من موقعك. افتح Starlapse لترى متى وإلى أين توجّه الكاميرا."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die beste Nacht dafür von deinem Standort. Öffne Starlapse für Uhrzeit und Blickrichtung."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La mejor noche para verla desde donde estás. Abre Starlapse para ver cuándo y hacia dónde apuntar."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La meilleure nuit pour cette pluie depuis chez vous. Ouvrez Starlapse pour l'heure et la direction."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "आपकी जगह से इसके लिए सबसे अच्छी रात। कब और कहाँ निशाना लगाना है, देखने के लिए Starlapse खोलें।"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La notte migliore da dove ti trovi. Apri Starlapse per vedere quando e dove puntare."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "この場所から見て一番良い夜です。Starlapseを開いて、時間と狙う方向を確認してください。"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bulunduğun yerden bunun için en iyi gece. Ne zaman ve nereye çevireceğini görmek için Starlapse'ı aç."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从你所在的位置看，这是最好的一晚。打开 Starlapse 查看时间和瞄准方向。"
-          }
-        }
-      }
-    },
-    "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مساء اليوم السابق لكل ليلة جيدة من هنا، باسم الزخة. يضيف Pro الوقت والمعدل واتجاه التصويب. يُحسب على هذا الهاتف، ولا يُرسل شيء."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Am Abend vor jeder guten Nacht von hier, mit Namen. Pro ergänzt Uhrzeit, Rate und Zielrichtung. Auf diesem iPhone berechnet, nichts wird gesendet."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tarde anterior a cada buena noche desde aquí, con el nombre. Pro añade la hora, la tasa y hacia dónde apuntar. Se calcula en este teléfono, no se envía nada."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La veille au soir de chaque bonne nuit d'ici, avec le nom. Pro ajoute l'heure, le taux et où viser. Calculé sur ce téléphone, rien n'est envoyé."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "यहाँ से हर अच्छी रात से पहले की शाम, नाम के साथ। Pro में समय, दर और निशाने की दिशा भी। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La sera prima di ogni notte buona da qui, con il nome. Pro aggiunge l'ora, il tasso e dove puntare. Calcolato su questo telefono, non viene inviato nulla."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "好条件の夜の前日夕方に、流星群の名前でお知らせ。Proでは時刻、出現数、狙う方向も。この端末で作成し、何も送信しません。"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buradan her iyi geceden önceki akşam, adıyla. Pro saati, oranı ve nişan yönünü ekler. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每个好夜的前一晚提醒，附流星雨名称。Pro 另含时间、流量和瞄准方向。在本机生成，不发送任何内容。"
-          }
-        }
-      }
-    },
-    "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مساء اليوم السابق لكل ليلة جيدة من هنا: الوقت والمعدل وموضع نقطة الإشعاع والقمر. يُحسب على هذا الهاتف، ولا يُرسل شيء."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Am Abend vor jeder guten Nacht von hier: Uhrzeit, Rate, Lage des Radianten und Mond. Auf diesem iPhone berechnet, nichts wird gesendet."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tarde anterior a cada buena noche desde aquí: la hora, la tasa, la posición del radiante y la Luna. Se calcula en este teléfono, no se envía nada."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La veille au soir de chaque bonne nuit d'ici : l'heure, le taux, la position du radiant et la Lune. Calculé sur ce téléphone, rien n'est envoyé."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "यहाँ से हर अच्छी रात से पहले की शाम: समय, दर, रेडियंट कहाँ है और चंद्रमा। इसी फ़ोन पर बनता है, कुछ भेजा नहीं जाता।"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La sera prima di ogni notte buona da qui: l'ora, il tasso, la posizione del radiante e la Luna. Calcolato su questo telefono, non viene inviato nulla."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "好条件の夜の前日夕方にお知らせ：時刻、出現数、放射点の位置、月。この端末で作成し、何も送信しません。"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buradan her iyi geceden önceki akşam: saat, oran, radyantın yeri ve Ay. Bu telefonda hesaplanır, hiçbir şey gönderilmez."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每个好夜的前一晚提醒：时间、流量、放射点位置和月亮。在本机生成，不发送任何内容。"
           }
         }
       }

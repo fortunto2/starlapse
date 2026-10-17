@@ -1,1 +1,1 @@
-Meteor gecesi hatırlatıcıları: Bulunduğun yerden iyi bir meteor gecesinden önceki akşam Starlapse haber verir. Pro saati, oranı, radyantın yerini ve Ay'ı ekler. Telefonunda hesaplanır, hiçbir şey gönderilmez. Ayarlar › METEOR UYARILARI'ndan kapatabilirsin.
+Meteor hatırlatıcıları düzeltildi: Amerika'da bu gecenin hatırlatıcısı artık öğleden sonra kaybolmuyor, saatlerin değiştiği gece bile yerel saatle 20:00'de geliyor ve Starlapse açıkken de görünüyor. Her yağmur için bir hatırlatıcı, zirveden sonra her gece değil. iOS bildirimleri kapattığında Ayarlar artık bunu gösteriyor.

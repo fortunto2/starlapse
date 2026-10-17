@@ -71,6 +71,8 @@ final class CaptureViewModel {
     /// between ten-second plan refreshes.
     var forecasts: [ShowerForecast] = []
     var nextNewMoon: Date?
+    /// The last reminder rebuild; the next one waits for it. See `rescheduleAlerts`.
+    var alertsTask: Task<Void, Never>?
     /// Day and place the forecasts were computed for. Written by the forecast extension in
     /// the file next door, so not `private`.
     var forecastKey: String?
@@ -236,6 +238,7 @@ final class CaptureViewModel {
         lastSavedMessage = saved == events.count
             ? String(format: String(localized: "Saved %d clips to Photos."), saved)
             : String(format: String(localized: "Saved %d of %d clips."), saved, events.count)
+        if saved > 0 { await remindersAfterSave() }
     }
 
     func clearEvents() {

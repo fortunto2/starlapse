@@ -23,7 +23,9 @@ enum RatingPrompt {
     }
 
     /// Call after a successful save.
-    static func saved(defaults: UserDefaults = .standard) {
+    /// Returns whether the rating prompt was asked for on this save.
+    @discardableResult
+    static func saved(defaults: UserDefaults = .standard) -> Bool {
         let saves = defaults.integer(forKey: savesKey) + 1
         defaults.set(saves, forKey: savesKey)
 
@@ -32,9 +34,10 @@ enum RatingPrompt {
               let scene = UIApplication.shared.connectedScenes
                   .compactMap({ $0 as? UIWindowScene })
                   .first(where: { $0.activationState == .foregroundActive })
-        else { return }
+        else { return false }
 
         defaults.set(version, forKey: askedVersionKey)
         AppStore.requestReview(in: scene)
+        return true
     }
 }

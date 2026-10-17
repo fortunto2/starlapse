@@ -125,7 +125,7 @@ struct StatusPanels: View {
 
     private func eventsRowText(_ next: ShowerForecast) -> String {
         let name = next.shower.name.uppercased()
-        if next.isTonight(model.planDate) {
+        if next.isTonight(model.planDate, longitude: model.longitude) {
             return String(format: String(localized: "TONIGHT · %@ · ~%.0f/H"), name, next.bestRate)
         }
         let day = next.bestNight.formatted(.dateTime.day().month(.abbreviated).locale(.autoupdatingCurrent))

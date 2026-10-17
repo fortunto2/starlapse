@@ -13,6 +13,8 @@ struct ManualControlsView: View {
     @State private var crashReports = CrashDiagnostics.reports
     @State private var countsUsage = Analytics.isEnabled
     @State private var showerAlerts = ShowerAlerts.isEnabled
+    /// The switch is ours; the permission is iOS's. Shown when the two disagree.
+    @State private var notificationsDenied = false
     @State private var showsPaywall = false
     @State private var restoreChecked = false
 
@@ -53,8 +55,10 @@ struct ManualControlsView: View {
             Task {
                 if showerAlerts { _ = await ShowerAlerts.requestPermission() }
                 model.rescheduleAlerts()
+                notificationsDenied = await ShowerAlerts.isDenied()
             }
         }
+        .task { notificationsDenied = await ShowerAlerts.isDenied() }
     }
 
     // MARK: - Lens
@@ -399,10 +403,22 @@ extension ManualControlsView {
             }
             .tint(NightTheme.accent)
             Text(model.showsEvents
-                 ? String(localized: "The evening before each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.") // swiftlint:disable:this line_length
-                 : String(localized: "The evening before each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.")) // swiftlint:disable:this line_length
+                 ? String(localized: "On the evening of each good night from here: the hour, the rate, where the radiant is and the Moon. Made on this phone, nothing is sent.") // swiftlint:disable:this line_length
+                 : String(localized: "On the evening of each good night from here, by name. Pro adds the hour, the rate and where to aim. Made on this phone, nothing is sent.")) // swiftlint:disable:this line_length
                 .font(NightTheme.mono(10))
                 .foregroundStyle(NightTheme.dim)
+            if showerAlerts && notificationsDenied {
+                Button {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Text("Notifications are off for Starlapse in iOS Settings. Tap to turn them on.")
+                        .font(NightTheme.mono(10))
+                        .foregroundStyle(NightTheme.accent)
+                        .multilineTextAlignment(.leading)
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .nightPanel()

@@ -1,5 +1,6 @@
 import SuperDuperAnalytics
 import SwiftUI
+import UserNotifications
 
 @main
 struct StarlapseApp: App {
@@ -15,6 +16,8 @@ struct StarlapseApp: App {
         // is not offered again on this phone. See FormatQuarantine.
         FormatQuarantine().recoverFromCrash()
         CrashDiagnostics.shared.start()
+        // A reminder that fires mid-session is shown, not dropped. See ShowerAlertPresenter.
+        UNUserNotificationCenter.current().delegate = ShowerAlertPresenter.shared
         // App Store Connect counts downloads; nobody counts the second launch. Five events,
         // an id made on this phone, switchable off in the controls panel. A debug build is
         // marked as a machine so simulator runs do not count as people.

@@ -64,7 +64,7 @@ struct EventsView: View {
     // MARK: - Rows
 
     private func row(_ forecast: ShowerForecast) -> some View {
-        let tonight = forecast.isTonight(model.planDate)
+        let tonight = forecast.isTonight(model.planDate, longitude: model.longitude)
         return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(tonight ? String(localized: "TONIGHT") : dayText(forecast.bestNight))
@@ -121,11 +121,10 @@ struct EventsView: View {
                 format: String(localized: "radiant %@ %.0f° up"),
                 compassPoint(forAzimuth: forecast.radiantAtBest.azimuth), forecast.radiantAtBest.altitude
             ))
-            parts.append(String(
-                format: String(localized: "Moon %d%% %@"),
-                Int(forecast.moonIlluminationAtBest * 100),
-                forecast.moonUpAtBest ? String(localized: "up") : String(localized: "down")
-            ))
+            let moon = Int(forecast.moonIlluminationAtBest * 100)
+            parts.append(forecast.moonUpAtBest
+                ? String(format: String(localized: "Moon %d%%, above the horizon"), moon)
+                : String(format: String(localized: "Moon %d%%, below the horizon"), moon))
             return parts.joined(separator: " · ")
         }
     }

@@ -10,8 +10,11 @@ extension CaptureViewModel {
 
     func refreshForecast(at location: GeographicCoordinates) {
         let date = planDate
-        let day = Calendar.gregorianUTC.startOfDay(for: date)
-        let key = "\(day.timeIntervalSinceReferenceDate)/\(location.latitude.rounded())/\(location.longitude.rounded())"
+        // The local night, not the UTC day: west of Greenwich the UTC day turns over before
+        // dark and would drop tonight, and tonight's reminder with it.
+        let night = SkyDirector.night(containing: date, longitude: location.longitude)
+        let place = "\(location.latitude.rounded())/\(location.longitude.rounded())"
+        let key = "\(night.timeIntervalSinceReferenceDate)/\(place)"
         guard key != forecastKey else { return }
         forecastKey = key
         Task.detached(priority: .utility) { [weak self] in
@@ -30,12 +33,31 @@ extension CaptureViewModel {
 
     /// Rebuild the pending shower reminders from the current forecast, or clear them when
     /// switched off. Cheap: at most eight requests, replaced by identifier.
+    ///
+    /// Runs on a forecast, a save, the switch, a purchase and the app coming forward (a
+    /// time-zone change, permission granted in Settings). Before this session has a forecast
+    /// it does nothing: no location yet is not "no good nights", and must not erase the
+    /// reminders an earlier session set. Each run waits for the one before it, so a
+    /// half-finished replace cannot land on top of a newer one.
     func rescheduleAlerts() {
-        let alerts = ShowerAlerts.isEnabled
-            ? ShowerAlerts.schedule(forecasts, now: Date(), calendar: .current, isPro: entitlements.isPro)
+        let enabled = ShowerAlerts.isEnabled
+        guard !enabled || nextNewMoon != nil else { return }
+        let now = Date()
+        let alerts = enabled
+            ? ShowerAlerts.schedule(
+                forecasts, now: now, calendar: .current, isPro: entitlements.isPro, fired: ShowerAlerts.fired()
+            )
             : []
-        Task { await ShowerAlerts.apply(alerts) }
+        if enabled { ShowerAlerts.recordFired(alerts, now: now) }
+        let previous = alertsTask
+        alertsTask = Task {
+            await previous?.value
+            await ShowerAlerts.apply(alerts)
+        }
     }
+
+    /// For the "tonight" checks, which count nights in local solar time.
+    var longitude: Double { attitude.location?.longitude ?? 0 }
 
     /// The first shower worth a night, for the one-line row above the shutter.
     var nextEvent: ShowerForecast? { forecasts.first(where: \.isWorthPlanning) }

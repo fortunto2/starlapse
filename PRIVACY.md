@@ -5,7 +5,7 @@ permalink: /privacy/
 
 # Privacy Policy — Starlapse
 
-**Last updated: 6 October 2026**
+**Last updated: 16 October 2026**
 
 Starlapse has no account and no server of its own. Your photographs, your location and the
 direction you point the phone never leave it. The app makes two kinds of network request,
@@ -36,7 +36,7 @@ display only and never leaves the device.
 requests add-only access, which means it can put pictures in your library but cannot read,
 browse or scan what is already there.
 
-**Notifications, if you allow them.** Reminders on the evening before a good meteor night
+**Notifications, if you allow them.** Reminders on the evening of a good meteor night
 from where you are. They are worked out on your device from the same forecast the app shows
 and scheduled with iOS as local notifications: nothing is sent to us or anyone else to make
 them, and no push service is involved. Switch them off in Settings › SHOWER ALERTS, or in the

@@ -28,6 +28,11 @@ enum ShowerAlerts {
     static let limit = 8
 
     static let askedKey = "showerAlertsAsked"
+    /// Shower code → when its last reminder was set to fire. A shower that has already rung
+    /// is not announced again in the same window: after the true best night the forecast
+    /// returns the best *remaining* one, and five "best night" reminders in a row is spam.
+    static let firedKey = "showerAlertsFired"
+    static let windowLength: TimeInterval = 45 * 86_400
 
     /// On unless switched off. Nothing shows until iOS permission is granted, and that is
     /// asked only after the first saved shot: someone who has made a picture knows why a
@@ -37,9 +42,10 @@ enum ShowerAlerts {
         set { UserDefaults.standard.set(newValue, forKey: enabledKey) }
     }
 
-    /// Called after each save; asks iOS once, the first time, if reminders are on.
-    static func askAfterSaveIfNeeded() async {
-        guard isEnabled, !UserDefaults.standard.bool(forKey: askedKey) else { return }
+    /// Called after each save; asks iOS once, the first time, if reminders are on. Not on a
+    /// save that just raised the rating prompt: two system alerts at once and one loses.
+    static func askAfterSaveIfNeeded(ratingPromptShown: Bool = false) async {
+        guard isEnabled, !ratingPromptShown, !UserDefaults.standard.bool(forKey: askedKey) else { return }
         UserDefaults.standard.set(true, forKey: askedKey)
         _ = await requestPermission()
     }
@@ -47,10 +53,15 @@ enum ShowerAlerts {
     // MARK: - The schedule, pure
 
     static func schedule(
-        _ forecasts: [ShowerForecast], now: Date, calendar: Calendar, isPro: Bool
+        _ forecasts: [ShowerForecast], now: Date, calendar: Calendar, isPro: Bool,
+        fired: [String: Date] = [:]
     ) -> [Alert] {
         forecasts
             .filter { $0.verdict == .excellent || $0.verdict == .good }
+            .filter { forecast in
+                guard let rang = fired[forecast.shower.code] else { return true }
+                return rang > now || now.timeIntervalSince(rang) > windowLength
+            }
             .compactMap { forecast -> Alert? in
                 let fire = fireDate(for: forecast.bestTime, calendar: calendar)
                 guard fire > now else { return nil }
@@ -63,9 +74,11 @@ enum ShowerAlerts {
 
     /// 20:00 on the evening that leads into `best`, but never less than an hour before it:
     /// an evening peak at 20:30 rings at 19:30.
+    /// Wall-clock 20:00, not twenty hours after midnight: those differ by an hour on the
+    /// evenings the clocks change, and the Orionids sit on one in Europe.
     static func fireDate(for best: Date, calendar: Calendar) -> Date {
         let evening = calendar.startOfDay(for: best.addingTimeInterval(-12 * 3600))
-        let eight = calendar.date(byAdding: .hour, value: 20, to: evening) ?? best
+        let eight = calendar.date(bySettingHour: 20, minute: 0, second: 0, of: evening) ?? best
         let hourBefore = best.addingTimeInterval(-3600)
         return min(eight, hourBefore)
     }
@@ -83,15 +96,17 @@ enum ShowerAlerts {
             var time = Date.FormatStyle(date: .omitted, time: .shortened)
             time.timeZone = calendar.timeZone
             body = String(
-                format: String(localized: "Best at %@, ~%.0f/h. Radiant %@ %.0f° up, Moon %@."),
+                format: String(localized: "Best at %@, ~%.0f/h. Radiant %@ %.0f° up. %@."),
                 forecast.bestTime.formatted(time),
                 forecast.bestRate,
                 compassPoint(forAzimuth: forecast.radiantAtBest.azimuth),
                 forecast.radiantAtBest.altitude,
-                forecast.moonUpAtBest ? String(localized: "up") : String(localized: "down")
+                forecast.moonUpAtBest
+                    ? String(localized: "Moon above the horizon")
+                    : String(localized: "Moon below the horizon")
             )
         } else {
-            body = String(localized: "The best night for it from where you are. Open Starlapse to see when and where to aim.") // swiftlint:disable:this line_length
+            body = String(localized: "A good night for it from where you are.")
         }
         return Alert(id: id, showerCode: forecast.shower.code, fireDate: fire, title: title, body: body)
     }
@@ -101,6 +116,28 @@ enum ShowerAlerts {
     /// Ask once, from the toggle. Returns whether reminders may be shown.
     static func requestPermission() async -> Bool {
         (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])) ?? false
+    }
+
+    /// Whether iOS has said no. Not asked yet is not a no: the first save asks.
+    static func isDenied() async -> Bool {
+        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .denied
+    }
+
+    /// Remember when each scheduled shower will have rung. Entries that have not fired yet
+    /// are replaced by this schedule; ones that have stay until their window is over.
+    static func recordFired(_ alerts: [Alert], now: Date, defaults: UserDefaults = .standard) {
+        let stored = defaults.dictionary(forKey: firedKey) as? [String: Double] ?? [:]
+        var fired = stored.filter { _, time in
+            let date = Date(timeIntervalSince1970: time)
+            return date <= now && now.timeIntervalSince(date) <= windowLength
+        }
+        for alert in alerts { fired[alert.showerCode] = alert.fireDate.timeIntervalSince1970 }
+        defaults.set(fired, forKey: firedKey)
+    }
+
+    static func fired(defaults: UserDefaults = .standard) -> [String: Date] {
+        (defaults.dictionary(forKey: firedKey) as? [String: Double] ?? [:])
+            .mapValues { Date(timeIntervalSince1970: $0) }
     }
 
     /// Replace every pending shower reminder with `alerts`. Empty clears them.
@@ -115,11 +152,27 @@ enum ShowerAlerts {
             content.title = alert.title
             content.body = alert.body
             content.sound = .default
+            // To the second and pinned to this zone: a minute-truncated trigger built inside
+            // its own minute has no next date and never fires, and a floating one rings an
+            // hour off after crossing a border. The scene going active reschedules anyway.
             let components = Calendar.current.dateComponents(
-                [.year, .month, .day, .hour, .minute], from: alert.fireDate
+                [.timeZone, .year, .month, .day, .hour, .minute, .second], from: alert.fireDate
             )
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
             try? await center.add(UNNotificationRequest(identifier: alert.id, content: content, trigger: trigger))
         }
+    }
+}
+
+/// Shows a reminder that fires while Starlapse is open. Without a delegate iOS drops it
+/// silently, and a night session keeps the app in the foreground for hours.
+final class ShowerAlertPresenter: NSObject, UNUserNotificationCenterDelegate, Sendable {
+
+    static let shared = ShowerAlertPresenter()
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter, willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
     }
 }

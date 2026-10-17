@@ -4,6 +4,7 @@ import SwiftUI
 struct CaptureView: View {
 
     @State private var model = CaptureViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsControls = false
     /// The sky overlay is genuinely useful and genuinely in the way — it has to come off
     /// in one tap, without hunting through a settings sheet in the dark.
@@ -92,6 +93,12 @@ struct CaptureView: View {
             #endif
         }
         .onDisappear { model.stopSkyUpdates() }
+        // The reminders carry the Pro hour or not, and the zone they were built in: both can
+        // change while they wait, and so can the iOS permission behind them.
+        .onChange(of: model.entitlements.isPro) { model.rescheduleAlerts() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { model.rescheduleAlerts() }
+        }
     }
 
     #if DEBUG

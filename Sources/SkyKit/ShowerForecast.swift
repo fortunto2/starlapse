@@ -61,9 +61,10 @@ public struct ShowerForecast: Sendable, Identifiable {
         case belowHorizon
     }
 
-    /// Whether the best night is the one starting on `date`'s UTC day.
-    public func isTonight(_ date: Date) -> Bool {
-        Calendar.gregorianUTC.isDate(bestNight, inSameDayAs: date)
+    /// Whether the best night is the one under way, or coming next, at `date` and this
+    /// longitude. See `SkyDirector.night(containing:longitude:)`.
+    public func isTonight(_ date: Date, longitude: Double = 0) -> Bool {
+        bestNight == SkyDirector.night(containing: date, longitude: longitude)
     }
 
     /// Something to plan around, as opposed to a shower listed so its absence is explained.
@@ -85,7 +86,7 @@ extension SkyDirector {
         days: Int = 90
     ) -> [ShowerForecast] {
         let calendar = Calendar.gregorianUTC
-        let today = calendar.startOfDay(for: date)
+        let today = night(containing: date, longitude: location.longitude)
         guard let horizon = calendar.date(byAdding: .day, value: days, to: today) else { return [] }
 
         return MeteorShower.catalog
@@ -100,6 +101,17 @@ extension SkyDirector {
                 return forecast(shower: shower, window: remaining, at: location, calendar: calendar)
             }
             .sorted { $0.bestNight < $1.bestNight }
+    }
+
+    /// The night a moment belongs to here: the UTC day whose local solar noon begins it.
+    ///
+    /// Nights run noon to noon in local solar time, which is how `bestMoment` walks them.
+    /// The UTC calendar day is the wrong key west of Greenwich: at 17:30 in Los Angeles it is
+    /// already tomorrow in UTC, and tonight would drop out of the forecast (and its reminder
+    /// with it) three hours before dark.
+    public static func night(containing date: Date, longitude: Double) -> Date {
+        let localSolar = date.addingTimeInterval((longitude / 15 - 12) * 3600)
+        return Calendar.gregorianUTC.startOfDay(for: localSolar)
     }
 
     /// The darkest night ahead: the day the Moon is least illuminated within `days`.
