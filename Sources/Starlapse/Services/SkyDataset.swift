@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 /// in a field with no signal goes out once there is one.
 enum SkyDataset {
 
-    static let endpoint = URL(string: "https://sky.superduperai.co")
+    static let endpoint = URL(string: "https://api.starlapse.app")
     static let enabledKey = "skyDataset"
     static let contributorKey = "skyDatasetContributor"
 

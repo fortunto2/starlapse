@@ -5,8 +5,13 @@
   "compatibility_date": "2026-07-31",
   "observability": { "enabled": true },
 
-  // The host the app and PRIVACY.md name. Changing it means a new app release.
-  "routes": [{ "pattern": "sky.superduperai.co", "custom_domain": true }],
+  // api.starlapse.app is the host the app and PRIVACY.md name; changing it means a new
+  // app release. sky.superduperai.co stays while TestFlight build 20, which used it, is
+  // still installed anywhere.
+  "routes": [
+    { "pattern": "api.starlapse.app", "custom_domain": true },
+    { "pattern": "sky.superduperai.co", "custom_domain": true }
+  ],
   "workers_dev": false,
 
   // Measurements: small rows, SQL, kept for years.

@@ -69,7 +69,7 @@ version and a random contributor identifier made on this phone (not the usage co
 not your Apple ID). A detector session sends the meteors it placed on the sky (time,
 start and end direction, length, the shower they belong to), without the video clips.
 
-It goes to our own server at sky.superduperai.co and is kept there to study light
+It goes to our own server at api.starlapse.app and is kept there to study light
 pollution and meteor activity. Nothing is published with your identity, and the photos are
 not shown to anyone else. **Delete everything I contributed** in Settings › SKY DATASET
 erases every reading and photo sent from this phone, on the server, at once.
