@@ -14,14 +14,14 @@ const storeLink = (placement: string) => ({
 
 const facts = [
   { n: '1 s', t: 'is all an iPhone frame can hold', d: 'So Starlapse stacks: hundreds of one-second frames, aligned on the stars, become one exposure of ten minutes or an hour. Noise falls with every frame.' },
-  { n: 'locked', t: 'ISO, shutter, focus, white balance', d: 'Set once, held for the whole session. No exposure creeping up, no autofocus hunting in the dark, no streetlight turning the sky orange.' },
-  { n: '0.1°', t: 'focus found on the stars themselves', d: 'The infinity mark is not infinity. The app steps the lens, measures how big the stars come out, and settles on the smallest, the way observatories focus.' },
+  { n: 'locked', t: 'ISO, shutter, focus, white balance', d: 'Set once and held for the whole session. The exposure does not creep up and the autofocus does not hunt in the dark.' },
+  { n: '~1 min', t: 'to focus on the stars themselves', d: 'The infinity mark is a mechanical end stop, and the sharp point sits just inside it. The app steps the lens, measures how big the stars come out, and settles on the smallest, the way observatories focus.' },
 ];
 
 const feats = [
   { k: 'STARS', t: 'Pinpoint stars', d: 'Frames aligned on the sky, so stars stay points through an hour of stacking.' },
   { k: 'TRAILS', t: 'Star trails', d: 'The sky’s rotation drawn as arcs while the ground stays sharp.' },
-  { k: 'TIME-LAPSE', t: 'Night time-lapse', d: 'Every frame of the video is its own stack, not one noisy second.' },
+  { k: 'TIME-LAPSE', t: 'Night time-lapse', d: 'Each frame of the video is a stack of its own, so a night of clouds stays clean.' },
   { k: 'METEORS', t: 'Meteor detector', d: 'Watches the sky and keeps a clip of anything that crosses it, placed on the sky and named by its shower.' },
   { k: 'AIM', t: 'Where to point, tonight', d: 'Meteors streak away from the radiant, so the longest trails are 40° off it. Worked out for your place and hour, clear of the Moon.' },
   { k: 'ALERTS', t: 'Good nights, announced', d: 'A reminder on the evening of each shower worth staying up for from where you are. Local, nothing sent.' },
@@ -33,12 +33,12 @@ const faq = [
   { q: 'Which iPhone works best?', a: 'Any iPhone on iOS 18 or later. The lens with the widest aperture gathers the most light; the app shows the f-number of each lens and what it gives up.' },
   { q: 'Where should I point for a meteor shower?', a: 'Not at the radiant: meteors streak away from it, so the longest trails appear about 40° to the side. Starlapse works that out for your location and the hour, keeps you clear of the Moon, and shows an arrow to the spot.' },
   { q: 'How does it measure how dark my sky is?', a: 'The stars in a stack are a light meter. The app identifies them in the Yale Bright Star Catalogue, compares each with the sky right around it, and reports the sky brightness in magnitudes per square arcsecond with a Bortle class, the way a Sky Quality Meter does.' },
-  { q: 'Is it free?', a: 'Yes, every camera feature is free. Starlapse Pro is a one-time $4.99 purchase that adds meteor shower events and where to aim for them. No subscription, no account, no ads.' },
+  { q: 'Is it free?', a: 'Yes, every camera feature is free. Starlapse Pro is a one-time $4.99 purchase that adds meteor shower events and where to aim for them. No subscription and no ads.' },
 ];
 
 const shots = [
   { img: '/img/02-stacking.jpg', cap: 'An hour of light, from one-second frames' },
-  { img: '/img/01-aiming.jpg', cap: 'Planets, bright stars, the Milky Way, where to aim' },
+  { img: '/img/01-aiming.jpg', cap: 'The Milky Way, the planets and where to aim' },
   { img: '/img/05-events.jpg', cap: 'This season’s showers, for your latitude' },
   { img: '/img/04-detector.jpg', cap: 'Meteor detector' },
   { img: '/img/03-controls.jpg', cap: 'Manual camera that stays manual' },
@@ -112,7 +112,7 @@ const shots = [
     <div>
       <p class="kicker left">New in 1.1</p>
       <h2 class="h2 left">Every photo measures your sky</h2>
-      <p class="body">The stars in a stack are a light meter. Starlapse finds them in a catalogue of 9,096, compares each with the sky right around it, and reads the darkness the way a Sky Quality Meter does: magnitudes per square arcsecond, a Bortle class, the faintest star your eye could see.</p>
+      <p class="body">The stars in a stack are a light meter. Starlapse finds them among 9,096 catalogue stars and compares each with the sky right around it. The result is what a Sky Quality Meter reads: magnitudes per square arcsecond, with the Bortle class and the faintest star your eye could see.</p>
       <p class="body">If you choose to, the reading and the photo go into a dataset for mapping light pollution, with your location rounded to about 10 km. A night-sky globe built from it is next.</p>
     </div>
     <div class="reading mono">
@@ -145,7 +145,7 @@ const shots = [
 
 <section>
   <div class="wrap">
-    <p class="kicker">Honest limits</p>
+    <p class="kicker">Limits</p>
     <h2 class="h2">What no app can change</h2>
     <ul class="limits">
       <li><b>Aperture is fixed.</b> On iPhone it is a property of the lens. The app shows what each lens gives up and lets you pick.</li>
