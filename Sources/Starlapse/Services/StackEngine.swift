@@ -56,6 +56,7 @@ final class StackEngine: @unchecked Sendable {
     /// holds the summed light, so changing the curve re-renders from the original data
     /// rather than pushing pixels around in an already-developed image.
     private var completed: SegmentPlan?
+    private var latestLuminance: LumaImage?
     /// Frames gathered into the segment currently being built.
     private var framesInSegment = 0
 
@@ -80,7 +81,7 @@ final class StackEngine: @unchecked Sendable {
     private let focusEvaluator = FocusEvaluator()
 
     /// A clip was written. Called on the capture queue.
-    var onEventRecorded: (@Sendable (URL, Transient) -> Void)?
+    var onEventRecorded: (@Sendable (URL, Transient, LumaImage.Size) -> Void)?
 
     /// Called on the capture queue after every frame.
     var onProgress: (@Sendable (StackProgress) -> Void)?
@@ -256,6 +257,9 @@ final class StackEngine: @unchecked Sendable {
 
         guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer) else { return }
         reportFocusIfRequested(luminance)
+        // Kept for the plate solve that orients the detector's meteors. An array is shared
+        // until written, so this is a reference, not a copy.
+        latestLuminance = LumaImage(pixels: luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
 
         switch watcher.consume(
             frame,
@@ -270,7 +274,7 @@ final class StackEngine: @unchecked Sendable {
         case .recorded(let url, let event):
             progress.eventsDetected += 1
             progress.eventsRecorded = watcher.eventsRecorded
-            onEventRecorded?(url, event)
+            onEventRecorded?(url, event, LumaImage.Size(width: accumulator.lumaWidth, height: accumulator.lumaHeight))
         }
         report()
     }
@@ -410,6 +414,12 @@ final class StackEngine: @unchecked Sendable {
             accumulator.displayPool.release(rendered)
             return image
         }
+    }
+
+    /// The latest watched frame's luminance, quarter size: a single frame's stars, enough
+    /// to solve which way the camera points.
+    func watchedLuminance() async -> LumaImage? {
+        await queue.perform { [weak self] in self?.latestLuminance }
     }
 
     /// The finished stack as linear luminance, for measuring the sky. Not for star

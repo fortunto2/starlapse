@@ -1,6 +1,7 @@
 {
  "": "",
  " · %.0f° across frame": " · %.0f° im Bild",
+ " · %.0f° long · %@": " · %.0f° lang · %@",
  " · %d detected": " · %d erkannt",
  "%.0f° az · %.0f° up": "%.0f° Az · %.0f° Höhe",
  "%.0f° to target": "%.0f° zum Ziel",
@@ -172,6 +173,7 @@
  "plist:NSPhotoLibraryAddUsageDescription": "Starlapse sichert fertige Sternen-Stacks und Zeitraffer in der Fotomediathek.",
  "radiant %@ %.0f° up": "Radiant %@ %.0f° hoch",
  "right": "rechts",
+ "sporadic": "sporadisch",
  "up": "hoch",
  "~%.0f meteors/h": "~%.0f Meteore/h",
  "~%.0f/h at %@": "~%.0f/h um %@",

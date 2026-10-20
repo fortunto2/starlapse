@@ -1,6 +1,7 @@
 {
  "": "",
  " · %.0f° across frame": " · 画面内%.0f°",
+ " · %.0f° long · %@": " · 長さ%.0f° · %@",
  " · %d detected": " · %d件検出",
  "%.0f° az · %.0f° up": "方位%.0f° · 高度%.0f°",
  "%.0f° to target": "目標まで%.0f°",
@@ -172,6 +173,7 @@
  "plist:NSPhotoLibraryAddUsageDescription": "Starlapseは完成した星のスタックとタイムラプスをフォトライブラリに保存します。",
  "radiant %@ %.0f° up": "放射点 %@ 高度%.0f°",
  "right": "右",
+ "sporadic": "散在流星",
  "up": "上",
  "~%.0f meteors/h": "約%.0f個/h",
  "~%.0f/h at %@": "%2$@に約%1$.0f/h",

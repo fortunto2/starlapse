@@ -14,16 +14,16 @@ allows it, contributes its measurements and the photo to a dataset we keep, for 
 
 ## Tracks
 A. Sky meter (on device, no network)
- [ ] A1 bright-star catalogue to V 6.5 (Yale BSC5, CDS V/50) as a generated Swift file
- [ ] A2 SkyMeter: identify stars in the stack from pointing + FOV (offset vote, then
+ [x] A1 bright-star catalogue to V 6.5 (Yale BSC5, CDS V/50) as a generated Swift file
+ [x] A2 SkyMeter: identify stars in the stack from pointing + FOV (offset vote, then
         StarAligner refine), zero point from catalogue magnitudes with extinction,
         background → mag/arcsec², NELM (Schaefer), Bortle class, stack limiting mag
- [ ] A3 tests on a rendered sky with a known answer
- [ ] A4 app: linear stack luminance (box-averaged, flux-preserving), pointing at
+ [x] A3 tests on a rendered sky with a known answer
+ [x] A4 app: linear stack luminance (box-averaged, flux-preserving), pointing at
         capture, reading shown in review ("SKY 20.8 · BORTLE 4 · NELM 6.1")
 B. Meteors
- [ ] B1 streak endpoints → az/alt through the plate solution; time, duration
- [ ] B2 shower association: great circle through the streak vs radiant positions
+ [x] B1 streak endpoints → az/alt through the plate solution; time, duration
+ [x] B2 shower association: great circle through the streak vs radiant positions
 C. Contribution
  [ ] C1 Worker + D1 + R2: POST /v1/observations (multipart: json + jpeg), DELETE by device
  [ ] C2 app: consent, switch, upload queue (retry, Wi-Fi not required, small JPEG)
@@ -32,3 +32,5 @@ D. Feed (later, asked 2026-10-19)
  [ ] D1 vertical full-screen feed of contributed shots, swipe like TikTok, opt-in to appear
  [ ] D2 a 3D globe with a point per shot, as a section of the feed
  [ ] D3 what App Review 1.2 then requires: report, block, filter, a contact, takedown
+ Notes: B uses a plate solve of a watched frame (5 s in, then every 60 s until it holds);
+ without one a meteor is kept as a clip but not placed on the sky.

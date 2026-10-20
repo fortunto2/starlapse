@@ -1,6 +1,7 @@
 {
  "": "",
  " · %.0f° across frame": " · 跨画面%.0f°",
+ " · %.0f° long · %@": " · 长 %.0f° · %@",
  " · %d detected": " · 检测到%d个",
  "%.0f° az · %.0f° up": "方位%.0f° · 高度%.0f°",
  "%.0f° to target": "距目标%.0f°",
@@ -172,6 +173,7 @@
  "plist:NSPhotoLibraryAddUsageDescription": "Starlapse会将完成的星空叠加和延时视频保存到您的照片图库。",
  "radiant %@ %.0f° up": "放射点%@ 高%.0f°",
  "right": "右",
+ "sporadic": "偶发流星",
  "up": "上",
  "~%.0f meteors/h": "约%.0f颗流星/h",
  "~%.0f/h at %@": "%2$@ 约%1$.0f/h",

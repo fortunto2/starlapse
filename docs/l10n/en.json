@@ -1,5 +1,6 @@
 {
  " · %.0f° across frame": "Sources/Starlapse/Views/ReviewView.swift",
+ " · %.0f° long · %@": "Sources/Starlapse/Views/ReviewView.swift",
  " · %d detected": "Sources/Starlapse/Views/ReviewView.swift",
  "%.0f° az · %.0f° up": "Sources/Starlapse/Views/SkyOverlayView.swift",
  "%.0f° to target": "Sources/Starlapse/Views/CaptureView.swift",
@@ -171,6 +172,7 @@
  "plist:NSPhotoLibraryAddUsageDescription": "Starlapse saves your finished star stacks and time-lapses to your photo library.",
  "radiant %@ %.0f° up": "Sources/Starlapse/Views/EventsView.swift",
  "right": "Sources/Starlapse/Models/AimGuidance.swift",
+ "sporadic": "Sources/Starlapse/Views/ReviewView.swift",
  "up": "Sources/Starlapse/Models/AimGuidance.swift",
  "~%.0f meteors/h": "Sources/Starlapse/Views/StatusPanels.swift",
  "~%.0f/h at %@": "Sources/Starlapse/Views/EventsView.swift",

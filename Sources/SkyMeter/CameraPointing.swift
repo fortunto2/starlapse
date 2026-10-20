@@ -82,6 +82,15 @@ public struct CameraPointing: Sendable, Hashable {
 
 /// A linear luminance buffer, row-major, mean light per pixel.
 public struct LumaImage: Sendable {
+    public struct Size: Sendable, Hashable {
+        public let width: Int
+        public let height: Int
+        public init(width: Int, height: Int) {
+            self.width = width
+            self.height = height
+        }
+    }
+
     public let pixels: [Float]
     public let width: Int
     public let height: Int
@@ -91,6 +100,8 @@ public struct LumaImage: Sendable {
         self.width = width
         self.height = height
     }
+
+    public var size: Size { Size(width: width, height: height) }
 }
 
 /// Where and when: what turns a catalogue position into a direction in the sky.

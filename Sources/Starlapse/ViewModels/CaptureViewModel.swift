@@ -3,6 +3,7 @@ import Foundation
 import Metal
 import os
 import SkyKit
+import SkyMeter
 import SuperDuperAnalytics
 import SwiftUI
 
@@ -93,7 +94,7 @@ final class CaptureViewModel {
     private(set) var reviewVideoURL: URL?
     /// Clips saved this session, newest first. Detector mode never interrupts to ask —
     /// it keeps watching, and these pile up until the session is stopped.
-    private(set) var events: [RecordedEvent] = []
+    var events: [RecordedEvent] = []
 
     struct RecordedEvent: Identifiable, Sendable {
         let id = UUID()
@@ -101,6 +102,8 @@ final class CaptureViewModel {
         let date: Date
         let isStreak: Bool
         let angle: Double
+        /// On the sky, when the camera's pointing was solved from its stars.
+        let meteor: MeteorObservation?
     }
 
     let attitude = AttitudeProvider()
@@ -273,14 +276,8 @@ final class CaptureViewModel {
             }
         }
 
-        stack.onEventRecorded = { [weak self] url, event in
-            Task { @MainActor in
-                guard let self else { return }
-                self.events.insert(
-                    RecordedEvent(url: url, date: Date(), isStreak: event.isStreak, angle: event.angle),
-                    at: 0
-                )
-            }
+        stack.onEventRecorded = { [weak self] url, event, frame in
+            Task { @MainActor in self?.recordEvent(url: url, event: event, frame: frame) }
         }
 
         stack.onFinished = { [weak self] in
@@ -366,6 +363,7 @@ final class CaptureViewModel {
         }
         beginSkyMeasurement()
         stackEngine.begin(plan)
+        solveDetectorPointing()
 
         // The screen stays on — iOS force-stops capture in the background, so there is no
         // such thing as a background astro session. Dimming is the honest substitute: the

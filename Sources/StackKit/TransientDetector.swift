@@ -17,6 +17,15 @@ public struct Transient: Sendable, Hashable {
 
     /// Looks like a meteor rather than a blob.
     public var isStreak: Bool { elongation >= 2.5 }
+
+    public init(x: Double, y: Double, pixelCount: Int, flux: Double, elongation: Double, angle: Double) {
+        self.x = x
+        self.y = y
+        self.pixelCount = pixelCount
+        self.flux = flux
+        self.elongation = elongation
+        self.angle = angle
+    }
 }
 
 /// Finds things that brighten suddenly, by comparing a frame against the one before it.

@@ -1,6 +1,7 @@
 {
  "": "",
  " · %.0f° across frame": " · karede %.0f°",
+ " · %.0f° long · %@": " · %.0f° uzunluk · %@",
  " · %d detected": " · %d algılandı",
  "%.0f° az · %.0f° up": "%.0f° az · %.0f° yük",
  "%.0f° to target": "hedefe %.0f°",
@@ -172,6 +173,7 @@
  "plist:NSPhotoLibraryAddUsageDescription": "Starlapse, tamamlanan yıldız yığınlarınızı ve time-lapse'lerinizi fotoğraf arşivinize kaydeder.",
  "radiant %@ %.0f° up": "radyant %@ %.0f° yükseklikte",
  "right": "sağ",
+ "sporadic": "seyrek",
  "up": "yukarı",
  "~%.0f meteors/h": "~%.0f meteor/h",
  "~%.0f/h at %@": "saat %2$@ ~%1$.0f/h",

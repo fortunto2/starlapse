@@ -1,4 +1,5 @@
 import AVKit
+import SkyKit
 import SwiftUI
 
 /// What you get after the shutter closes: the result, the controls that still matter, and
@@ -123,6 +124,16 @@ struct ReviewView: View {
         }
     }
 
+    /// On the sky when the pointing solved: length and the shower it points back to.
+    private func eventDetail(_ event: CaptureViewModel.RecordedEvent) -> String {
+        guard let meteor = event.meteor else {
+            return String(format: String(localized: " · %.0f° across frame"), event.angle)
+        }
+        let shower = meteor.shower.flatMap { code in MeteorShower.catalog.first { $0.code == code }?.name }
+            ?? String(localized: "sporadic")
+        return String(format: String(localized: " · %.0f° long · %@"), meteor.length, shower)
+    }
+
     private func eventRow(_ event: CaptureViewModel.RecordedEvent) -> some View {
         HStack(spacing: 12) {
             Image(systemName: event.isStreak ? "line.diagonal" : "circle")
@@ -134,8 +145,7 @@ struct ReviewView: View {
                 Text(event.isStreak ? "Streak" : "Flash")
                     .font(NightTheme.mono(12, weight: .semibold))
                     .foregroundStyle(NightTheme.primary)
-                Text(event.date.formatted(date: .omitted, time: .standard)
-                     + String(format: String(localized: " · %.0f° across frame"), event.angle))
+                Text(event.date.formatted(date: .omitted, time: .standard) + eventDetail(event))
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)
             }
