@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+import { Content } from '../privacy.md';
+---
+<Base title="Privacy Policy · Starlapse" description="What Starlapse uses, what it sends, and what it never does.">
+  <section class="privacy"><div class="wrap narrow"><Content /></div></section>
+</Base>
+<style>
+  .narrow{max-width:760px}
+  .privacy :global(h1){font-size:clamp(28px,4vw,38px);font-weight:800;letter-spacing:-.4px;margin-bottom:8px}
+  .privacy :global(h2){font-size:20px;margin:32px 0 10px}
+  .privacy :global(p),.privacy :global(li){color:var(--dim);margin:0 0 12px}
+  .privacy :global(ul){padding-left:22px}
+  .privacy :global(strong){color:var(--ink)}
+  .privacy :global(a){color:var(--accent)}
+</style>

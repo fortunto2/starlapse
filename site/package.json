@@ -1,0 +1,21 @@
+{
+  "name": "starlapse-site",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landing page for Starlapse: starlapse.app",
+  "scripts": {
+    "prebuild": "node scripts/privacy.mjs",
+    "dev": "node scripts/privacy.mjs && astro dev",
+    "build": "astro build",
+    "deploy": "pnpm build && wrangler deploy"
+  },
+  "dependencies": {
+    "astro": "^5.13.0"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "wrangler": "^4.117"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

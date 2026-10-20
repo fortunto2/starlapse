@@ -16,3 +16,4 @@ Makefile.local
 *.xcarchive
 server/node_modules/
 server/.wrangler/
+.playwright-mcp/

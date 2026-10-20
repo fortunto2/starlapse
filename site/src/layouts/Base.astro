@@ -1,0 +1,96 @@
+---
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).href} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content={new URL('/og.jpg', Astro.site).href} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="apple-itunes-app" content="app-id=6801191027" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <!-- Our own counter, the same source id as the iOS app so the site and the app are one
+       funnel. No cookie and no client-side id: the anonymous id is made at the edge and
+       rotates daily, so no consent banner. https://github.com/fortunto2/superduper-analytics -->
+  <script defer src="https://analytics.superduperai.co/sda.js" data-source="starlapse" is:inline></script>
+</head>
+<body>
+  <nav>
+    <div class="wrap">
+      <a class="logo" href="/"><img src="/icon-64.png" width="28" height="28" alt="" />Starlapse</a>
+      <div class="navlinks">
+        <a href="/#how">How</a>
+        <a href="/#sky">Sky meter</a>
+        <a href="/privacy">Privacy</a>
+      </div>
+    </div>
+  </nav>
+  <slot />
+  <footer>
+    <div class="wrap">
+      <div class="flogo">Starlapse</div>
+      <div class="flinks">
+        <a href="https://github.com/fortunto2/starlapse">Source ↗</a>
+        <a href="/privacy">Privacy</a>
+        <a href="mailto:info@superduperai.co">Contact</a>
+      </div>
+      <div class="copy">© 2026 SuperDuperAI · made for dark skies</div>
+    </div>
+  </footer>
+</body>
+</html>
+
+<style is:global>
+  :root{
+    --bg:#000; --panel:#0c0d10; --line:rgba(255,255,255,.08);
+    --ink:#ecebe7; --dim:#9a9ca3; --accent:#ffc740; --red:#ff7350;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);
+    background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+  .mono{font-family:var(--mono);letter-spacing:.04em}
+  .btn{display:inline-flex;align-items:center;gap:10px;border-radius:12px;padding:13px 20px;
+    font-weight:800;font-size:15px;transition:transform .15s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-accent{background:var(--accent);color:#000;box-shadow:0 8px 28px rgba(255,199,64,.25)}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink)}
+  nav{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-family:var(--mono);font-weight:700;font-size:16px;display:flex;align-items:center;gap:10px;letter-spacing:.06em}
+  .logo img{border-radius:7px;display:block}
+  .navlinks{display:flex;gap:4px}
+  .navlinks a{font-family:var(--mono);font-size:12px;color:var(--dim);padding:7px 10px;border-radius:8px;text-transform:uppercase;letter-spacing:.08em}
+  .navlinks a:hover{color:var(--accent)}
+  @media(max-width:420px){.navlinks a:not(:last-child){display:none}}
+  section{padding:72px 0}
+  .kicker{font-family:var(--mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.14em;text-align:center}
+  .h2{font-size:clamp(26px,4vw,38px);font-weight:800;text-align:center;letter-spacing:-.4px;margin-top:10px}
+  .sub{text-align:center;color:var(--dim);font-size:17px;margin:12px auto 40px;max-width:36em}
+  footer{border-top:1px solid var(--line);padding:36px 0 44px;color:var(--dim)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  footer .flogo{font-family:var(--mono);font-weight:700;color:var(--ink)}
+  footer .flinks{display:flex;gap:18px;flex-wrap:wrap;font-size:14px}
+  footer .flinks a:hover{color:var(--accent)}
+  footer .copy{width:100%;font-size:13px;opacity:.6}
+</style>

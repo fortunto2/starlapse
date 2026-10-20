@@ -1,0 +1,5 @@
+src/privacy.md
+node_modules/
+dist/
+.astro/
+.wrangler/

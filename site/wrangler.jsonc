@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "starlapse-site",
+  "compatibility_date": "2026-07-31",
+  // Static only: no Worker script, Cloudflare serves dist/ as it is.
+  "assets": { "directory": "./dist", "not_found_handling": "404-page" },
+  "routes": [
+    { "pattern": "starlapse.app", "custom_domain": true },
+    { "pattern": "www.starlapse.app", "custom_domain": true }
+  ],
+  "workers_dev": false
+}
