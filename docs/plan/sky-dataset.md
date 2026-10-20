@@ -47,3 +47,15 @@ F. Wow, in order of strength
  [ ] F2 after a shot: "your sky 20.8, darker than 70% of readings in Spain"
  [ ] F3 share card "You caught an Orionid": the trail on a star chart, shower, time
  [ ] F4 two phones, one meteor: triangulate, show its orbit (needs density; later)
+G. Science track (asked 2026-10-20; evidence for a US visa as well as science)
+ [ ] G1 Research Notes of the AAS: method + first real readings vs a light-pollution map.
+        Free, no peer review, any author, ≤1500 words + 1 figure. Needs data: after 1.1.0.
+ [ ] G2 first dataset release with a DOI (Zenodo hook on fortunto2/starlapse-sky-data)
+ [ ] G3 write to NOIRLab (Globe at Night): offer the readings for their database
+ [ ] G4 NLnet Restack, deadline 2026-11-03 12:00 CET: anyone may apply, FOSS required;
+        weak fit (open-internet infrastructure), short form; €5–50k (third-party figure)
+ [ ] G5 Planetary Society STEP, next round ~2028: ≤$50k, international; fits "Defend
+        Earth" if multi-phone meteor triangulation (F4) exists by then
+ Not eligible (checked 2026-10-20): NSF SBIR (US ownership), NSF AAG (no unaffiliated
+ individuals), NASA CSSFP (US institutions; excludes software-first projects),
+ TÜBİTAK BiGG (no existing company stakes; via an accelerator; company in Turkey).
