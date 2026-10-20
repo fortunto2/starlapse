@@ -16,6 +16,7 @@ struct SkyDatasetConsentView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Sent: the sky reading, the camera settings, the photo, and where to about 10 km.")
                 Text("Never: your name, your exact location, or anything to identify you.")
+                Text("Published as open data under CC BY 4.0, so anyone can study it.")
                 Text("Change it or delete everything sent in Settings › SKY DATASET.")
             }
             .font(NightTheme.mono(10))

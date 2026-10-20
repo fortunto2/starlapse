@@ -75,10 +75,14 @@ at a known time pins down where on Earth they were seen, and whole degrees keep 
 about 100 km, coarser than the rounded location itself. A detector session sends the meteors it placed on the sky (time,
 start and end direction, length, the shower they belong to), without the video clips.
 
-It goes to our own server at api.starlapse.app and is kept there to study light
-pollution and meteor activity. Nothing is published with your identity, and the photos are
-not shown to anyone else. **Delete everything I contributed** in Settings › SKY DATASET
-erases every reading and photo sent from this phone, on the server, at once.
+It goes to our own server at api.starlapse.app, and from there into an open scientific
+dataset, published under CC BY 4.0 (on Zenodo, Hugging Face and GitHub) so anyone can study
+light pollution and meteor activity with it. The published copy carries no contributor
+identifier at all, only a one-way code that groups one phone's readings together; nothing in
+it names you. **Delete everything I contributed** in Settings › SKY DATASET
+erases every reading and photo sent from this phone, on the server, at once, and keeps them
+out of every later release. Copies already downloaded from an earlier release cannot be
+recalled; that is what open data means, and why the location in it is coarse.
 
 **Crash reports** are kept on the phone and sent only when you tap Send in the controls
 panel. They contain the camera's error message and the code path, never a photo or a

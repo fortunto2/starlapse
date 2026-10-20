@@ -118,6 +118,7 @@
  "Peak nights": "Sources/Starlapse/Views/ProPaywallView.swift",
  "Pinpoint stars": "Sources/Starlapse/Models/CaptureSettings.swift",
  "Planets up": "Sources/Starlapse/Views/StatusPanels.swift",
+ "Published as open data under CC BY 4.0, so anyone can study it.": "Sources/Starlapse/Views/SkyDatasetConsentView.swift",
  "RADIANT · %@": "Sources/Starlapse/Views/SkyOverlayView.swift",
  "RESTORE PURCHASE": "Sources/Starlapse/Views/ManualControlsView.swift",
  "Radiant stays under %.0f° in darkness at this latitude.": "Sources/Starlapse/Views/EventsView.swift",

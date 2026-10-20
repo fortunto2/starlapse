@@ -40,7 +40,7 @@ E. Before the first real data
  [x] E1 send the raw measurement, not just the result: matched stars (V, B−V, flux,
         background, altitude) + solved pointing + `meterVersion`, so the whole dataset can
         be recomputed server-side when the calibration improves (colour term, extinction)
- [ ] E2 pick the data licence (CC BY for aggregates?) and name it in the consent text
+ [x] E2 CC BY 4.0, named in the consent text, PRIVACY.md and the site
 F. Wow, in order of strength
  [ ] F1 public night-sky globe: one dot per reading coloured by Bortle, no photos (no
         moderation), works with ten users; the link for press, Reddit, astro forums

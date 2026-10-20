@@ -17,3 +17,4 @@ Makefile.local
 server/node_modules/
 server/.wrangler/
 .playwright-mcp/
+server/dataset/out/

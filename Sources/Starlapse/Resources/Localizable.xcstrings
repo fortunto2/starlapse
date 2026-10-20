@@ -6903,6 +6903,64 @@
         }
       }
     },
+    "Published as open data under CC BY 4.0, so anyone can study it.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تُنشر كبيانات مفتوحة بترخيص CC BY 4.0 ليتمكن أي أحد من دراستها."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veröffentlicht als offene Daten unter CC BY 4.0, damit jeder damit forschen kann."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publicado como datos abiertos bajo CC BY 4.0, para que cualquiera pueda estudiarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publié en données ouvertes sous CC BY 4.0, pour que chacun puisse l’étudier."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CC BY 4.0 के तहत खुले डेटा के रूप में प्रकाशित, ताकि कोई भी इसका अध्ययन कर सके।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pubblicati come dati aperti con licenza CC BY 4.0, perché chiunque possa studiarli."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "誰でも研究できるよう、CC BY 4.0 のオープンデータとして公開されます。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herkesin inceleyebilmesi için CC BY 4.0 lisansıyla açık veri olarak yayımlanır."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以 CC BY 4.0 作为开放数据发布，任何人都可以研究。"
+          }
+        }
+      }
+    },
     "RADIANT · %@": {
       "localizations": {
         "ar": {
