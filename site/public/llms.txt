@@ -1,0 +1,29 @@
+# Starlapse
+
+> Long-exposure night sky camera for iPhone. An iPhone frame caps at about one second, so Starlapse stacks hundreds of one-second frames, aligned on the stars, into one long exposure. Free on the App Store; Starlapse Pro (one-time $4.99) adds meteor shower events and where to aim for them.
+
+- App Store: https://apps.apple.com/app/id6801191027
+- Source code (MIT): https://github.com/fortunto2/starlapse
+- Privacy policy: https://starlapse.app/privacy/
+
+## What it does
+
+- Manual camera that stays locked: ISO, shutter, focus, white balance, lens
+- Stacking from 10 seconds to an hour of collected light; pinpoint stars (aligned on the stars), star trails, clean landscape
+- Night time-lapse where every frame is its own stack
+- Meteor detector: keeps clips of anything that crosses the sky, places each meteor on the sky and names its shower
+- Aiming overlay: planets, bright stars, the Moon, the Milky Way; where to point for tonight's meteor shower (40° off the radiant, clear of the Moon), for the user's location
+- Shower alerts: a local notification on the evening of each good meteor night from the user's location
+- Sky meter (1.1): sky brightness in magnitudes per square arcsecond, Bortle class and naked-eye limiting magnitude, computed from the catalogue stars (Yale Bright Star Catalogue) in each stack
+- Optional sky dataset: readings and photos contributed for light-pollution research, location rounded to about 10 km, deletable from the app
+
+## Honest limits
+
+- iPhone aperture is fixed; the app shows what each lens gives up
+- A single frame is about one second; everything longer is stacked
+- iOS stops the camera in the background; the app keeps the screen on and dims it
+- A tripod is required
+
+## Languages
+
+App: English, Hindi, Chinese (Simplified), Japanese, French, Arabic, German, Italian, Turkish, Spanish.

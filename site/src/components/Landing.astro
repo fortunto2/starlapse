@@ -27,6 +27,15 @@ const feats = [
   { k: 'ALERTS', t: 'Good nights, announced', d: 'A reminder on the evening of each shower worth staying up for from where you are. Local, nothing sent.' },
 ];
 
+const faq = [
+  { q: 'Can an iPhone really take a long exposure of the night sky?', a: 'Not in one frame: the sensor caps a single exposure at about one second. Starlapse takes hundreds of one-second frames, aligns them on the stars, and combines them, so ten minutes or an hour of light ends up in one picture with far less noise.' },
+  { q: 'Do I need a tripod?', a: 'Yes. Stacking takes minutes, and the phone has to stay still for all of them. Any small tripod or a stable surface works.' },
+  { q: 'Which iPhone works best?', a: 'Any iPhone on iOS 18 or later. The lens with the widest aperture gathers the most light; the app shows the f-number of each lens and what it gives up.' },
+  { q: 'Where should I point for a meteor shower?', a: 'Not at the radiant: meteors streak away from it, so the longest trails appear about 40° to the side. Starlapse works that out for your location and the hour, keeps you clear of the Moon, and shows an arrow to the spot.' },
+  { q: 'How does it measure how dark my sky is?', a: 'The stars in a stack are a light meter. The app identifies them in the Yale Bright Star Catalogue, compares each with the sky right around it, and reports the sky brightness in magnitudes per square arcsecond with a Bortle class, the way a Sky Quality Meter does.' },
+  { q: 'Is it free?', a: 'Yes, every camera feature is free. Starlapse Pro is a one-time $4.99 purchase that adds meteor shower events and where to aim for them. No subscription, no account, no ads.' },
+];
+
 const shots = [
   { img: '/img/02-stacking.jpg', cap: 'An hour of light, from one-second frames' },
   { img: '/img/01-aiming.jpg', cap: 'Planets, bright stars, the Milky Way, where to aim' },
@@ -114,6 +123,25 @@ const shots = [
     </div>
   </div>
 </section>
+
+<section class="band">
+  <div class="wrap">
+    <p class="kicker">Questions</p>
+    <h2 class="h2">Asked before the first night out</h2>
+    <div class="faq">
+      {faq.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p>{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+<script type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+})} />
 
 <section>
   <div class="wrap">
@@ -207,6 +235,10 @@ const shots = [
   .row:last-child{border-bottom:0}
   .row b{font-size:28px;color:var(--accent)}
   .row span:last-child{text-align:right}
+  .faq{max-width:760px;margin:32px auto 0;display:grid;gap:10px}
+  .faq details{background:#000;border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+  .faq summary{cursor:pointer;font-weight:600}
+  .faq p{color:var(--dim);margin-top:10px}
   .limits{list-style:none;max-width:720px;margin:32px auto 0;display:grid;gap:14px}
   .limits li{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;color:var(--dim)}
   .limits b{color:var(--ink)}

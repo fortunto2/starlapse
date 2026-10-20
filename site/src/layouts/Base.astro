@@ -14,6 +14,8 @@ const { title, description } = Astro.props;
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
+  <meta property="og:site_name" content="Starlapse" />
   <meta property="og:image" content={new URL('/og.jpg', Astro.site).href} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -22,6 +24,18 @@ const { title, description } = Astro.props;
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <script type="application/ld+json" set:html={JSON.stringify([
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Starlapse', url: 'https://starlapse.app/' },
+    {
+      '@context': 'https://schema.org', '@type': 'MobileApplication', name: 'Starlapse',
+      operatingSystem: 'iOS 18 or later', applicationCategory: 'PhotographyApplication',
+      description: 'Long-exposure night sky camera for iPhone: stacking, star trails, night time-lapse, a meteor detector, where to aim for meteor showers, and sky brightness measured from every photo.',
+      url: 'https://starlapse.app/', downloadUrl: 'https://apps.apple.com/app/id6801191027',
+      image: 'https://starlapse.app/icon-512.png',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      publisher: { '@type': 'Organization', name: 'SuperDuperAI', url: 'https://superduperai.co' },
+    },
+  ])} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
@@ -33,11 +47,11 @@ const { title, description } = Astro.props;
 <body>
   <nav>
     <div class="wrap">
-      <a class="logo" href="/"><img src="/icon-64.png" width="28" height="28" alt="" />Starlapse</a>
+      <a class="logo" href="/"><img src="/icon-64.png" width="28" height="28" alt="Starlapse icon" />Starlapse</a>
       <div class="navlinks">
         <a href="/#how">How</a>
         <a href="/#sky">Sky meter</a>
-        <a href="/privacy">Privacy</a>
+        <a href="/privacy/">Privacy</a>
       </div>
     </div>
   </nav>
@@ -47,7 +61,7 @@ const { title, description } = Astro.props;
       <div class="flogo">Starlapse</div>
       <div class="flinks">
         <a href="https://github.com/fortunto2/starlapse">Source ↗</a>
-        <a href="/privacy">Privacy</a>
+        <a href="/privacy/">Privacy</a>
         <a href="mailto:info@superduperai.co">Contact</a>
       </div>
       <div class="copy">© 2026 SuperDuperAI · made for dark skies</div>
