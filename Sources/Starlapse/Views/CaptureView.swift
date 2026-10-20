@@ -20,14 +20,21 @@ struct CaptureView: View {
                 .ignoresSafeArea()
 
             if showsOverlay && !model.state.isReviewing {
+                let pointing = model.overlayPointing
                 SkyOverlayView(
                     plan: model.plan,
-                    aim: model.attitude.aim,
+                    aim: pointing.aim,
                     target: model.aimPoint?.direction,
                     hasFix: model.attitude.hasFullFix,
                     showsEvents: model.showsEvents,
                     showsAim: model.showsAim,
-                    fieldOfView: Double(model.settings.lens.fieldOfView)
+                    fieldOfView: Double(model.settings.lens.fieldOfView),
+                    imageRoll: pointing.roll,
+                    buffer: model.previewFrame.map {
+                        CGSize(width: $0.texture.width, height: $0.texture.height)
+                    } ?? CGSize(width: 3, height: 4),
+                    fieldScale: pointing.fieldScale,
+                    isLocked: pointing.isLocked
                 )
                 .ignoresSafeArea()
             }
@@ -97,6 +104,7 @@ struct CaptureView: View {
         .task {
             model.startSkyUpdates()
             await model.prepare()
+            model.startSkyLock()
             #if DEBUG
             await applyScreenshotHooks()
             #endif

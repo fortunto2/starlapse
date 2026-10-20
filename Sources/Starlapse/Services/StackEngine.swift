@@ -191,6 +191,8 @@ final class StackEngine: @unchecked Sendable {
         // interrupted to answer one.
         if plan.isFraming, let luminance = accumulator.readLuminance(from: frame.pixelBuffer) {
             reportFocusIfRequested(luminance)
+            // And for the overlay's sky lock, which solves a framing frame every few seconds.
+            latestLuminance = LumaImage(pixels: luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
         }
 
         var transform: simd_float3x3?

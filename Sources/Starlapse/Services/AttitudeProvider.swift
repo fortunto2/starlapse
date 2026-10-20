@@ -30,6 +30,8 @@ final class AttitudeProvider: NSObject {
     /// Rotation of the device about the view axis, radians — used to keep overlay labels
     /// upright when the phone is on its side.
     private(set) var roll: Double = 0
+    /// The preview image's turn about the lens axis, degrees — see `PreviewGeometry`.
+    private(set) var imageRoll: Double = 0
     private(set) var location: GeographicCoordinates?
     private(set) var isHeadingAvailable = false
     private(set) var authorizationDenied = false
@@ -182,6 +184,8 @@ final class AttitudeProvider: NSObject {
 
         aim = HorizontalCoordinates(azimuth: azimuth, altitude: altitude)
         roll = motion.attitude.roll
+        // World up in the phone's own axes is the third column of reference → body.
+        imageRoll = PreviewGeometry.imageRoll(worldUpX: rotation.m13, worldUpY: rotation.m23)
     }
 }
 

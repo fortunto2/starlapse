@@ -134,13 +134,31 @@ public struct PlateMatch: Sendable {
     static func refined(
         _ pointing: CameraPointing, by correction: Correction, width: Int, height: Int
     ) -> CameraPointing {
-        let middle = (Double(width) / 2, Double(height) / 2)
-        let source = correction.invert(middle)
-        var next = pointing
-        next.center = pointing.direction(x: source.x, y: source.y, width: width, height: height)
-        // An image turned clockwise by θ is a camera rolled the other way.
-        next.roll = pointing.roll - correction.rotationDegrees
-        let focal = pointing.focalLength(width: width) * correction.scale
+        // Two measured points, the centre and one straight above it, and the directions the
+        // old pointing says they look at. The new pointing is whatever puts them back there.
+        //
+        // Reading roll off the fit's rotation instead was wrong whenever the centre moved
+        // sideways: away from the horizon, a few degrees of azimuth also turn the field
+        // (the meridians converge toward the zenith), so the fit's rotation is partly the
+        // move itself. Subtracting all of it as roll sent a 6° compass error at 45° up to a
+        // false solution — 18 of 150 stars matched and the roll 3.5° out. Projecting a
+        // second point counts the move once.
+        let cx = Double(width) / 2
+        let cy = Double(height) / 2
+        let step = 0.25 * Double(width)
+        let centre = correction.invert((cx, cy))
+        let above = correction.invert((cx, cy - step))
+        var next = CameraPointing(
+            center: pointing.direction(x: centre.x, y: centre.y, width: width, height: height),
+            roll: 0,
+            horizontalFieldOfView: pointing.horizontalFieldOfView
+        )
+        let up = pointing.direction(x: above.x, y: above.y, width: width, height: height)
+        guard let drawn = next.project(up, width: width, height: height) else { return pointing }
+        let vx = drawn.x - cx
+        let vy = cy - drawn.y
+        next.roll = (90 - atan2(vy, vx).degrees).signedDegrees
+        let focal = next.focalLength(width: width) * step / hypot(vx, vy)
         next.horizontalFieldOfView = 2 * atan(Double(width) / 2 / focal).degrees
         return next
     }

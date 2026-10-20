@@ -76,6 +76,9 @@ final class CaptureViewModel {
     var alertsTask: Task<Void, Never>?
     /// The sky under the last stack, measured from its stars. See `SkyMeter`.
     var sky = SkyMeasurement()
+    /// The stars' correction to the compass, for the overlay — see `SkyLock`.
+    var skyLock: SkyLock?
+    var skyLocking: Task<Void, Never>?
     /// Day and place the forecasts were computed for. Written by the forecast extension in
     /// the file next door, so not `private`.
     var forecastKey: String?

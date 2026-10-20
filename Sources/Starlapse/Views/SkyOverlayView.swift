@@ -19,8 +19,16 @@ struct SkyOverlayView: View {
     /// The aim target and the arrow to it.
     let showsAim: Bool
 
-    /// Horizontal field of view of the current lens, for projecting sky onto screen.
+    /// The lens's field of view across the sensor's long side.
     let fieldOfView: Double
+    /// How far the image is turned about the lens axis — see `PreviewGeometry.imageRoll`.
+    let imageRoll: Double
+    /// The preview buffer as delivered, portrait. Its shape decides the letterbox.
+    let buffer: CGSize
+    /// The stars' correction to the field of view; 1 until the sky is locked.
+    var fieldScale: Double = 1
+    /// Markers placed from a plate solve of the live view, not from the compass alone.
+    var isLocked = false
 
     /// The landmark last tapped, with where it was drawn and how many times in a row.
     @State private var tapped: StarTap?
@@ -45,6 +53,9 @@ struct SkyOverlayView: View {
                         }
                     }
                     horizonLine(in: geometry.size)
+                    if isLocked {
+                        lockBadge(in: geometry.size)
+                    }
                     guidanceOverlay
                     if let tapped {
                         StarInfoBubble(tap: tapped)
@@ -76,28 +87,16 @@ struct SkyOverlayView: View {
 
     // MARK: - Projection
 
-    /// Gnomonic-ish projection of a sky direction onto the screen.
-    ///
-    /// Accurate near the centre and increasingly wrong toward the edges, which is the right
-    /// trade: a marker 60° off-axis only needs to say "that way", while one near the middle
-    /// needs to sit on the star it names.
+    /// A sky direction on the screen, by the plate solver's own camera model. See
+    /// `PreviewGeometry` for the two errors the earlier flat sketch made.
     private func project(_ target: HorizontalCoordinates, in size: CGSize) -> CGPoint? {
-        let deltaAzimuth = (target.azimuth - aim.azimuth).signedDegrees
-        let deltaAltitude = target.altitude - aim.altitude
+        geometry(in: size).project(target)
+    }
 
-        let halfField = fieldOfView / 2
-        guard abs(deltaAzimuth) < halfField * 1.4, abs(deltaAltitude) < halfField * 1.4 else {
-            return nil
-        }
-
-        // Azimuth compresses toward the zenith — a degree of azimuth covers less sky the
-        // higher you look.
-        let horizontalScale = cos(aim.altitude.radians)
-        let pixelsPerDegree = size.width / fieldOfView
-
-        return CGPoint(
-            x: size.width / 2 + deltaAzimuth * horizontalScale * pixelsPerDegree,
-            y: size.height / 2 - deltaAltitude * pixelsPerDegree
+    private func geometry(in size: CGSize) -> PreviewGeometry {
+        PreviewGeometry(
+            aim: aim, imageRoll: imageRoll, lensFieldOfView: fieldOfView, buffer: buffer, view: size,
+            fieldScale: fieldScale
         )
     }
 
@@ -269,16 +268,34 @@ struct SkyOverlayView: View {
         }
     }
 
-    /// A horizon reference, so tilt is readable without looking away from the sky.
+    /// A horizon reference, so tilt is readable without looking away from the sky. Drawn
+    /// through two points of the real horizon, so it tilts with the phone.
+    @ViewBuilder
     private func horizonLine(in size: CGSize) -> some View {
-        let pixelsPerDegree = size.width / fieldOfView
-        let offset = aim.altitude * pixelsPerDegree
-
-        return Path { path in
-            path.move(to: CGPoint(x: 0, y: size.height / 2 + offset))
-            path.addLine(to: CGPoint(x: size.width, y: size.height / 2 + offset))
+        let geometry = geometry(in: size)
+        if let left = geometry.project(HorizontalCoordinates(azimuth: aim.azimuth - 10, altitude: 0)),
+           let right = geometry.project(HorizontalCoordinates(azimuth: aim.azimuth + 10, altitude: 0)),
+           hypot(right.x - left.x, right.y - left.y) > 1 {
+            // Extended well past both edges; the view clips what falls outside.
+            let reach = 4 * max(size.width, size.height) / hypot(right.x - left.x, right.y - left.y)
+            let from = CGPoint(x: left.x - (right.x - left.x) * reach, y: left.y - (right.y - left.y) * reach)
+            let to = CGPoint(x: right.x + (right.x - left.x) * reach, y: right.y + (right.y - left.y) * reach)
+            Path { path in
+                path.move(to: from)
+                path.addLine(to: to)
+            }
+            .stroke(NightTheme.dim.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [3, 6]))
         }
-        .stroke(NightTheme.dim.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [3, 6]))
+    }
+
+    /// Says the markers come from the stars themselves, so a person knows they can trust
+    /// "that dot is Vega" to the pixel.
+    private func lockBadge(in size: CGSize) -> some View {
+        Text("LOCKED TO STARS")
+            .font(NightTheme.mono(9, weight: .bold))
+            .foregroundStyle(NightTheme.accent)
+            .skyLegible()
+            .position(x: size.width / 2, y: geometry(in: size).imageRect.minY + 14)
     }
 
     // MARK: - Guidance
