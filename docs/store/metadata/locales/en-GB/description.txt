@@ -26,7 +26,7 @@ Autofocus cannot see a night sky — there is no contrast to hunt on — and the
 
 DEVELOP AFTERWARDS
 
-The stack is kept as accumulated light, not as a finished picture. When the exposure ends you can move the curve — stretch, black point, exposure, saturation — and it re-develops from the original data. Same latitude a RAW file gives you, which matters when you are judging a night sky on a phone screen in the dark.
+The stack is kept as accumulated light, not as a finished picture. When the exposure ends you can move the curve — stretch, black point, exposure, saturation — and it re-develops from the original data. Same latitude a RAW file gives you.
 
 The curve is asinh, the one professional astronomical imaging uses. It lifts the faint Milky Way out of the noise while bright stars keep their cores and their colour instead of clipping to white discs.
 
@@ -39,7 +39,7 @@ HONEST LIMITS
 
 PRIVACY
 
-No account, no server of ours. Location and motion are used on the device to work out where to aim, and never leave it. Two things leave the phone: the optional purchase below, to Apple, and a usage counter you can switch off. The source is public: github.com/fortunto2/starlapse.
+No account. Location and motion stay on the device. What leaves the phone: the optional purchase below, to Apple; a usage counter you can switch off; and, only if you say yes, sky readings and photos for a light-pollution dataset (location to ~10 km, deletable in Settings). Source: github.com/fortunto2/starlapse.
 
 STARLAPSE PRO
 

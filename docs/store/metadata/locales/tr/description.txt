@@ -39,7 +39,7 @@ DÜRÜST SINIRLAR
 
 GİZLİLİK
 
-Hesap yok, bize ait sunucu yok. Konum ve hareket verileri nişan yönünü hesaplamak için cihazda kullanılır ve cihazı asla terk etmez. Telefondan iki şey çıkar: aşağıdaki isteğe bağlı satın alma, Apple'a; ve kapatabileceğiniz bir kullanım sayacı. Kaynak kodu açıktır: github.com/fortunto2/starlapse
+Hesap yok. Konum ve hareket cihazda kalır. Telefondan çıkanlar: aşağıdaki isteğe bağlı satın alma, Apple'a; kapatılabilen bir kullanım sayacı; ve yalnızca onay verirsen, ışık kirliliği veri seti için gökyüzü ölçümleri ve fotoğraflar (konum ~10 km, Ayarlar'dan silinebilir). Kaynak: github.com/fortunto2/starlapse
 
 STARLAPSE PRO
 

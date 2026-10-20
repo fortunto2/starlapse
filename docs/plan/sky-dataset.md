@@ -34,3 +34,16 @@ D. Feed (later, asked 2026-10-19)
  [ ] D3 what App Review 1.2 then requires: report, block, filter, a contact, takedown
  Notes: B uses a plate solve of a watched frame (5 s in, then every 60 s until it holds);
  without one a meteor is kept as a clip but not placed on the sky.
+
+## Next (decided 2026-10-20)
+E. Before the first real data
+ [ ] E1 send the raw measurement, not just the result: matched stars (V, B−V, flux,
+        background, altitude) + solved pointing + `meterVersion`, so the whole dataset can
+        be recomputed server-side when the calibration improves (colour term, extinction)
+ [ ] E2 pick the data licence (CC BY for aggregates?) and name it in the consent text
+F. Wow, in order of strength
+ [ ] F1 public night-sky globe: one dot per reading coloured by Bortle, no photos (no
+        moderation), works with ten users; the link for press, Reddit, astro forums
+ [ ] F2 after a shot: "your sky 20.8, darker than 70% of readings in Spain"
+ [ ] F3 share card "You caught an Orionid": the trail on a star chart, shower, time
+ [ ] F4 two phones, one meteor: triangulate, show its orbit (needs density; later)
