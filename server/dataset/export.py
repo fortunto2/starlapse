@@ -5,7 +5,11 @@
 """Build a release of the Starlapse sky dataset and publish it.
 
     uv run server/dataset/export.py build            # → server/dataset/out/<version>/
-    uv run server/dataset/export.py publish --to hf,zenodo,github
+    uv run server/dataset/export.py publish --to github,hf     # zenodo via the GitHub release
+
+Same shape as the genealogy datasets: one GitHub repo per dataset (fortunto2/starlapse-sky-data),
+a DOI from Zenodo for each release, CC BY 4.0. `--to zenodo` uploads directly through the
+Zenodo API instead (photos included), for when a release must carry them.
 
 What goes in: every row of D1 `observations` and its photo from R2, with one change: the
 contributor id is replaced by a salted one-way code. The real id is the bearer secret for
@@ -34,6 +38,7 @@ ACCOUNT = "33dec9645c443eef5859b1e10ce71e01"
 DATABASE = "starlapse-sky"
 BUCKET = "starlapse-sky"
 HF_REPO = "superduperai/starlapse-sky"
+DATA_REPO = "fortunto2/starlapse-sky-data"
 SALT_FILE = pathlib.Path.home() / ".config" / "starlapse" / "dataset-salt"
 
 COLUMNS = [
@@ -153,9 +158,23 @@ def publish_zenodo(target: pathlib.Path) -> None:
 
 
 def publish_github(target: pathlib.Path) -> None:
-    archive = shutil.make_archive(str(OUT / f"starlapse-sky-{target.name}"), "zip", target)
-    subprocess.run(["gh", "release", "create", f"dataset-{target.name}", archive, "--repo", "fortunto2/starlapse",
+    """Tables into fortunto2/starlapse-sky-data, then a release. Zenodo's GitHub integration
+    archives every release of that repo with a DOI (switched on once per repo at
+    zenodo.org/account/settings/github), the same way the genealogy datasets are published.
+    Zenodo archives the repository, not release assets, so the photos stay on Hugging Face.
+    """
+    work = OUT / "starlapse-sky-data"
+    shutil.rmtree(work, ignore_errors=True)
+    subprocess.run(["gh", "repo", "clone", DATA_REPO, str(work)], check=True)
+    for name in ("observations.csv", "stars.csv", "meteors.csv", "README.md"):
+        shutil.copy(target / name, work / name)
+    git = ["git", "-C", str(work)]
+    subprocess.run([*git, "add", "-A"], check=True)
+    subprocess.run([*git, "commit", "-m", f"Release {target.name}"], check=True)
+    subprocess.run([*git, "push"], check=True)
+    subprocess.run(["gh", "release", "create", f"v{target.name}", "--repo", DATA_REPO,
                     "--title", f"Sky dataset {target.name}", "--notes-file", str(target / "README.md")], check=True)
+    print(f"GitHub: https://github.com/{DATA_REPO}/releases/tag/v{target.name} (Zenodo mints the DOI)")
 
 
 def main() -> None:
@@ -163,7 +182,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("build")
     publish = sub.add_parser("publish")
-    publish.add_argument("--to", default="hf,zenodo,github")
+    publish.add_argument("--to", default="github,hf")
     args = parser.parse_args()
     if args.command == "build":
         build()
