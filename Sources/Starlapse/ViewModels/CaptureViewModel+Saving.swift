@@ -13,11 +13,14 @@ extension CaptureViewModel {
             lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
             return
         }
+        let credited = Watermark.applies(isPro: entitlements.isPro)
         do {
-            try await PhotoLibraryWriter.write(rendered)
+            try await PhotoLibraryWriter.write(credited ? Watermark.stamped(rendered) : rendered)
             lastSavedMessage = String(format: String(localized: "Saved %d frames to Photos."), progress.framesStacked)
             Analytics.track(
-                "capture_saved", props: ["kind": "photo"], metrics: ["frames": Double(progress.framesStacked)]
+                "capture_saved",
+                props: ["kind": "photo", "watermark": credited ? "true" : "false"],
+                metrics: ["frames": Double(progress.framesStacked)]
             )
             await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
             // Not awaited: Save is done when the photo is in the library, not when a
@@ -39,7 +42,9 @@ extension CaptureViewModel {
                 format: String(localized: "Saved %d-frame time-lapse to Photos."), progress.segmentsCompleted
             )
             Analytics.track(
-                "capture_saved", props: ["kind": "video"], metrics: ["frames": Double(progress.segmentsCompleted)]
+                "capture_saved",
+                props: ["kind": "video", "watermark": Watermark.applies(isPro: entitlements.isPro) ? "true" : "false"],
+                metrics: ["frames": Double(progress.segmentsCompleted)]
             )
             await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
         } catch {

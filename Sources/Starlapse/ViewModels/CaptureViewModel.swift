@@ -337,7 +337,8 @@ final class CaptureViewModel {
             let writer = try? TimelapseWriter(
                 width: accumulator?.width ?? 1920,
                 height: accumulator?.height ?? 1080,
-                frameRate: timelapseSettings.outputFrameRate
+                frameRate: timelapseSettings.outputFrameRate,
+                watermark: Watermark.applies(isPro: entitlements.isPro)
             )
             timelapseWriter = writer
 

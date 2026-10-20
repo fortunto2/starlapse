@@ -15,6 +15,8 @@ struct ProPaywallView: View {
          String(localized: "The target 40° off the radiant and clear of the Moon, with the arrow to it.")),
         (String(localized: "Peak nights"),
          String(localized: "When each shower peaks, and the Moon-free window around it.")),
+        (String(localized: "Clean exports"),
+         String(localized: "Photos and time-lapses saved without the small Starlapse credit in the corner.")),
         (String(localized: "Everything coming"),
          String(localized: "Comets, conjunctions, eclipses, dark frames: added to Pro, never charged again.")),
     ]

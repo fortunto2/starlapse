@@ -55,6 +55,10 @@ struct CaptureView: View {
                         StatusPanels(model: model)
                     }
                     if !model.state.isCapturing {
+                        if case .still = model.mode {
+                            LightPicker(model: model)
+                                .padding(.top, 8)
+                        }
                         modeSwitcher
                     }
                     controlBar
@@ -207,41 +211,6 @@ struct CaptureView: View {
     }
 
     // MARK: - Mode
-
-    private var modeSwitcher: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 6) {
-                modeButton("Exposure", isOn: !model.mode.isTimelapse && !model.mode.isDetector) {
-                    model.mode = .still
-                }
-                modeButton("Time-lapse", isOn: model.mode.isTimelapse) {
-                    model.mode = .timelapse(model.timelapse)
-                }
-                modeButton("Detector", isOn: model.mode.isDetector) {
-                    model.mode = .detector(model.detectorSettings)
-                }
-            }
-            Text(model.mode.explanation)
-                .font(NightTheme.mono(9))
-                .foregroundStyle(NightTheme.dim)
-        }
-        .padding(.top, 8)
-    }
-
-    private func modeButton(_ title: LocalizedStringKey, isOn: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(NightTheme.mono(11, weight: isOn ? .bold : .regular))
-                .foregroundStyle(isOn ? Color.black : NightTheme.dim)
-                .frame(maxWidth: .infinity, minHeight: 34)
-                .background(isOn ? NightTheme.primary : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isOn ? Color.clear : NightTheme.dim.opacity(0.5), lineWidth: 1)
-                )
-        }
-    }
 
     // MARK: - Controls
 
@@ -436,5 +405,46 @@ extension CaptureView {
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(NightTheme.background.opacity(0.75), in: Capsule())
+    }
+}
+
+// MARK: - Mode
+
+// Out of the type body to keep it inside SwiftLint's length limit.
+extension CaptureView {
+
+    private var modeSwitcher: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 6) {
+                modeButton("Exposure", isOn: !model.mode.isTimelapse && !model.mode.isDetector) {
+                    model.mode = .still
+                }
+                modeButton("Time-lapse", isOn: model.mode.isTimelapse) {
+                    model.mode = .timelapse(model.timelapse)
+                }
+                modeButton("Detector", isOn: model.mode.isDetector) {
+                    model.mode = .detector(model.detectorSettings)
+                }
+            }
+            Text(model.mode.explanation)
+                .font(NightTheme.mono(9))
+                .foregroundStyle(NightTheme.dim)
+        }
+        .padding(.top, 8)
+    }
+
+    private func modeButton(_ title: LocalizedStringKey, isOn: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(NightTheme.mono(11, weight: isOn ? .bold : .regular))
+                .foregroundStyle(isOn ? Color.black : NightTheme.dim)
+                .frame(maxWidth: .infinity, minHeight: 34)
+                .background(isOn ? NightTheme.primary : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isOn ? Color.clear : NightTheme.dim.opacity(0.5), lineWidth: 1)
+                )
+        }
     }
 }

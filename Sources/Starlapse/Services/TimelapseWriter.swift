@@ -17,14 +17,17 @@ final class TimelapseWriter: @unchecked Sendable {
     private let frameRate: Int
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "timelapse")
     private var started = false
+    /// Decided when the session starts: a purchase mid-shoot does not split one clip in two.
+    private let watermark: Bool
 
     let outputURL: URL
 
-    init(width: Int, height: Int, frameRate: Int) throws {
+    init(width: Int, height: Int, frameRate: Int, watermark: Bool = false) throws {
         let filename = "starlapse-\(Int(Date().timeIntervalSince1970)).mov"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
         self.outputURL = url
         self.frameRate = frameRate
+        self.watermark = watermark
 
         let stack = try VideoWriterFactory.make(width: width, height: height, to: url)
         writer = stack.writer
@@ -63,6 +66,16 @@ final class TimelapseWriter: @unchecked Sendable {
                 from: MTLRegionMake2D(0, 0, width, height),
                 mipmapLevel: 0
             )
+            if watermark, let context = Watermark.context(
+                over: base,
+                width: CVPixelBufferGetWidth(pixelBuffer),
+                height: CVPixelBufferGetHeight(pixelBuffer),
+                bytesPerRow: bytesPerRow
+            ) {
+                Watermark.stamp(
+                    context, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer)
+                )
+            }
         }
 
         // Wait rather than drop: an output frame here cost minutes of sky time.
