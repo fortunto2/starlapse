@@ -7,9 +7,10 @@ permalink: /privacy/
 
 **Last updated: 20 October 2026**
 
-Starlapse has no account and no server of its own. Your photographs, your location and the
-direction you point the phone never leave it. The app makes two kinds of network request,
-both listed below, and one of them you can switch off.
+Starlapse has no account. Your photographs, your location and the direction you point the
+phone stay on it, unless you choose to join the sky dataset, and then only in the coarsened
+form described below. Every network request the app makes is listed here, and each one
+except the purchase can be switched off.
 
 That is unusual enough for a camera app that the rest of this document exists mainly to be
 specific about it.
@@ -62,11 +63,16 @@ nothing is sent, including events already waiting to be sent.
 stars in it. If you choose to contribute (the app asks once, after your first saved photo,
 and the answer can be changed in Settings › SKY DATASET), each saved stack sends: that sky
 reading (brightness in magnitudes per square arcsecond, the naked-eye limit, the Bortle
-class, how many stars it was measured from, the direction the camera pointed), the camera
+class, the direction the camera pointed in whole degrees, and the stars it was measured
+from: each one's catalogue magnitude and colour, its measured brightness and the sky around
+it, and its height in whole degrees), the camera
 settings (lens, ISO, shutter, frame count, field of view, iPhone model), a 2048-pixel JPEG
 of the photo, the time it was taken, your location rounded to 0.1° (about 10 km), the app
 version and a random contributor identifier made on this phone (not the usage counter's,
-not your Apple ID). A detector session sends the meteors it placed on the sky (time,
+not your Apple ID; it is kept in the iOS Keychain so a later delete still reaches it after
+a reinstall). Directions are rounded to whole degrees on purpose: the height of known stars
+at a known time pins down where on Earth they were seen, and whole degrees keep that to
+about 100 km, coarser than the rounded location itself. A detector session sends the meteors it placed on the sky (time,
 start and end direction, length, the shower they belong to), without the video clips.
 
 It goes to our own server at api.starlapse.app and is kept there to study light
@@ -99,8 +105,8 @@ folder.
 
 ## Children
 
-Starlapse is not directed at children and collects no personal information from anyone,
-regardless of age.
+Starlapse is not directed at children. It collects nothing that identifies a person; the
+sky dataset, if joined, holds coarse locations and sky photos under a random identifier.
 
 ## Changes
 

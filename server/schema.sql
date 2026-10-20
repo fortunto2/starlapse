@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS observations (
   matched_stars INTEGER,
   altitude REAL,
   azimuth REAL,
+  meter_version INTEGER,
+  stars TEXT,
   camera TEXT NOT NULL,
   meteors TEXT,
   photo_key TEXT,

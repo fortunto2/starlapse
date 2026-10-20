@@ -125,6 +125,12 @@ struct SkyMeterTests {
             ), "sky \(sky)")
             #expect(abs(reading.skyBrightness - sky) < 0.15, "sky \(sky) read \(reading.skyBrightness)")
             #expect(reading.uncertainty < 0.1)
+            // The raw stars travel with it, and every direction is whole degrees.
+            #expect(reading.stars.count >= 6)
+            #expect(reading.stars.count == min(reading.matchedStars, 100))
+            #expect(reading.altitude == reading.altitude.rounded())
+            #expect(reading.stars.allSatisfy { $0.altitude == $0.altitude.rounded() })
+            #expect(reading.meterVersion == SkyReading.currentMeterVersion)
         }
     }
 

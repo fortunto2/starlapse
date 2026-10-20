@@ -25,9 +25,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Starlapse needs the camera to capture long-exposure photographs of the night sky.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location and compass heading are used to compute where meteor shower radiants, the Moon and bright stars sit in the sky right now, so the app can point you at them.</string>
+	<string>Your location and compass heading are used to compute where meteor shower radiants, the Moon and bright stars sit in the sky right now, so the app can point you at them. If you join the sky dataset, it is sent rounded to about 10 km.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>Device motion tells the app where the camera is aimed, so the sky overlay stays aligned with what you see. It works in complete darkness, unlike ARKit.</string>
+	<string>Device motion tells the app where the camera is aimed, so the sky overlay stays aligned with what you see. It works in complete darkness, unlike ARKit. If you join the sky dataset, each photo's direction is sent in whole degrees.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Starlapse saves your finished star stacks and time-lapses to your photo library.</string>
 	<key>UIApplicationSceneManifest</key>

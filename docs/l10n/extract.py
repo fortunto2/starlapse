@@ -47,6 +47,18 @@ for path in sorted(SRC.rglob("*.swift")):
             key = key.replace('\\"', '"').replace("\\n", "\n")
             keys.setdefault(key, rel)
 
+# Multi-line literals: Text(""" ... """). Swift strips the indentation of the closing
+# delimiter and joins lines that end in a backslash, so the key is that joined text.
+MULTILINE = re.compile(r'(?<![A-Za-z.])Text\(\s*"""\n(.*?)\n([ \t]*)"""\s*\)', re.S)
+for path in sorted(SRC.rglob("*.swift")):
+    for match in MULTILINE.finditer(path.read_text()):
+        indent = len(match.group(2))
+        lines = [line[indent:] for line in match.group(1).split("\n")]
+        key = ""
+        for line in lines:
+            key += line[:-1] if line.endswith("\\") else line + "\n"
+        keys.setdefault(key.rstrip("\n"), str(path.relative_to(ROOT)))
+
 # ToneControls labels are plain Strings wrapped in LocalizedStringKey at the call site.
 for key in ("Stretch (asinh)", "Black point", "Exposure", "Saturation"):
     keys.setdefault(key, "Sources/Starlapse/Views/ToneControls.swift")

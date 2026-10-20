@@ -37,7 +37,7 @@ D. Feed (later, asked 2026-10-19)
 
 ## Next (decided 2026-10-20)
 E. Before the first real data
- [ ] E1 send the raw measurement, not just the result: matched stars (V, B−V, flux,
+ [x] E1 send the raw measurement, not just the result: matched stars (V, B−V, flux,
         background, altitude) + solved pointing + `meterVersion`, so the whole dataset can
         be recomputed server-side when the calibration improves (colour term, extinction)
  [ ] E2 pick the data licence (CC BY for aggregates?) and name it in the consent text

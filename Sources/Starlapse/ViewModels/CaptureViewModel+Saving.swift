@@ -20,7 +20,9 @@ extension CaptureViewModel {
                 "capture_saved", props: ["kind": "photo"], metrics: ["frames": Double(progress.framesStacked)]
             )
             await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
-            await contribute(rendered)
+            // Not awaited: Save is done when the photo is in the library, not when a
+            // dataset upload over a field's one bar of signal finishes.
+            Task { await contribute(rendered) }
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }

@@ -6,6 +6,7 @@ import Testing
 
 /// The wire format is a promise to the server and to PRIVACY.md: these pin both.
 @Suite("Sky dataset")
+@MainActor
 struct SkyDatasetTests {
 
     static let start = SkyMeasurement.Start(
@@ -36,7 +37,10 @@ struct SkyDatasetTests {
     func wireFormat() throws {
         let reading = SkyReading(
             skyBrightness: 20.8, uncertainty: 0.05, nakedEyeLimit: 6.1, bortle: 4, stackLimit: 9.2,
-            matchedStars: 140, altitude: 45, azimuth: 60
+            matchedStars: 140, altitude: 45.37, azimuth: 60.2,
+            stars: [StarSample(
+                magnitude: 2.1, colorIndex: 0.4, flux: 12, background: 0.05, pixelArea: 44_100, altitude: 52
+            )]
         )
         let body = try Self.json(
             SkyDataset.contribution(kind: "stack", start: Self.start, sky: reading, camera: Self.camera)
@@ -46,8 +50,28 @@ struct SkyDatasetTests {
         ])
         let takenAt = try #require(body["takenAt"] as? String)
         #expect(takenAt.hasSuffix("Z") && !takenAt.contains("."))
+        // Every nested key is one server/src/observation.ts accepts, and nothing more.
         let sky = try #require(body["sky"] as? [String: Any])
-        #expect(sky["skyBrightness"] as? Double == 20.8)
+        #expect(Set(sky.keys) == [
+            "skyBrightness", "uncertainty", "nakedEyeLimit", "bortle", "stackLimit", "matchedStars",
+            "altitude", "azimuth", "meterVersion", "stars",
+        ])
+        #expect(sky["altitude"] as? Double == 45 && sky["azimuth"] as? Double == 60)
+        let star = try #require((sky["stars"] as? [[String: Any]])?.first)
+        #expect(Set(star.keys) == ["magnitude", "colorIndex", "flux", "background", "pixelArea", "altitude"])
+        let camera = try #require(body["camera"] as? [String: Any])
+        #expect(Set(camera.keys) == ["lens", "iso", "shutter", "frames", "fieldOfView", "device"])
+    }
+
+    @Test("Only a file the server will never take is dropped; rate limits and timeouts retry")
+    func outcomes() {
+        #expect(SkyDataset.outcome(status: 201) == .stored)
+        #expect(SkyDataset.outcome(status: 400) == .refused)
+        #expect(SkyDataset.outcome(status: 415) == .refused)
+        #expect(SkyDataset.outcome(status: 429) == .later)
+        #expect(SkyDataset.outcome(status: 403) == .later)
+        #expect(SkyDataset.outcome(status: 503) == .later)
+        #expect(SkyDataset.outcome(status: nil) == .later)
     }
 
     @Test("The contributor id is random, stable, and not the usage counter's")

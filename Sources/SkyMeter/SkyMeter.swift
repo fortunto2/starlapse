@@ -2,8 +2,40 @@ import Foundation
 import SkyKit
 import StackKit
 
+/// One identified star, as measured: the raw material a reading is computed from, kept so
+/// a better calibration later (a colour term, a fitted extinction) can redo every reading
+/// without the photos.
+public struct StarSample: Sendable, Hashable, Codable {
+    public let magnitude: Double
+    public let colorIndex: Double?
+    /// Background-subtracted aperture sum and the per-pixel sky around it, linear units.
+    public let flux: Double
+    public let background: Double
+    /// Solid angle of one pixel there, arcsec².
+    public let pixelArea: Double
+    /// Whole degrees. The altitude of a known star at a known time is a circle on Earth;
+    /// two of them are a position. Rounded, they say ±100 km, which is less than the
+    /// rounded location already does.
+    public let altitude: Double
+
+    public init(
+        magnitude: Double, colorIndex: Double?, flux: Double, background: Double, pixelArea: Double, altitude: Double
+    ) {
+        self.magnitude = magnitude
+        self.colorIndex = colorIndex
+        self.flux = flux
+        self.background = background
+        self.pixelArea = pixelArea
+        self.altitude = altitude.rounded()
+    }
+}
+
 /// What one shot says about the sky it was taken under.
 public struct SkyReading: Sendable, Hashable, Codable {
+    /// Bumped whenever the computation changes, so readings from different versions are
+    /// never averaged as if they were one instrument.
+    public static let currentMeterVersion = 1
+
     /// Sky surface brightness at the frame centre's altitude, in V magnitudes per square
     /// arcsecond: what a Sky Quality Meter reads. 22 is a pristine site, 17 a city.
     public let skyBrightness: Double
@@ -16,13 +48,17 @@ public struct SkyReading: Sendable, Hashable, Codable {
     /// Faintest point source the stack itself would show at five sigma, in V.
     public let stackLimit: Double
     public let matchedStars: Int
-    /// Altitude of the frame centre, degrees: sky brightness depends on it.
+    /// Direction of the frame centre, whole degrees (see `StarSample.altitude` for why).
     public let altitude: Double
     public let azimuth: Double
+    public let meterVersion: Int
+    /// Up to 100 of the stars the reading was made from, brightest first.
+    public let stars: [StarSample]
 
     public init(
         skyBrightness: Double, uncertainty: Double, nakedEyeLimit: Double, bortle: Int, stackLimit: Double,
-        matchedStars: Int, altitude: Double, azimuth: Double
+        matchedStars: Int, altitude: Double, azimuth: Double,
+        meterVersion: Int = SkyReading.currentMeterVersion, stars: [StarSample] = []
     ) {
         self.skyBrightness = skyBrightness
         self.uncertainty = uncertainty
@@ -30,8 +66,10 @@ public struct SkyReading: Sendable, Hashable, Codable {
         self.bortle = bortle
         self.stackLimit = stackLimit
         self.matchedStars = matchedStars
-        self.altitude = altitude
-        self.azimuth = azimuth
+        self.altitude = altitude.rounded()
+        self.azimuth = azimuth.rounded().truncatingRemainder(dividingBy: 360)
+        self.meterVersion = meterVersion
+        self.stars = stars
     }
 }
 
@@ -66,6 +104,7 @@ public struct SkyMeter: Sendable {
         var brightness: [Double] = []
         var zeroPoints: [Double] = []
         var noises: [Double] = []
+        var samples: [StarSample] = []
         for match in plate.matches {
             guard let photometry = Photometry.measure(
                 image, x: match.pixel.x, y: match.pixel.y, radius: aperture
@@ -76,6 +115,11 @@ public struct SkyMeter: Sendable {
             let area = plate.pointing.pixelArea(x: predicted.x, y: predicted.y, width: width, height: height)
                 / pow(plate.correction.scale, 2)
             brightness.append(observed - 2.5 * log10(photometry.background / (photometry.flux * area)))
+            samples.append(StarSample(
+                magnitude: match.star.magnitude, colorIndex: match.star.colorIndex,
+                flux: photometry.flux, background: photometry.background, pixelArea: area,
+                altitude: match.horizontal.altitude.rounded()
+            ))
             zeroPoints.append(observed + 2.5 * log10(photometry.flux))
             noises.append(photometry.noise)
         }
@@ -94,7 +138,8 @@ public struct SkyMeter: Sendable {
             stackLimit: zeroPoint - 2.5 * log10(limitFlux),
             matchedStars: brightness.count,
             altitude: plate.pointing.center.altitude,
-            azimuth: plate.pointing.center.azimuth
+            azimuth: plate.pointing.center.azimuth,
+            stars: Array(samples.sorted { $0.magnitude < $1.magnitude }.prefix(100))
         )
     }
 

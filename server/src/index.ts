@@ -15,7 +15,15 @@ app.post("/v1/observations", async (c) => {
   const form = await c.req.formData().catch(() => null);
   const raw = form?.get("observation");
   if (typeof raw !== "string") return c.json({ error: "observation missing" }, 400);
-  const parsed = Observation.safeParse(JSON.parse(raw));
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    // A 400, not a 500: the phone retries 5xx, and a file that can never parse would
+    // otherwise block its queue for good.
+    return c.json({ error: "observation is not JSON" }, 400);
+  }
+  const parsed = Observation.safeParse(json);
   if (!parsed.success) return c.json({ error: "invalid", issues: parsed.error.issues.slice(0, 5) }, 400);
   const observation = parsed.data;
 

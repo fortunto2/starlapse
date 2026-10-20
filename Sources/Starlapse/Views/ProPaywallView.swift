@@ -91,7 +91,7 @@ struct ProPaywallView: View {
                         .foregroundStyle(NightTheme.accent)
                 }
 
-                Text("The purchase goes to Apple. Starlapse sends nothing else, except a usage counter you can switch off.")
+                Text("The purchase goes to Apple. Besides it, only a usage counter and, if you join, the sky dataset leave the phone. Both can be switched off.")
                     // swiftlint:disable:previous line_length
                     .font(NightTheme.mono(9))
                     .foregroundStyle(NightTheme.dim)

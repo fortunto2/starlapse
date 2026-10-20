@@ -39,7 +39,7 @@ DÜRÜST SINIRLAR
 
 GİZLİLİK
 
-Hesap yok. Konum ve hareket cihazda kalır. Telefondan çıkanlar: aşağıdaki isteğe bağlı satın alma, Apple'a; kapatılabilen bir kullanım sayacı; ve yalnızca onay verirsen, ışık kirliliği veri seti için gökyüzü ölçümleri ve fotoğraflar (konum ~10 km, Ayarlar'dan silinebilir). Kaynak: github.com/fortunto2/starlapse
+Hesap yok. Konum ve hareket, nişan yönünü hesaplamak için cihazda kullanılır. Telefondan çıkanlar: aşağıdaki isteğe bağlı satın alma, Apple'a; kapatılabilen bir kullanım sayacı; ve yalnızca onay verirseniz, ışık kirliliği veri seti için gökyüzü ölçümleri ve fotoğraflar (konum ~10 km, Ayarlar'dan silinebilir). Kaynak: github.com/fortunto2/starlapse
 
 STARLAPSE PRO
 

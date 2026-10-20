@@ -10,7 +10,8 @@ const valid = {
   longitude: -3.7038,
   sky: {
     skyBrightness: 20.8, uncertainty: 0.05, nakedEyeLimit: 6.1, bortle: 4,
-    stackLimit: 9.2, matchedStars: 140, altitude: 45, azimuth: 60,
+    stackLimit: 9.2, matchedStars: 140, altitude: 45, azimuth: 60, meterVersion: 1,
+    stars: [{ magnitude: 2.1, colorIndex: 0.4, flux: 12.5, background: 0.05, pixelArea: 44_100, altitude: 52 }],
   },
   camera: { lens: "ultraWide", iso: 3200, shutter: 1, frames: 120, fieldOfView: 106, device: "iPhone18,1" },
   appVersion: "1.1.0",
@@ -35,7 +36,12 @@ describe("observation", () => {
 
   it("has one value per column", () => {
     const values = row(Observation.parse(valid), new Date(), "photos/x.jpg");
-    expect(values).toHaveLength(19);
+    expect(values).toHaveLength(21);
+  });
+
+  it("rejects a star altitude finer than a degree, which could locate the phone", () => {
+    const stars = [{ ...valid.sky.stars[0], altitude: 52.37 }];
+    expect(Observation.safeParse({ ...valid, sky: { ...valid.sky, stars } }).success).toBe(false);
   });
 
   it("knows a JPEG from anything else", () => {

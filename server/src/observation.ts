@@ -17,8 +17,23 @@ export const Observation = z.object({
       bortle: z.number().int().min(1).max(9),
       stackLimit: z.number().min(-5).max(25),
       matchedStars: z.number().int().min(0).max(100_000),
-      altitude: z.number().min(-90).max(90),
-      azimuth: z.number().min(0).max(360),
+      // Whole degrees, as the phone sends them; see the stars' altitude below.
+      altitude: z.number().int().min(-90).max(90),
+      azimuth: z.number().int().min(0).max(360),
+      meterVersion: z.number().int().min(1).max(1000),
+      // The raw material, so every reading can be recomputed when the calibration improves.
+      stars: z
+        .array(
+          z.object({
+            magnitude: z.number().min(-2).max(9),
+            colorIndex: z.number().min(-1).max(3).optional(),
+            flux: z.number(),
+            background: z.number(),
+            pixelArea: z.number().positive(),
+            altitude: z.number().int().min(-90).max(90),
+          }),
+        )
+        .max(100),
     })
     .optional(),
   camera: z.object({
@@ -76,6 +91,8 @@ export const row = (observation: Observation, receivedAt: Date, photo: string | 
   observation.sky?.matchedStars ?? null,
   observation.sky?.altitude ?? null,
   observation.sky?.azimuth ?? null,
+  observation.sky?.meterVersion ?? null,
+  observation.sky ? JSON.stringify(observation.sky.stars) : null,
   JSON.stringify(observation.camera),
   observation.meteors ? JSON.stringify(observation.meteors) : null,
   photo,

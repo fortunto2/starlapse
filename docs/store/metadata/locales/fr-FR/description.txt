@@ -39,7 +39,7 @@ LIMITES HONNÊTES
 
 CONFIDENTIALITÉ
 
-Pas de compte. Position et mouvements restent sur l'appareil. Ce qui sort : l'achat facultatif ci-dessous, vers Apple ; un compteur d'utilisation désactivable ; et seulement si vous acceptez, mesures du ciel et photos pour des données de pollution lumineuse (lieu à ~10 km, effaçables dans les Réglages). Code : github.com/fortunto2/starlapse.
+Pas de compte. Position et mouvements servent sur l'appareil à calculer où viser. Ce qui sort : l'achat facultatif ci-dessous, vers Apple ; un compteur d'utilisation désactivable ; et seulement si vous acceptez, mesures du ciel et photos pour des données de pollution lumineuse (lieu à ~10 km, effaçables dans les Réglages). Code : github.com/fortunto2/starlapse.
 
 STARLAPSE PRO
 

@@ -39,7 +39,7 @@ LIMITI ONESTI
 
 PRIVACY
 
-Nessun account. Posizione e movimento restano sul dispositivo. Cosa esce: l'acquisto facoltativo qui sotto, verso Apple; un contatore di utilizzo disattivabile; e solo se acconsenti, misure del cielo e foto per un dataset sull'inquinamento luminoso (luogo a ~10 km, cancellabili nelle Impostazioni). Codice: github.com/fortunto2/starlapse.
+Nessun account. Posizione e movimento sono usati sul dispositivo per calcolare dove puntare. Cosa esce: l'acquisto facoltativo qui sotto, verso Apple; un contatore di utilizzo disattivabile; e solo se acconsenti, misure del cielo e foto per un dataset sull'inquinamento luminoso (luogo a ~10 km, cancellabili nelle Impostazioni). Codice: github.com/fortunto2/starlapse.
 
 STARLAPSE PRO
 

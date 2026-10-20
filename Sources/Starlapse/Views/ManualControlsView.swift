@@ -65,7 +65,7 @@ struct ManualControlsView: View {
         .task { notificationsDenied = await ShowerAlerts.isDenied() }
         .onChange(of: contributes) {
             SkyDataset.choice = contributes
-            if contributes { Task { await SkyDataset.flush() } }
+            if contributes { SkyDataset.flush() }
         }
     }
 

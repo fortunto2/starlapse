@@ -97,9 +97,11 @@ targets:
         NSLocationWhenInUseUsageDescription: >-
           Your location and compass heading are used to compute where meteor shower radiants,
           the Moon and bright stars sit in the sky right now, so the app can point you at them.
+          If you join the sky dataset, it is sent rounded to about 10 km.
         NSMotionUsageDescription: >-
           Device motion tells the app where the camera is aimed, so the sky overlay stays
-          aligned with what you see. It works in complete darkness, unlike ARKit.
+          aligned with what you see. It works in complete darkness, unlike ARKit. If you join
+          the sky dataset, each photo's direction is sent in whole degrees.
         # No UIBackgroundModes on purpose: iOS force-stops AVCaptureSession in the
         # background, so a background mode would buy nothing and only invite review
         # rejection. Long sessions stay alive via isIdleTimerDisabled + a dimmed screen.

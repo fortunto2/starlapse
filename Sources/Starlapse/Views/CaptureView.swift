@@ -104,7 +104,7 @@ struct CaptureView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 model.rescheduleAlerts()
-                Task { await SkyDataset.flush() }
+                SkyDataset.flush()
             }
         }
     }

@@ -39,7 +39,7 @@ LÍMITES HONESTOS
 
 PRIVACIDAD
 
-Sin cuenta. La ubicación y el movimiento se quedan en el dispositivo. Lo que sale: la compra opcional de abajo, hacia Apple; un contador de uso que puedes apagar; y solo si aceptas, mediciones del cielo y fotos para datos de contaminación lumínica (ubicación a ~10 km, borrables en Ajustes). Código: github.com/fortunto2/starlapse.
+Sin cuenta. La ubicación y el movimiento se usan en el dispositivo para calcular hacia dónde apuntar. Lo que sale: la compra opcional de abajo, hacia Apple; un contador de uso que puedes apagar; y solo si aceptas, mediciones del cielo y fotos para datos de contaminación lumínica (ubicación a ~10 km, borrables en Ajustes). Código: github.com/fortunto2/starlapse.
 
 STARLAPSE PRO
 

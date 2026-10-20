@@ -39,7 +39,7 @@ EHRLICHE GRENZEN
 
 DATENSCHUTZ
 
-Kein Konto. Standort und Bewegung bleiben auf dem Gerät. Was das iPhone verlässt: der optionale Kauf unten, an Apple; ein abschaltbarer Nutzungszähler; und nur mit deinem Ja Himmelsmessungen und Fotos für einen Lichtverschmutzungs-Datensatz (Ort auf ~10 km, in den Einstellungen löschbar). Quellcode: github.com/fortunto2/starlapse.
+Kein Konto. Standort und Bewegung dienen auf dem Gerät der Zielberechnung. Was das iPhone verlässt: der optionale Kauf unten, an Apple; ein abschaltbarer Nutzungszähler; und nur mit deinem Ja Himmelsmessungen und Fotos für einen Lichtverschmutzungs-Datensatz (Ort auf ~10 km, in den Einstellungen löschbar). Quellcode: github.com/fortunto2/starlapse.
 
 STARLAPSE PRO
 

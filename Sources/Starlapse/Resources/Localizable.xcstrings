@@ -4003,6 +4003,64 @@
         }
       }
     },
+    "Five events: app opened, capture started, capture saved, Pro page shown, Pro bought. No photos, no location, no name. The only id is a random one made on this phone and deleted with the app. It answers one question, whether anyone comes back. Off means nothing is sent.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خمسة أحداث: فتح التطبيق، بدء الالتقاط، حفظ الالتقاط، عرض صفحة Pro، شراء Pro. لا صور ولا موقع ولا اسم. المعرّف الوحيد عشوائي يُنشأ على هذا الهاتف ويُحذف مع التطبيق. يجيب عن سؤال واحد: هل يعود أحد. الإيقاف يعني أن لا شيء يُرسل."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fünf Ereignisse: App geöffnet, Aufnahme gestartet, Aufnahme gesichert, Pro-Seite gezeigt, Pro gekauft. Keine Fotos, kein Standort, kein Name. Die einzige ID ist eine zufällige, auf diesem iPhone erzeugt und mit der App gelöscht. Sie beantwortet eine Frage: ob jemand wiederkommt. Aus heißt, es wird nichts gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinco eventos: app abierta, captura iniciada, captura guardada, página Pro mostrada, Pro comprado. Sin fotos, sin ubicación, sin nombre. El único id es aleatorio, creado en este teléfono y borrado con la app. Responde una sola pregunta: si alguien vuelve. Apagado significa que no se envía nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinq événements : app ouverte, capture lancée, capture enregistrée, page Pro affichée, Pro acheté. Pas de photo, pas de position, pas de nom. Le seul identifiant est aléatoire, créé sur ce téléphone et supprimé avec l'app. Il répond à une seule question : est-ce que quelqu'un revient. Désactivé, rien n'est envoyé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पाँच घटनाएँ: ऐप खुला, कैप्चर शुरू हुआ, कैप्चर सहेजा गया, Pro पेज दिखाया गया, Pro खरीदा गया। कोई फ़ोटो नहीं, कोई जगह नहीं, कोई नाम नहीं। एकमात्र आईडी इस फ़ोन पर बनी एक रैंडम आईडी है, जो ऐप के साथ मिट जाती है। यह एक ही सवाल का जवाब देती है: क्या कोई वापस आता है। बंद करने पर कुछ नहीं भेजा जाता।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinque eventi: app aperta, scatto avviato, scatto salvato, pagina Pro mostrata, Pro acquistato. Nessuna foto, nessuna posizione, nessun nome. L'unico id è casuale, creato su questo telefono e cancellato con l'app. Risponde a una sola domanda: se qualcuno torna. Spento significa che non si invia nulla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5つのイベント：アプリ起動、撮影開始、撮影保存、Proページ表示、Pro購入。写真・位置・名前は含みません。IDはこの端末で作られアプリと一緒に消えるランダムなものだけ。答える問いは一つ、誰かが戻ってくるかどうか。オフにすると何も送信されません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beş olay: uygulama açıldı, çekim başladı, çekim kaydedildi, Pro sayfası gösterildi, Pro satın alındı. Fotoğraf yok, konum yok, isim yok. Tek kimlik bu telefonda oluşturulan ve uygulamayla silinen rastgele bir kimliktir. Tek bir soruyu yanıtlar: biri geri geliyor mu. Kapalıysa hiçbir şey gönderilmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "五个事件：打开应用、开始拍摄、保存拍摄、显示 Pro 页面、购买 Pro。不含照片、位置或姓名。唯一的 ID 是在这部手机上随机生成的，随应用一起删除。它只回答一个问题：是否有人回来。关闭后不发送任何内容。"
+          }
+        }
+      }
+    },
     "Focus (1.0 = infinity)": {
       "localizations": {
         "ar": {
@@ -6033,6 +6091,64 @@
         }
       }
     },
+    "No thanks": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا، شكرًا"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nein, danke"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No, gracias"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non merci"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नहीं, धन्यवाद"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No, grazie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加しない"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hayır, teşekkürler"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不用了"
+          }
+        }
+      }
+    },
     "Noise reduction": {
       "localizations": {
         "ar": {
@@ -6087,64 +6203,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "降噪"
-          }
-        }
-      }
-    },
-    "Not now": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ليس الآن"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jetzt nicht"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ahora no"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plus tard"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "अभी नहीं"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non ora"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今はしない"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Şimdi değil"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以后再说"
           }
         }
       }
@@ -8469,6 +8527,64 @@
         }
       }
     },
+    "Starlapse closed unexpectedly on this phone. The report holds the camera's error message and the code path, no photos and no location. Sending it to info@superduperai.co tells us exactly what to fix.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أُغلق Starlapse بشكل غير متوقع على هذا الهاتف. يحتوي التقرير على رسالة خطأ الكاميرا ومسار الشيفرة، دون صور أو موقع. إرساله إلى info@superduperai.co يخبرنا بالضبط بما يجب إصلاحه."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse wurde auf diesem iPhone unerwartet beendet. Der Bericht enthält die Fehlermeldung der Kamera und den Codepfad, keine Fotos und keinen Standort. Schick ihn an info@superduperai.co, dann wissen wir genau, was zu reparieren ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse se cerró inesperadamente en este teléfono. El informe contiene el mensaje de error de la cámara y la ruta del código, sin fotos ni ubicación. Enviarlo a info@superduperai.co nos dice exactamente qué arreglar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse s'est fermé de façon inattendue sur ce téléphone. Le rapport contient le message d'erreur de la caméra et le chemin du code, sans photo ni position. L'envoyer à info@superduperai.co nous dit exactement quoi corriger."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse इस फ़ोन पर अचानक बंद हो गया। रिपोर्ट में कैमरे का त्रुटि संदेश और कोड पथ है, कोई फ़ोटो या जगह नहीं। इसे info@superduperai.co पर भेजने से हमें ठीक-ठीक पता चलता है कि क्या सुधारना है।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse si è chiusa inaspettatamente su questo telefono. Il rapporto contiene il messaggio di errore della fotocamera e il percorso del codice, nessuna foto e nessuna posizione. Inviarlo a info@superduperai.co ci dice esattamente cosa correggere."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この端末で Starlapse が予期せず終了しました。レポートにはカメラのエラーメッセージとコードの経路が含まれ、写真や位置は含まれません。info@superduperai.co に送っていただくと、何を直すべきかが正確にわかります。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse bu telefonda beklenmedik şekilde kapandı. Rapor kameranın hata mesajını ve kod yolunu içerir; fotoğraf ve konum içermez. info@superduperai.co adresine göndermeniz neyi düzelteceğimizi tam olarak gösterir."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starlapse 在这部手机上意外关闭。报告包含相机的错误信息和代码路径，不含照片和位置。发送到 info@superduperai.co 能让我们准确知道该修什么。"
+          }
+        }
+      }
+    },
     "Stepping the lens and measuring star size.\nHold still — the tripod must not move.": {
       "localizations": {
         "ar": {
@@ -8875,60 +8991,60 @@
         }
       }
     },
-    "The purchase goes to Apple. Starlapse sends nothing else, except a usage counter you can switch off.": {
+    "The purchase goes to Apple. Besides it, only a usage counter and, if you join, the sky dataset leave the phone. Both can be switched off.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الشراء يتم عبر Apple. لا يرسل Starlapse شيئًا آخر، سوى عدّاد استخدام يمكن إيقافه."
+            "value": "يتم الشراء عبر Apple. وغير ذلك لا يغادر الهاتف إلا عدّاد استخدام، وبيانات السماء إن انضممت. ويمكن إيقاف كليهما."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Kauf läuft über Apple. Starlapse sendet sonst nichts, außer einem abschaltbaren Nutzungszähler."
+            "value": "Der Kauf läuft über Apple. Daneben verlassen nur ein Nutzungszähler und, wenn du mitmachst, die Himmelsdaten das iPhone. Beides lässt sich abschalten."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La compra va a Apple. Starlapse no envía nada más, salvo un contador de uso que puedes desactivar."
+            "value": "La compra pasa por Apple. Aparte de eso, solo salen del teléfono un contador de uso y, si participas, los datos del cielo. Ambos se pueden desactivar."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'achat passe par Apple. Starlapse n'envoie rien d'autre, sauf un compteur d'utilisation désactivable."
+            "value": "L'achat passe par Apple. En dehors de lui, seuls un compteur d'utilisation et, si vous participez, les données du ciel quittent le téléphone. Les deux sont désactivables."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "ख़रीद Apple के पास जाती है। Starlapse और कुछ नहीं भेजता, सिवाय एक उपयोग काउंटर के जिसे आप बंद कर सकते हैं।"
+            "value": "खरीद Apple के ज़रिए होती है। इसके अलावा फ़ोन से केवल एक उपयोग काउंटर और, यदि आप जुड़ें, आकाश डेटा बाहर जाता है। दोनों बंद किए जा सकते हैं।"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'acquisto va ad Apple. Starlapse non invia altro, tranne un contatore d'uso che puoi disattivare."
+            "value": "L'acquisto passa da Apple. Oltre a questo, escono dal telefono solo un contatore di utilizzo e, se partecipi, i dati del cielo. Entrambi si possono disattivare."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "購入はAppleが処理します。Starlapseはオフにできる使用カウンター以外、何も送信しません。"
+            "value": "購入は Apple 経由です。それ以外に端末から出るのは利用カウンターと、参加した場合の空のデータだけ。どちらもオフにできます。"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Satın alma Apple'a gider. Starlapse, kapatabileceğiniz bir kullanım sayacı dışında başka hiçbir şey göndermez."
+            "value": "Satın alma Apple üzerinden yapılır. Bunun dışında telefondan yalnızca bir kullanım sayacı ve katılırsanız gökyüzü verisi çıkar. İkisi de kapatılabilir."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "购买由Apple处理。Starlapse不发送其他数据，仅有一个可关闭的使用计数器。"
+            "value": "购买通过 Apple 完成。除此之外，离开手机的只有一个使用计数器，以及你加入时的星空数据。两者都可以关闭。"
           }
         }
       }
@@ -10147,6 +10263,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "白平衡"
+          }
+        }
+      }
+    },
+    "asinh, not gamma. Nearly linear in the shadows and logarithmic higher up, so faint nebulosity lifts out of the noise while bright stars keep their cores and colour instead of clipping to white discs.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asinh وليس gamma. خطي تقريبًا في الظلال ولوغاريتمي فوقها، فتبرز السدم الخافتة من الضجيج وتحتفظ النجوم الساطعة بمراكزها وألوانها بدل أن تتحول إلى أقراص بيضاء."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asinh, nicht Gamma. In den Schatten fast linear, darüber logarithmisch: Schwache Nebel heben sich aus dem Rauschen, helle Sterne behalten Kern und Farbe, statt zu weißen Scheiben auszubrennen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asinh, no gamma. Casi lineal en las sombras y logarítmica más arriba: las nebulosidades débiles salen del ruido y las estrellas brillantes conservan su núcleo y su color en vez de quemarse en discos blancos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asinh, pas gamma. Presque linéaire dans les ombres et logarithmique plus haut : les nébulosités faibles sortent du bruit et les étoiles brillantes gardent leur cœur et leur couleur au lieu de devenir des disques blancs."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asinh, gamma नहीं। छायाओं में लगभग रैखिक और ऊपर लघुगणकीय, जिससे धुँधली नीहारिकाएँ शोर से उभरती हैं और चमकीले तारे सफ़ेद धब्बे बनने के बजाय अपना केंद्र और रंग बनाए रखते हैं।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "asinh, non gamma. Quasi lineare nelle ombre e logaritmica più in alto: le nebulosità deboli emergono dal rumore e le stelle luminose mantengono nucleo e colore invece di diventare dischi bianchi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ガンマではなく asinh。暗部ではほぼ線形、明部では対数的なので、淡い星雲はノイズから浮かび上がり、明るい星は白い円に飛ばずに芯と色を保ちます。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gamma değil, asinh. Gölgelerde neredeyse doğrusal, yukarıda logaritmik: sönük bulutsular gürültüden sıyrılır, parlak yıldızlar beyaz disklere dönüşmek yerine çekirdeklerini ve renklerini korur."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用 asinh 而不是 gamma。暗部几乎线性，亮部呈对数，因此暗弱星云能从噪声中浮现，亮星保留星核和颜色，而不会变成白色圆盘。"
           }
         }
       }

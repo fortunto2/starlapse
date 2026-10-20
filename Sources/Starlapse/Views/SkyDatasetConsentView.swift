@@ -34,7 +34,7 @@ struct SkyDatasetConsentView: View {
             Button {
                 model.answerConsent(false)
             } label: {
-                Text("Not now")
+                Text("No thanks")
                     .font(NightTheme.mono(12))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)

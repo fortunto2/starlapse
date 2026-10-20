@@ -1,5 +1,6 @@
 import Foundation
 import ImageIO
+import Security
 import SkyMeter
 import UniformTypeIdentifiers
 
@@ -10,6 +11,10 @@ import UniformTypeIdentifiers
 /// location rounded to 0.1° (~10 km), a random contributor id that is not the usage
 /// counter's, and nothing that names the person. Uploads queue on disk, so a shot taken
 /// in a field with no signal goes out once there is one.
+///
+/// Main-actor isolated so the queue has one owner: a delete waits for the upload in flight
+/// instead of racing it, and switching off stops the queue between two files.
+@MainActor
 enum SkyDataset {
 
     static let endpoint = URL(string: "https://api.starlapse.app")
@@ -24,10 +29,17 @@ enum SkyDataset {
 
     static var isEnabled: Bool { choice == true }
 
+    /// In the Keychain, not UserDefaults: it survives a reinstall, so "Delete everything I
+    /// contributed" still reaches what an earlier install sent.
+    /// UserDefaults is the fallback where the Keychain refuses (an unsigned test host).
     static var contributor: String {
-        if let id = UserDefaults.standard.string(forKey: contributorKey) { return id }
-        let id = UUID().uuidString.lowercased()
-        UserDefaults.standard.set(id, forKey: contributorKey)
+        if let id = Keychain.read(contributorKey) { return id }
+        let id = UserDefaults.standard.string(forKey: contributorKey) ?? UUID().uuidString.lowercased()
+        if Keychain.write(id, for: contributorKey) {
+            UserDefaults.standard.removeObject(forKey: contributorKey)
+        } else {
+            UserDefaults.standard.set(id, forKey: contributorKey)
+        }
         return id
     }
 
@@ -56,7 +68,7 @@ enum SkyDataset {
     }
 
     /// ~10 km, done here so the precise fix never reaches the request.
-    static func coarse(_ degrees: Double) -> Double { (degrees * 10).rounded() / 10 }
+    nonisolated static func coarse(_ degrees: Double) -> Double { (degrees * 10).rounded() / 10 }
 
     static func contribution(
         kind: String, start: SkyMeasurement.Start, sky: SkyReading?, camera: Camera,
@@ -71,7 +83,7 @@ enum SkyDataset {
         )
     }
 
-    static var deviceModel: String {
+    nonisolated static var deviceModel: String {
         var info = utsname()
         uname(&info)
         return withUnsafeBytes(of: &info.machine) { raw in
@@ -80,7 +92,7 @@ enum SkyDataset {
     }
 
     /// A 2048-pixel JPEG: enough to check a reading against the sky it came from.
-    static func jpeg(from image: RenderedImage, longSide: Int = 2048) -> Data? {
+    nonisolated static func jpeg(from image: RenderedImage, longSide: Int = 2048) -> Data? {
         guard let source = image.makeCGImage() else { return nil }
         let scale = min(1, Double(longSide) / Double(max(source.width, source.height)))
         let width = Int(Double(source.width) * scale)
@@ -104,7 +116,7 @@ enum SkyDataset {
 
     // MARK: - The queue
 
-    static var queueDirectory: URL {
+    nonisolated static var queueDirectory: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return base.appendingPathComponent("SkyDataset", isDirectory: true)
     }
@@ -116,7 +128,7 @@ enum SkyDataset {
         guard let json = try? encoded(contribution) else { return }
         try? photo?.write(to: directory.appendingPathComponent(contribution.id + ".jpg"))
         try? json.write(to: directory.appendingPathComponent(contribution.id + ".json"))
-        await flush()
+        flush()
     }
 
     static func encoded(_ contribution: Contribution) throws -> Data {
@@ -125,22 +137,52 @@ enum SkyDataset {
         return try encoder.encode(contribution)
     }
 
-    /// Send what is queued. Called after each enqueue and when the app comes forward.
-    static func flush() async {
-        guard isEnabled, let endpoint else { return }
-        let directory = queueDirectory
-        let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
-        for json in files where json.pathExtension == "json" {
-            guard let body = try? Data(contentsOf: json) else { continue }
-            let photoURL = json.deletingPathExtension().appendingPathExtension("jpg")
-            let photo = try? Data(contentsOf: photoURL)
-            guard await send(body, photo: photo, to: endpoint) else { return }
-            try? FileManager.default.removeItem(at: json)
-            try? FileManager.default.removeItem(at: photoURL)
+    private static var draining: Task<Void, Never>?
+    private static var isDeleting = false
+
+    /// Send what is queued, one file at a time. Called after each enqueue and when the app
+    /// comes forward; a call while a drain is running joins it.
+    static func flush() {
+        guard draining == nil else { return }
+        draining = Task {
+            await drain()
+            draining = nil
         }
     }
 
-    static func send(_ observation: Data, photo: Data?, to endpoint: URL) async -> Bool {
+    private static func drain() async {
+        guard let endpoint else { return }
+        let directory = queueDirectory
+        let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
+        for json in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+        where json.pathExtension == "json" {
+            // Checked before every file: switching off or deleting stops the queue here.
+            guard isEnabled, !isDeleting, !Task.isCancelled else { return }
+            guard let body = try? Data(contentsOf: json) else { continue }
+            let photoURL = json.deletingPathExtension().appendingPathExtension("jpg")
+            let photo = try? Data(contentsOf: photoURL)
+            switch await send(body, photo: photo, to: endpoint) {
+            case .stored, .refused:
+                try? FileManager.default.removeItem(at: json)
+                try? FileManager.default.removeItem(at: photoURL)
+            case .later:
+                return
+            }
+        }
+    }
+
+    enum Outcome { case stored, refused, later }
+
+    /// `refused` is the server saying this file will never be accepted (400, 413, 415):
+    /// keeping it would block the queue. Everything else, rate limits and timeouts
+    /// included, is worth another try.
+    nonisolated static func outcome(status: Int?) -> Outcome {
+        guard let status else { return .later }
+        if (200..<300).contains(status) { return .stored }
+        return [400, 413, 415, 422].contains(status) ? .refused : .later
+    }
+
+    static func send(_ observation: Data, photo: Data?, to endpoint: URL) async -> Outcome {
         let boundary = "starlapse-" + UUID().uuidString
         var body = Data()
         func part(_ name: String, filename: String? = nil, type: String, data: Data) {
@@ -158,21 +200,57 @@ enum SkyDataset {
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 60
-        guard let (_, response) = try? await URLSession.shared.upload(for: request, from: body),
-              let status = (response as? HTTPURLResponse)?.statusCode else { return false }
-        // A 4xx will not get better by retrying; drop it rather than block the queue.
-        return status < 500
+        let response = try? await URLSession.shared.upload(for: request, from: body).1
+        return outcome(status: (response as? HTTPURLResponse)?.statusCode)
     }
 
     /// Erase everything sent from this phone, and start over with a new id.
+    ///
+    /// The upload in flight is cancelled and waited for first, so nothing lands on the
+    /// server after the delete that was meant to cover it.
     static func deleteEverything() async -> Bool {
+        isDeleting = true
+        defer { isDeleting = false }
+        draining?.cancel()
+        await draining?.value
         try? FileManager.default.removeItem(at: queueDirectory)
         guard let endpoint else { return false }
         var request = URLRequest(url: endpoint.appendingPathComponent("v1/contributors/\(contributor)"))
         request.httpMethod = "DELETE"
         guard let (_, response) = try? await URLSession.shared.data(for: request),
               (response as? HTTPURLResponse)?.statusCode == 200 else { return false }
+        Keychain.delete(contributorKey)
         UserDefaults.standard.removeObject(forKey: contributorKey)
         return true
+    }
+}
+
+/// One string per key, this app only, readable after the first unlock.
+enum Keychain {
+    private static func query(_ key: String) -> [String: Any] {
+        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "co.superduperai.starlapse",
+         kSecAttrAccount as String: key]
+    }
+
+    static func read(_ key: String) -> String? {
+        var query = query(key)
+        query[kSecReturnData as String] = true
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    @discardableResult
+    static func write(_ value: String, for key: String) -> Bool {
+        delete(key)
+        var item = query(key)
+        item[kSecValueData as String] = Data(value.utf8)
+        item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
+    }
+
+    static func delete(_ key: String) {
+        SecItemDelete(query(key) as CFDictionary)
     }
 }

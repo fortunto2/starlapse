@@ -11,6 +11,11 @@ struct SkyMeasurement {
         let location: GeographicCoordinates
         let date: Date
         let fieldOfView: Double
+        /// What the sensor ran at, taken when capture began: by review `activeSettings`
+        /// already describes framing again.
+        var lens = ""
+        var iso = 0.0
+        var shutter = 0.0
     }
 
     var start: Start?
@@ -22,18 +27,23 @@ struct SkyMeasurement {
     /// The first saved shot waits here, as a JPEG, while the dataset question is open.
     var pendingContribution: (SkyDataset.Contribution, Data?)?
     var asksConsent = false
+    /// The detector's retrying plate solve; cancelled when the session ends.
+    var solving: Task<Void, Never>?
 }
 
 extension CaptureViewModel {
 
     /// Called as a still stack begins. Without a location there is no sky to compare with.
     func beginSkyMeasurement() {
+        sky.solving?.cancel()
         sky = SkyMeasurement()
         let measurable = if case .still = mode { true } else { mode.isDetector }
         guard measurable, let location = attitude.location else { return }
+        let used = activeSettings
         sky.start = SkyMeasurement.Start(
             aim: attitude.aim, location: location, date: Date(),
-            fieldOfView: Double(settings.lens.fieldOfView)
+            fieldOfView: Double(settings.lens.fieldOfView),
+            lens: used.lens.displayName, iso: Double(used.iso), shutter: used.frameExposure
         )
     }
 
@@ -63,7 +73,9 @@ extension CaptureViewModel {
     // MARK: - Meteors
 
     func recordEvent(url: URL, event: Transient, frame: LumaImage.Size) {
-        let meteor: MeteorObservation? = sky.detectorPointing.flatMap { pointing in
+        // A flash is not a meteor: only streaks have a direction to place on the sky.
+        let pointing = event.isStreak ? sky.detectorPointing : nil
+        let meteor: MeteorObservation? = pointing.flatMap { pointing in
             sky.start.map { start in
                 MeteorAstrometry.observe(
                     event, frame: frame, pointing: pointing, moment: SkyMoment(location: start.location, date: Date())
@@ -80,9 +92,9 @@ extension CaptureViewModel {
     /// a frame shows enough stars (a cloud bank clears, the twilight ends).
     func solveDetectorPointing() {
         guard mode.isDetector, let start = sky.start, let stackEngine else { return }
-        Task {
+        sky.solving = Task {
             try? await Task.sleep(for: .seconds(5))
-            while state.isCapturing, mode.isDetector, sky.detectorPointing == nil {
+            while !Task.isCancelled, state.isCapturing, mode.isDetector, sky.detectorPointing == nil {
                 if let frame = await stackEngine.watchedLuminance() {
                     let guess = CameraPointing(
                         center: attitude.aim, roll: 0, horizontalFieldOfView: start.fieldOfView
@@ -97,17 +109,19 @@ extension CaptureViewModel {
                     }.value
                     if let solved, solved.isTrustworthy { sky.detectorPointing = solved.pointing }
                 }
-                if sky.detectorPointing == nil { try? await Task.sleep(for: .seconds(60)) }
+                if sky.detectorPointing == nil, !Task.isCancelled { try? await Task.sleep(for: .seconds(60)) }
             }
         }
     }
 
     // MARK: - The dataset
 
-    private var camera: SkyDataset.Camera {
+    /// What the sensor actually ran at, as recorded when capture began: a detector session
+    /// uses its own short frames, not the still settings on screen.
+    private func camera(_ start: SkyMeasurement.Start) -> SkyDataset.Camera {
         SkyDataset.Camera(
-            lens: settings.lens.displayName, iso: Double(settings.iso), shutter: settings.frameExposure,
-            frames: progress.framesStacked, fieldOfView: Double(settings.lens.fieldOfView),
+            lens: start.lens, iso: start.iso, shutter: start.shutter,
+            frames: progress.framesStacked, fieldOfView: start.fieldOfView,
             device: SkyDataset.deviceModel
         )
     }
@@ -119,7 +133,7 @@ extension CaptureViewModel {
         // waiting a few seconds for, the reading is the point of the contribution.
         for _ in 0..<20 where sky.isMeasuring { try? await Task.sleep(for: .milliseconds(250)) }
         let photo = await Task.detached(priority: .utility) { SkyDataset.jpeg(from: rendered) }.value
-        let contribution = SkyDataset.contribution(kind: "stack", start: start, sky: sky.reading, camera: camera)
+        let contribution = SkyDataset.contribution(kind: "stack", start: start, sky: sky.reading, camera: camera(start))
         if SkyDataset.choice == nil {
             sky.pendingContribution = (contribution, photo)
             sky.asksConsent = true
@@ -142,10 +156,11 @@ extension CaptureViewModel {
 
     /// A finished watch: the meteors placed on the sky go in as data, without the clips.
     func contributeMeteors() {
+        sky.solving?.cancel()
         let meteors = events.compactMap(\.meteor)
         guard SkyDataset.isEnabled, !meteors.isEmpty, let start = sky.start else { return }
         let contribution = SkyDataset.contribution(
-            kind: "meteors", start: start, sky: nil, camera: camera, meteors: meteors
+            kind: "meteors", start: start, sky: nil, camera: camera(start), meteors: meteors
         )
         Task { await SkyDataset.enqueue(contribution, photo: nil) }
     }
