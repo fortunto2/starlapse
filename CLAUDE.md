@@ -287,6 +287,14 @@ The domain is separated from the platform precisely so it can be tested without 
   (`app_launched`, `capture_started`, `capture_saved`, `paywall_shown`, `pro_purchased`)
   are listed in all four places by name, and the policy promises exactly those.
 
+## Open data
+
+Contributions (opt-in, `Services/SkyDataset.swift`) land in D1 + R2 behind `server/`
+(api.starlapse.app). Releases follow `/solo:open-dataset`: tables to
+`fortunto2/starlapse-sky-data` (Zenodo mints a DOI per release; the hook is on), tables plus
+photos to Hugging Face. `uv run server/dataset/export.py build && … publish`. The contributor
+id is the delete secret and never ships; releases carry a salted code. Landing: `site/`.
+
 ## Quality gate
 
 1. Am I building bullshit? — re-read the request.

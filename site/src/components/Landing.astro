@@ -113,7 +113,13 @@ const shots = [
       <p class="kicker left">New in 1.1</p>
       <h2 class="h2 left">Every photo measures your sky</h2>
       <p class="body">The stars in a stack are a light meter. Starlapse finds them among 9,096 catalogue stars and compares each with the sky right around it. The result is what a Sky Quality Meter reads: magnitudes per square arcsecond, with the Bortle class and the faintest star your eye could see.</p>
-      <p class="body">If you choose to, the reading and the photo go into a dataset for mapping light pollution, with your location rounded to about 10 km. A night-sky globe built from it is next.</p>
+      <p class="body">If you choose to, the reading and the photo go into an open dataset for mapping light pollution, with your location rounded to about 10 km. A night-sky globe built from it is next.</p>
+      <div class="badges mono">
+        <a class="badge" href="https://github.com/fortunto2/starlapse-sky-data"><span>GitHub</span><b>starlapse-sky-data</b></a>
+        <a class="badge" href="https://creativecommons.org/licenses/by/4.0/"><span>License</span><b>CC BY 4.0</b></a>
+        <span class="badge soon"><span>Zenodo</span><b>DOI soon</b></span>
+        <span class="badge soon"><span>Hugging Face</span><b>soon</b></span>
+      </div>
     </div>
     <div class="reading mono">
       <div class="row"><span>SKY</span><b>20.8</b><span>MAG/ARCSEC²</span></div>
@@ -230,6 +236,12 @@ const shots = [
   @media(max-width:820px){.two{grid-template-columns:1fr}}
   .h2.left{text-align:left}
   .body{color:var(--dim);font-size:17px;margin-top:16px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;font-size:11px}
+  .badge{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;text-transform:uppercase;letter-spacing:.06em}
+  .badge span{background:#16181d;color:var(--dim);padding:6px 9px}
+  .badge b{color:var(--accent);padding:6px 9px;font-weight:700}
+  a.badge:hover{border-color:var(--accent)}
+  .badge.soon b{color:var(--dim)}
   .reading{border:1px solid var(--line);border-radius:18px;padding:22px;background:#000}
   .row{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim)}
   .row:last-child{border-bottom:0}
