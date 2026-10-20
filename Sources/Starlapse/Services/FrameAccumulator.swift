@@ -2,6 +2,7 @@ import CoreVideo
 import Foundation
 import Metal
 import simd
+import SkyMeter
 
 /// Holds the growing stack on the GPU.
 ///
@@ -64,6 +65,7 @@ final class FrameAccumulator: @unchecked Sendable {
     private let downsamplePipeline: MTLComputePipelineState
     private let decodeYCbCrPipeline: MTLComputePipelineState
     private let decodeBGRAPipeline: MTLComputePipelineState
+    private let stackLumaPipeline: MTLComputePipelineState
     private var textureCache: CVMetalTextureCache?
 
     /// How many frames may be in flight between the capture queue and the screen.
@@ -123,6 +125,7 @@ final class FrameAccumulator: @unchecked Sendable {
         self.downsamplePipeline = try pipeline("downsample_luma")
         self.decodeYCbCrPipeline = try pipeline("decode_ycbcr")
         self.decodeBGRAPipeline = try pipeline("decode_bgra")
+        self.stackLumaPipeline = try pipeline("stack_luma_box")
 
         CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &textureCache)
     }
@@ -430,21 +433,39 @@ extension FrameAccumulator {
 
 extension FrameAccumulator {
 
-    /// The decoded frame as linear RGB triplets, row-major. For checking the GPU decode
-    /// against StackKit's CPU reference; a camera is not needed, Metal on a simulator is.
-    func linearPixels(from pixelBuffer: CVPixelBuffer) -> [SIMD3<Float>]? {
-        guard let texture = decode(pixelBuffer) else { return nil }
-        var halves = [Float16](repeating: 0, count: texture.width * texture.height * 4)
-        halves.withUnsafeMutableBytes { raw in
+    /// The stack's mean linear luminance, `scale`× smaller on each side, for `SkyMeter`.
+    /// Twelve megapixels at scale 2 is a 12 MB readback, once, after the session.
+    func stackLuminance(scale: Int = 2) -> LumaImage? {
+        guard let accumulator, frameCount > 0 else { return nil }
+        let width = max(1, accumulator.width / scale)
+        let height = max(1, accumulator.height / scale)
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .r32Float, width: width, height: height, mipmapped: false
+        )
+        descriptor.usage = [.shaderWrite, .shaderRead]
+        descriptor.storageMode = .shared
+        guard let luma = device.makeTexture(descriptor: descriptor),
+              let buffer = commandQueue.makeCommandBuffer(),
+              let encoder = buffer.makeComputeCommandEncoder() else { return nil }
+        var factor = UInt32(scale)
+        encoder.setComputePipelineState(stackLumaPipeline)
+        encoder.setTexture(accumulator, index: 0)
+        encoder.setTexture(luma, index: 1)
+        encoder.setBytes(&factor, length: MemoryLayout<UInt32>.size, index: 0)
+        dispatch(encoder, pipeline: stackLumaPipeline, width: width, height: height)
+        encoder.endEncoding()
+        buffer.commit()
+        buffer.waitUntilCompleted()
+
+        var pixels = [Float](repeating: 0, count: width * height)
+        pixels.withUnsafeMutableBytes { raw in
             guard let base = raw.baseAddress else { return }
-            texture.getBytes(
-                base, bytesPerRow: texture.width * 8,
-                from: MTLRegionMake2D(0, 0, texture.width, texture.height), mipmapLevel: 0
+            luma.getBytes(
+                base, bytesPerRow: width * MemoryLayout<Float>.size,
+                from: MTLRegionMake2D(0, 0, width, height), mipmapLevel: 0
             )
         }
-        return stride(from: 0, to: halves.count, by: 4).map {
-            SIMD3(Float(halves[$0]), Float(halves[$0 + 1]), Float(halves[$0 + 2]))
-        }
+        return LumaImage(pixels: pixels, width: width, height: height)
     }
 
     /// Resolve with no stretch and hand back 8-bit BGRA, releasing the display texture.
@@ -452,19 +473,5 @@ extension FrameAccumulator {
         guard let texture = resolve(tone: .neutral, mode: mode) else { return nil }
         defer { displayPool.release(texture) }
         return snapshot(of: texture)
-    }
-}
-
-enum StackError: LocalizedError {
-    case metalUnavailable
-    case shaderLibraryMissing
-    case shaderMissing(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .metalUnavailable: "This device has no usable Metal GPU."
-        case .shaderLibraryMissing: "Shader library missing from the app bundle."
-        case .shaderMissing(let name): "Shader function '\(name)' not found."
-        }
     }
 }

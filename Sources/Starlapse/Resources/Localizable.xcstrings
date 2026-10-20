@@ -4351,6 +4351,64 @@
         }
       }
     },
+    "MEASURING THE SKY…": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ قياس السماء…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HIMMEL WIRD GEMESSEN…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MIDIENDO EL CIELO…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MESURE DU CIEL…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आकाश माप रहे हैं…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MISURO IL CIELO…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空を測定中…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GÖKYÜZÜ ÖLÇÜLÜYOR…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在测量天空…"
+          }
+        }
+      }
+    },
     "MILKY WAY": {
       "localizations": {
         "ar": {
@@ -6493,6 +6551,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "流星提醒"
+          }
+        }
+      }
+    },
+    "SKY %.1f MAG/ARCSEC² · BORTLE %d · NAKED EYE %.1f": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السماء %.1f قدر/ثانية قوسية² · بورتل %d · العين المجردة %.1f"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HIMMEL %.1f MAG/ARCSEC² · BORTLE %d · BLOSSES AUGE %.1f"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CIELO %.1f MAG/ARCSEC² · BORTLE %d · A SIMPLE VISTA %.1f"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CIEL %.1f MAG/ARCSEC² · BORTLE %d · ŒIL NU %.1f"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आकाश %.1f MAG/ARCSEC² · बोर्टल %d · नंगी आँख %.1f"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CIELO %.1f MAG/ARCSEC² · BORTLE %d · OCCHIO NUDO %.1f"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空 %.1f 等級/秒角² · ボートル %d · 肉眼 %.1f"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GÖKYÜZÜ %.1f MAG/ARCSEC² · BORTLE %d · ÇIPLAK GÖZ %.1f"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "天空 %.1f 星等/角秒² · 波特尔 %d · 肉眼极限 %.1f"
           }
         }
       }

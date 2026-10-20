@@ -14,6 +14,7 @@ let package = Package(
     products: [
         .library(name: "SkyKit", targets: ["SkyKit"]),
         .library(name: "StackKit", targets: ["StackKit"]),
+        .library(name: "SkyMeter", targets: ["SkyMeter"]),
         .executable(name: "starlapse-sky", targets: ["SkyKitCLI"]),
         .executable(name: "starlapse-stack", targets: ["StackKitCLI"]),
     ],
@@ -24,10 +25,14 @@ let package = Package(
         // fields rotated by a known angle — the only way to know alignment works without
         // standing in a field at 2am.
         .target(name: "StackKit"),
+        // The stars in a stack as a light meter: sky brightness in mag/arcsec² from the
+        // catalogue magnitudes of the stars that frame caught. Needs both sides.
+        .target(name: "SkyMeter", dependencies: ["SkyKit", "StackKit"]),
         .executableTarget(name: "SkyKitCLI", dependencies: ["SkyKit"]),
         // Emulated nights: every stacking pipeline scored against a sky with a known answer.
         .executableTarget(name: "StackKitCLI", dependencies: ["StackKit"]),
         .testTarget(name: "SkyKitTests", dependencies: ["SkyKit"]),
         .testTarget(name: "StackKitTests", dependencies: ["StackKit"]),
+        .testTarget(name: "SkyMeterTests", dependencies: ["SkyMeter", "SkyKit", "StackKit"]),
     ]
 )

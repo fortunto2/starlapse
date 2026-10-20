@@ -43,6 +43,11 @@ struct ReviewView: View {
                 Text(summary)
                     .font(NightTheme.mono(10))
                     .foregroundStyle(NightTheme.dim)
+                if let skyLine {
+                    Text(skyLine)
+                        .font(NightTheme.mono(10, weight: .bold))
+                        .foregroundStyle(NightTheme.accent)
+                }
             }
             Spacer()
         }
@@ -71,6 +76,17 @@ struct ReviewView: View {
             parts.append(String(format: String(localized: "%d dropped"), model.progress.framesRejected))
         }
         return parts.joined(separator: " · ")
+    }
+
+    /// The sky the stack was taken under, from its own stars.
+    private var skyLine: String? {
+        if let reading = model.sky.reading {
+            return String(
+                format: String(localized: "SKY %.1f MAG/ARCSEC² · BORTLE %d · NAKED EYE %.1f"),
+                reading.skyBrightness, reading.bortle, reading.nakedEyeLimit
+            )
+        }
+        return model.sky.isMeasuring ? String(localized: "MEASURING THE SKY…") : nil
     }
 
     private var headline: String {

@@ -327,3 +327,33 @@ kernel void downsample_luma(texture2d<float, access::sample> frame [[texture(0)]
     float value = dot(color.rgb, lumaWeights);
     luma.write(float4(value, value, value, 1.0), gid);
 }
+
+// MARK: - Sky meter
+
+// The stack as linear luminance, box-averaged: every input pixel counts once, so a star's
+// light is conserved when the buffer shrinks. The framing downsample samples one point
+// per output pixel, which is fine for finding stars and wrong for measuring them.
+kernel void stack_luma_box(texture2d<float, access::read> accumulator [[texture(0)]],
+                           texture2d<float, access::write> luma [[texture(1)]],
+                           constant uint &scale [[buffer(0)]],
+                           uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= luma.get_width() || gid.y >= luma.get_height()) {
+        return;
+    }
+    float total = 0.0;
+    float count = 0.0;
+    for (uint dy = 0; dy < scale; dy++) {
+        for (uint dx = 0; dx < scale; dx++) {
+            uint2 source = gid * scale + uint2(dx, dy);
+            if (source.x >= accumulator.get_width() || source.y >= accumulator.get_height()) {
+                continue;
+            }
+            float4 accumulated = accumulator.read(source);
+            // Each pixel by its own coverage, as `resolve` does.
+            total += dot(accumulated.rgb / max(accumulated.a, 1.0), lumaWeights);
+            count += 1.0;
+        }
+    }
+    luma.write(float4(total / max(count, 1.0)), gid);
+}

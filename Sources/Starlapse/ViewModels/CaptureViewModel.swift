@@ -73,6 +73,8 @@ final class CaptureViewModel {
     var nextNewMoon: Date?
     /// The last reminder rebuild; the next one waits for it. See `rescheduleAlerts`.
     var alertsTask: Task<Void, Never>?
+    /// The sky under the last stack, measured from its stars. See `SkyMeter`.
+    var sky = SkyMeasurement()
     /// Day and place the forecasts were computed for. Written by the forecast extension in
     /// the file next door, so not `private`.
     var forecastKey: String?
@@ -229,18 +231,6 @@ final class CaptureViewModel {
     }
 
     /// Save every clip the detector caught.
-    func saveAllEvents() async {
-        guard await PhotoLibraryWriter.requestAccess() else {
-            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
-            return
-        }
-        let saved = await PhotoLibraryWriter.write(videosAt: events.map(\.url))
-        lastSavedMessage = saved == events.count
-            ? String(format: String(localized: "Saved %d clips to Photos."), saved)
-            : String(format: String(localized: "Saved %d of %d clips."), saved, events.count)
-        if saved > 0 { await remindersAfterSave() }
-    }
-
     func clearEvents() {
         ScratchStore.remove(events.map(\.url))
         events = []
@@ -374,6 +364,7 @@ final class CaptureViewModel {
         case .timelapse(let timelapseSettings): .timelapse(settings, timelapse: timelapseSettings, tone: tone)
         case .detector(let detectorSettings): .watching(detectorSettings)
         }
+        beginSkyMeasurement()
         stackEngine.begin(plan)
 
         // The screen stays on — iOS force-stops capture in the background, so there is no
@@ -417,6 +408,7 @@ final class CaptureViewModel {
         }
 
         state = .reviewing
+        measureSky()
     }
 
     /// Re-develop the result with the review curve. Free and lossless — same render the

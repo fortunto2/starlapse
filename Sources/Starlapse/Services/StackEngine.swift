@@ -3,6 +3,7 @@ import Foundation
 import Metal
 import os
 import simd
+import SkyMeter
 import StackKit
 
 /// Progress of a running capture, published to the UI.
@@ -408,6 +409,15 @@ final class StackEngine: @unchecked Sendable {
             let image = accumulator.snapshot(of: rendered)
             accumulator.displayPool.release(rendered)
             return image
+        }
+    }
+
+    /// The finished stack as linear luminance, for measuring the sky. Not for star
+    /// trails: a maximum is not a mean, and the sky in it reads brighter than it was.
+    func skyLuminance() async -> LumaImage? {
+        await queue.perform { [weak self] in
+            guard let self, let completed, completed.stackMode != .trails else { return nil }
+            return accumulator.stackLuminance()
         }
     }
 

@@ -50,4 +50,16 @@ extension CaptureViewModel {
         await ShowerAlerts.askAfterSaveIfNeeded(ratingPromptShown: ratingPromptShown)
         rescheduleAlerts()
     }
+
+    func saveAllEvents() async {
+        guard await PhotoLibraryWriter.requestAccess() else {
+            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
+            return
+        }
+        let saved = await PhotoLibraryWriter.write(videosAt: events.map(\.url))
+        lastSavedMessage = saved == events.count
+            ? String(format: String(localized: "Saved %d clips to Photos."), saved)
+            : String(format: String(localized: "Saved %d of %d clips."), saved, events.count)
+        if saved > 0 { await remindersAfterSave() }
+    }
 }
