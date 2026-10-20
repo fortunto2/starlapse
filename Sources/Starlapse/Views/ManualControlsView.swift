@@ -15,6 +15,9 @@ struct ManualControlsView: View {
     @State private var showerAlerts = ShowerAlerts.isEnabled
     /// The switch is ours; the permission is iOS's. Shown when the two disagree.
     @State private var notificationsDenied = false
+    @State private var contributes = SkyDataset.isEnabled
+    @State private var confirmsDeletion = false
+    @State private var deletionMessage: String?
     @State private var showsPaywall = false
     @State private var restoreChecked = false
 
@@ -33,6 +36,7 @@ struct ManualControlsView: View {
                 }
                 proSection
                 alertsSection
+                datasetSection
                 privacySection
             }
             .padding(16)
@@ -59,6 +63,10 @@ struct ManualControlsView: View {
             }
         }
         .task { notificationsDenied = await ShowerAlerts.isDenied() }
+        .onChange(of: contributes) {
+            SkyDataset.choice = contributes
+            if contributes { Task { await SkyDataset.flush() } }
+        }
     }
 
     // MARK: - Lens
@@ -418,6 +426,48 @@ extension ManualControlsView {
                         .foregroundStyle(NightTheme.accent)
                         .multilineTextAlignment(.leading)
                 }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .nightPanel()
+    }
+
+    // MARK: - Dataset
+
+    var datasetSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle("SKY DATASET")
+            Toggle(isOn: $contributes) {
+                Text("Contribute sky readings and photos")
+                    .font(NightTheme.mono(12))
+            }
+            .tint(NightTheme.accent)
+            Text("Each stack measures your sky's darkness from its stars. Shared, the readings map light pollution for science. Sent: the reading, camera settings, the photo, location to about 10 km. Nothing that identifies you.") // swiftlint:disable:this line_length
+                .font(NightTheme.mono(10))
+                .foregroundStyle(NightTheme.dim)
+            Button(role: .destructive) {
+                confirmsDeletion = true
+            } label: {
+                Text("Delete everything I contributed")
+                    .font(NightTheme.mono(11))
+            }
+            .confirmationDialog(
+                String(localized: "Delete every reading and photo sent from this phone?"),
+                isPresented: $confirmsDeletion, titleVisibility: .visible
+            ) {
+                Button(String(localized: "Delete"), role: .destructive) {
+                    Task {
+                        let deleted = await SkyDataset.deleteEverything()
+                        deletionMessage = deleted
+                            ? String(localized: "Deleted. Nothing from this phone is left in the dataset.")
+                            : String(localized: "Could not reach the server. Try again with a connection.")
+                    }
+                }
+            }
+            if let deletionMessage {
+                Text(deletionMessage)
+                    .font(NightTheme.mono(10))
+                    .foregroundStyle(NightTheme.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -5,7 +5,7 @@ permalink: /privacy/
 
 # Privacy Policy — Starlapse
 
-**Last updated: 16 October 2026**
+**Last updated: 20 October 2026**
 
 Starlapse has no account and no server of its own. Your photographs, your location and the
 direction you point the phone never leave it. The app makes two kinds of network request,
@@ -18,19 +18,19 @@ specific about it.
 
 **Camera.** To photograph the night sky. Frames are combined on your device — that is the
 entire product — and the result is written to your photo library only when you tap Save.
-Nothing is uploaded, and nothing is kept outside your photo library and the app's temporary
-folder.
+Nothing is uploaded unless you join the sky dataset (below), and nothing is kept outside your
+photo library and the app's temporary folder.
 
 **Location, while the app is open.** Used to compute where things are in the sky above you:
 which meteor showers are active, where their radiants sit, where the Moon is, and therefore
 where to point the camera. The calculation runs entirely on your device using published
-astronomical formulas. Your position is never sent anywhere, never stored on disk, and is
-discarded when the app closes. Deny it and everything still works except the aiming
+astronomical formulas. Your position is not sent anywhere, except rounded to 0.1° (about
+10 km) with a sky dataset contribution if you join it, and it is not stored on disk. Deny it and everything still works except the aiming
 overlay.
 
 **Motion sensors.** The gyroscope, accelerometer and magnetometer tell the app which way the
-camera is aimed, so the sky overlay lines up with what you see. This data is used for
-display only and never leaves the device.
+camera is aimed, so the sky overlay lines up with what you see. The raw readings never leave
+the device; a sky dataset contribution carries only the direction the photo was taken in.
 
 **Photo library, add-only.** Used to save your finished photographs and videos. The app
 requests add-only access, which means it can put pictures in your library but cannot read,
@@ -58,6 +58,22 @@ and is deleted with the app. No photos, no location, no heading, no name.
 You can switch the counter off in the controls panel, under **Usage counter**. Off means
 nothing is sent, including events already waiting to be sent.
 
+**The sky dataset, if you join it.** Every stack measures how dark the sky is from the
+stars in it. If you choose to contribute (the app asks once, after your first saved photo,
+and the answer can be changed in Settings › SKY DATASET), each saved stack sends: that sky
+reading (brightness in magnitudes per square arcsecond, the naked-eye limit, the Bortle
+class, how many stars it was measured from, the direction the camera pointed), the camera
+settings (lens, ISO, shutter, frame count, field of view, iPhone model), a 2048-pixel JPEG
+of the photo, the time it was taken, your location rounded to 0.1° (about 10 km), the app
+version and a random contributor identifier made on this phone (not the usage counter's,
+not your Apple ID). A detector session sends the meteors it placed on the sky (time,
+start and end direction, length, the shower they belong to), without the video clips.
+
+It goes to our own server at sky.superduperai.co and is kept there to study light
+pollution and meteor activity. Nothing is published with your identity, and the photos are
+not shown to anyone else. **Delete everything I contributed** in Settings › SKY DATASET
+erases every reading and photo sent from this phone, on the server, at once.
+
 **Crash reports** are kept on the phone and sent only when you tap Send in the controls
 panel. They contain the camera's error message and the code path, never a photo or a
 location.
@@ -65,6 +81,7 @@ location.
 ## What Starlapse does not do
 
 - No accounts, sign-in, or user identifiers tied to you
+- No sky dataset contribution without your yes
 - No advertising SDKs, no third-party analytics
 - No tracking across apps or websites
 - No selling or sharing of data

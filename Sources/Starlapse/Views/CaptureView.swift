@@ -80,6 +80,11 @@ struct CaptureView: View {
                 .presentationDetents([.medium, .large])
                 .presentationBackground(NightTheme.background)
         }
+        .sheet(isPresented: $model.sky.asksConsent) {
+            SkyDatasetConsentView(model: model)
+                .presentationDetents([.medium])
+                .presentationBackground(NightTheme.background)
+        }
         .sheet(isPresented: $showsControls) {
             ManualControlsView(model: model)
                 .presentationDetents([.medium, .large])
@@ -97,7 +102,10 @@ struct CaptureView: View {
         // change while they wait, and so can the iOS permission behind them.
         .onChange(of: model.entitlements.isPro) { model.rescheduleAlerts() }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { model.rescheduleAlerts() }
+            if phase == .active {
+                model.rescheduleAlerts()
+                Task { await SkyDataset.flush() }
+            }
         }
     }
 

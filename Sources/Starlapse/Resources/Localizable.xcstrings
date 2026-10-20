@@ -2089,6 +2089,64 @@
         }
       }
     },
+    "Change it or delete everything sent in Settings › SKY DATASET.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "غيّر ذلك أو احذف كل ما أُرسل من الإعدادات › بيانات السماء."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern oder alles Gesendete löschen unter Einstellungen › HIMMELSDATEN."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cámbialo o borra todo lo enviado en Ajustes › DATOS DEL CIELO."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifiez ou supprimez tout ce qui a été envoyé dans Réglages › DONNÉES DU CIEL."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्स › SKY DATASET में इसे बदलें या भेजा गया सब कुछ मिटाएँ।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica o elimina tutto ciò che hai inviato in Impostazioni › DATI DEL CIELO."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定 › 空のデータセットで変更、または送信済みのすべてを削除できます。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarlar › GÖKYÜZÜ VERİSİ bölümünden değiştir veya gönderilen her şeyi sil."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可在设置 › 星空数据集中更改，或删除已发送的全部内容。"
+          }
+        }
+      }
+    },
     "Clean landscape": {
       "localizations": {
         "ar": {
@@ -2321,6 +2379,180 @@
         }
       }
     },
+    "Contribute": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ساهِم"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitmachen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contribuir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contribuer"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "योगदान दें"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contribuisci"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "協力する"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Katkıda bulun"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与"
+          }
+        }
+      }
+    },
+    "Contribute sky readings and photos": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المساهمة بقياسات السماء والصور"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Himmelsmessungen und Fotos beitragen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir mediciones del cielo y fotos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager mesures du ciel et photos"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आकाश माप और फ़ोटो साझा करें"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condividi misure del cielo e foto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空の測定値と写真を提供"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gökyüzü ölçümlerini ve fotoğrafları paylaş"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享星空测量和照片"
+          }
+        }
+      }
+    },
+    "Could not reach the server. Try again with a connection.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر الوصول إلى الخادم. حاول مجددًا عند توفر اتصال."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server nicht erreichbar. Mit Verbindung erneut versuchen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo conectar con el servidor. Inténtalo con conexión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serveur injoignable. Réessayez avec une connexion."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सर्वर तक नहीं पहुँच सके। कनेक्शन के साथ फिर से कोशिश करें।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server non raggiungibile. Riprova con una connessione."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サーバーに接続できません。通信できる状態でもう一度お試しください。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sunucuya ulaşılamadı. Bağlantıyla tekrar dene."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接服务器。请在有网络时重试。"
+          }
+        }
+      }
+    },
     "Count launches and captures": {
       "localizations": {
         "ar": {
@@ -2549,6 +2781,180 @@
           "stringUnit": {
             "state": "translated",
             "value": "删除"
+          }
+        }
+      }
+    },
+    "Delete every reading and photo sent from this phone?": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف كل القياسات والصور المرسلة من هذا الهاتف؟"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle von diesem iPhone gesendeten Messungen und Fotos löschen?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Borrar todas las mediciones y fotos enviadas desde este teléfono?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer toutes les mesures et photos envoyées depuis ce téléphone ?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस फ़ोन से भेजे गए सभी माप और फ़ोटो मिटाएँ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare tutte le misure e le foto inviate da questo telefono?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この端末から送信した測定値と写真をすべて削除しますか？"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu telefondan gönderilen tüm ölçümler ve fotoğraflar silinsin mi?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除从这部手机发送的所有测量和照片？"
+          }
+        }
+      }
+    },
+    "Delete everything I contributed": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف كل ما ساهمت به"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles löschen, was ich beigetragen habe"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar todo lo que he compartido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer tout ce que j’ai partagé"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मेरा भेजा सब कुछ मिटाएँ"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina tutto ciò che ho condiviso"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提供したものをすべて削除"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paylaştığım her şeyi sil"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除我提供的全部内容"
+          }
+        }
+      }
+    },
+    "Deleted. Nothing from this phone is left in the dataset.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم الحذف. لم يبقَ شيء من هذا الهاتف في البيانات."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelöscht. Von diesem iPhone ist nichts mehr im Datensatz."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrado. No queda nada de este teléfono en los datos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimé. Plus rien de ce téléphone dans les données."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मिटा दिया। इस फ़ोन का कुछ भी डेटासेट में नहीं बचा।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminato. Di questo telefono non resta nulla nei dati."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除しました。この端末のデータはデータセットに残っていません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silindi. Bu telefondan veri setinde hiçbir şey kalmadı."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除。数据集中不再有这部手机的任何内容。"
           }
         }
       }
@@ -3075,6 +3481,64 @@
         }
       }
     },
+    "Each stack measures your sky's darkness from its stars. Shared, the readings map light pollution for science. Sent: the reading, camera settings, the photo, location to about 10 km. Nothing that identifies you.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كل تكديس يقيس مدى ظلمة سمائك من نجومه. عند مشاركتها ترسم القياسات خريطة التلوث الضوئي للعلم. يُرسل: القياس وإعدادات الكاميرا والصورة والموقع بدقة 10 كم تقريبًا. لا شيء يحدد هويتك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Stack misst anhand seiner Sterne, wie dunkel dein Himmel ist. Geteilt kartieren die Messungen die Lichtverschmutzung für die Wissenschaft. Gesendet: Messung, Kameraeinstellungen, Foto, Ort auf etwa 10 km. Nichts, was dich identifiziert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada apilado mide lo oscuro que está tu cielo a partir de sus estrellas. Compartidas, las mediciones mapean la contaminación lumínica para la ciencia. Se envía: la medición, los ajustes, la foto y el lugar a unos 10 km. Nada que te identifique."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque empilement mesure l’obscurité de votre ciel à partir de ses étoiles. Partagées, les mesures cartographient la pollution lumineuse pour la science. Envoyé : la mesure, les réglages, la photo, le lieu à environ 10 km. Rien qui vous identifie."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हर स्टैक अपने तारों से मापता है कि आपका आकाश कितना अँधेरा है। साझा करने पर ये माप विज्ञान के लिए प्रकाश प्रदूषण का नक्शा बनाते हैं। भेजा जाता है: माप, कैमरा सेटिंग्स, फ़ोटो, लगभग 10 किमी तक जगह। आपकी पहचान बताने वाला कुछ नहीं।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni stack misura quanto è buio il tuo cielo dalle sue stelle. Condivise, le misure mappano l’inquinamento luminoso per la scienza. Inviati: la misura, le impostazioni, la foto, il luogo a circa 10 km. Nulla che ti identifichi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各スタックは写った星から空の暗さを測定します。共有された測定値は科学のための光害マップになります。送信内容：測定値、カメラ設定、写真、約10kmの精度の位置。個人を特定する情報は含みません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her yığın, içindeki yıldızlardan gökyüzünün ne kadar karanlık olduğunu ölçer. Paylaşılan ölçümler bilim için ışık kirliliği haritası çıkarır. Gönderilen: ölçüm, kamera ayarları, fotoğraf, yaklaşık 10 km hassasiyetle konum. Seni tanıtan hiçbir şey yok."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次叠加都会根据其中的星星测量你的天空有多暗。共享后，这些测量为科学绘制光污染地图。发送：测量值、相机设置、照片、精确到约 10 公里的位置。不含任何可识别你的信息。"
+          }
+        }
+      }
+    },
     "Every frame of the video is its own stack.": {
       "localizations": {
         "ar": {
@@ -3129,6 +3593,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "视频每一帧都是独立的叠加。"
+          }
+        }
+      }
+    },
+    "Every stack measures how dark your sky is, from the stars in it. Shared, these readings map light pollution the way Globe at Night does, but from real photos instead of guesses.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كل تكديس يقيس مدى ظلمة سمائك من النجوم التي فيه. عند مشاركتها ترسم هذه القياسات خريطة التلوث الضوئي مثل Globe at Night، لكن من صور حقيقية بدل التقديرات."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Stack misst anhand seiner Sterne, wie dunkel dein Himmel ist. Geteilt kartieren diese Messungen die Lichtverschmutzung wie Globe at Night, nur aus echten Fotos statt Schätzungen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada apilado mide lo oscuro que está tu cielo a partir de sus estrellas. Compartidas, estas mediciones mapean la contaminación lumínica como Globe at Night, pero con fotos reales en vez de estimaciones."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque empilement mesure l’obscurité de votre ciel à partir de ses étoiles. Partagées, ces mesures cartographient la pollution lumineuse comme Globe at Night, mais à partir de vraies photos plutôt que d’estimations."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हर स्टैक अपने तारों से मापता है कि आपका आकाश कितना अँधेरा है। साझा करने पर ये माप Globe at Night की तरह प्रकाश प्रदूषण का नक्शा बनाते हैं, पर अंदाज़ों की जगह असली फ़ोटो से।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ogni stack misura quanto è buio il tuo cielo dalle stelle che contiene. Condivise, queste misure mappano l’inquinamento luminoso come Globe at Night, ma da foto vere invece che da stime."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各スタックは写った星から空の暗さを測定します。共有された測定値は、Globe at Nightのように光害を地図にします。推測ではなく実際の写真からです。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her yığın, içindeki yıldızlardan gökyüzünün ne kadar karanlık olduğunu ölçer. Paylaşılan bu ölçümler, Globe at Night gibi ışık kirliliğini haritalar; ama tahminlerle değil, gerçek fotoğraflarla."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次叠加都会根据其中的星星测量你的天空有多暗。共享后，这些测量像 Globe at Night 一样绘制光污染地图，但来自真实照片而非估计。"
           }
         }
       }
@@ -3883,6 +4405,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "良好"
+          }
+        }
+      }
+    },
+    "HELP MAP THE NIGHT SKY": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ساعد في رسم خريطة سماء الليل"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HILF, DEN NACHTHIMMEL ZU KARTIEREN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AYUDA A MAPEAR EL CIELO NOCTURNO"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIDEZ À CARTOGRAPHIER LE CIEL NOCTURNE"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रात के आकाश का नक्शा बनाने में मदद करें"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIUTA A MAPPARE IL CIELO NOTTURNO"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜空の地図づくりに協力"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GECE GÖKYÜZÜNÜ HARİTALAMAYA YARDIM ET"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助绘制夜空地图"
           }
         }
       }
@@ -5105,6 +5685,64 @@
         }
       }
     },
+    "Never: your name, your exact location, or anything to identify you.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أبدًا: اسمك أو موقعك الدقيق أو أي شيء يحدد هويتك."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie: dein Name, dein genauer Ort oder irgendetwas, das dich identifiziert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nunca: tu nombre, tu ubicación exacta ni nada que te identifique."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jamais : votre nom, votre position exacte ou quoi que ce soit qui vous identifie."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कभी नहीं: आपका नाम, आपकी सटीक जगह, या आपकी पहचान बताने वाली कोई चीज़।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mai: il tuo nome, la tua posizione esatta o qualcosa che ti identifichi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信しないもの：名前、正確な位置、個人を特定できる情報。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asla: adın, tam konumun veya seni tanıtan herhangi bir şey."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绝不发送：你的姓名、精确位置或任何可识别你的信息。"
+          }
+        }
+      }
+    },
     "Night vision": {
       "localizations": {
         "ar": {
@@ -5449,6 +6087,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "降噪"
+          }
+        }
+      }
+    },
+    "Not now": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ليس الآن"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt nicht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora no"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus tard"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी नहीं"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ora"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今はしない"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şimdi değil"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以后再说"
           }
         }
       }
@@ -6671,6 +7367,64 @@
         }
       }
     },
+    "SKY DATASET": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بيانات السماء"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HIMMELSDATEN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DATOS DEL CIELO"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DONNÉES DU CIEL"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKY DATASET"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DATI DEL CIELO"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空のデータセット"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GÖKYÜZÜ VERİSİ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星空数据集"
+          }
+        }
+      }
+    },
     "STACK COMPLETE": {
       "localizations": {
         "ar": {
@@ -7305,6 +8059,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "发送报告"
+          }
+        }
+      }
+    },
+    "Sent: the sky reading, the camera settings, the photo, and where to about 10 km.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يُرسل: قياس السماء وإعدادات الكاميرا والصورة والموقع بدقة 10 كم تقريبًا."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesendet: die Himmelsmessung, die Kameraeinstellungen, das Foto und der Ort auf etwa 10 km."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se envía: la medición del cielo, los ajustes de la cámara, la foto y el lugar a unos 10 km."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyé : la mesure du ciel, les réglages de l’appareil, la photo et le lieu à environ 10 km."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "भेजा जाता है: आकाश माप, कैमरा सेटिंग्स, फ़ोटो, और लगभग 10 किमी तक जगह।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inviati: la misura del cielo, le impostazioni della fotocamera, la foto e il luogo a circa 10 km."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信するもの：空の測定値、カメラ設定、写真、約10kmの精度の位置。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gönderilen: gökyüzü ölçümü, kamera ayarları, fotoğraf ve yaklaşık 10 km hassasiyetle konum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送：天空测量值、相机设置、照片，以及精确到约 10 公里的位置。"
           }
         }
       }

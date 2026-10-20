@@ -407,6 +407,7 @@ final class CaptureViewModel {
 
         state = .reviewing
         measureSky()
+        contributeMeteors()
     }
 
     /// Re-develop the result with the review curve. Free and lossless — same render the

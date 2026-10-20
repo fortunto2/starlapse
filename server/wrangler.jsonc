@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "starlapse-sky",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-31",
+  "observability": { "enabled": true },
+
+  // The host the app and PRIVACY.md name. Changing it means a new app release.
+  "routes": [{ "pattern": "sky.superduperai.co", "custom_domain": true }],
+  "workers_dev": false,
+
+  // Measurements: small rows, SQL, kept for years.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "starlapse-sky", "database_id": "ea9d782d-deac-4a12-96d6-8abaa189d3d2" }
+  ],
+
+  // Photos. Private: nothing here is served back, so the upload endpoint is no use to
+  // anyone wanting free image hosting.
+  "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "starlapse-sky" }]
+}

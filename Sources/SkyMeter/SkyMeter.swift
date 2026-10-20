@@ -19,6 +19,20 @@ public struct SkyReading: Sendable, Hashable, Codable {
     /// Altitude of the frame centre, degrees: sky brightness depends on it.
     public let altitude: Double
     public let azimuth: Double
+
+    public init(
+        skyBrightness: Double, uncertainty: Double, nakedEyeLimit: Double, bortle: Int, stackLimit: Double,
+        matchedStars: Int, altitude: Double, azimuth: Double
+    ) {
+        self.skyBrightness = skyBrightness
+        self.uncertainty = uncertainty
+        self.nakedEyeLimit = nakedEyeLimit
+        self.bortle = bortle
+        self.stackLimit = stackLimit
+        self.matchedStars = matchedStars
+        self.altitude = altitude
+        self.azimuth = azimuth
+    }
 }
 
 /// Measures sky brightness from a stack, using the stars in it as the calibration.

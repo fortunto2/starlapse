@@ -25,8 +25,8 @@ B. Meteors
  [x] B1 streak endpoints → az/alt through the plate solution; time, duration
  [x] B2 shower association: great circle through the streak vs radiant positions
 C. Contribution
- [ ] C1 Worker + D1 + R2: POST /v1/observations (multipart: json + jpeg), DELETE by device
- [ ] C2 app: consent, switch, upload queue (retry, Wi-Fi not required, small JPEG)
+ [x] C1 Worker + D1 + R2: POST /v1/observations (multipart: json + jpeg), DELETE by device
+ [x] C2 app: consent, switch, upload queue (retry, Wi-Fi not required, small JPEG)
  [ ] C3 PRIVACY.md, README, ASC App Privacy (Photos, Precise→Coarse Location), review notes
 D. Feed (later, asked 2026-10-19)
  [ ] D1 vertical full-screen feed of contributed shots, swipe like TikTok, opt-in to appear

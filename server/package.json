@@ -1,0 +1,24 @@
+{
+  "name": "starlapse-sky",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Starlapse sky dataset: measurements and photos contributed from phones",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4",
+    "zod": "^4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "typescript": "^5",
+    "vitest": "^4.1",
+    "wrangler": "^4.117"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

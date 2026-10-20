@@ -9,8 +9,8 @@ import SuperDuperAnalytics
 /// feature stay free. Events are the part that needs keeping up to date, which is what
 /// is being paid for; and a non-consumable is the only honest shape for "forever".
 ///
-/// StoreKit 2 only. Apple's is one of the two network calls this app makes; the other is
-/// the usage counter, and it can be switched off.
+/// StoreKit 2 only. Apple's is one of the network calls this app makes; the others are the
+/// usage counter and the opt-in sky dataset, and both can be switched off.
 @MainActor
 @Observable
 final class Entitlements {
