@@ -1,1 +1,1 @@
-Your sky, measured: every pinpoint-star or clean-landscape stack now reads sky brightness in mag/arcsec², the Bortle class and the naked-eye limit from its own stars. The meteor detector places each meteor on the sky and names its shower. And if you want, contribute your readings and photos to a light-pollution dataset (asked once, off in Settings).
+Stacks now build under city skies, haze and cloud. When too few stars are visible to align on, frames are stacked in place instead of being dropped, so Save keeps the whole exposure rather than a single preview frame.

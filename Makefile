@@ -83,7 +83,7 @@ ipa: archive ## Export a signed .ipa ready for upload
 testflight: ipa ## Upload to TestFlight (needs APP_ID — the ASC app record)
 	@test -n "$(APP_ID)" || { echo "Set APP_ID in Makefile.local — create the app record first."; exit 1; }
 	@asc publish testflight --app "$(APP_ID)" --ipa build/export/$(SCHEME).ipa \
-		--group "Beta" --wait --output table
+		--group "Internal" --wait --output table
 
 open: ## Open the archive for Distribute App
 	@open build/$(SCHEME).xcarchive
