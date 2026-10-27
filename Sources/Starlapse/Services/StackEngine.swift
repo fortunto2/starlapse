@@ -292,15 +292,20 @@ final class StackEngine: @unchecked Sendable {
         )
         progress.starsTracked = stars.count
 
-        guard stars.count >= 6 else { return nil }
-
-        // First frame defines the reference frame; nothing to solve.
-        if referenceStars.isEmpty {
+        switch StarTracking.decide(starCount: stars.count, hasReference: !referenceStars.isEmpty) {
+        case .drop:
+            return nil
+        case .stackInPlace:
+            return matrix_identity_float3x3
+        case .reference:
+            // First frame with stars defines the reference frame; nothing to solve.
             referenceStars = stars
             previousStars = stars
             accumulatedTransform = .identity
             progress.alignmentResidual = 0
             return matrix_identity_float3x3
+        case .align:
+            break
         }
 
         guard let step = aligner.align(
@@ -408,7 +413,9 @@ final class StackEngine: @unchecked Sendable {
     /// Render the reviewed result to bytes for saving.
     func exportResult() async -> RenderedImage? {
         await queue.perform { [weak self] in
-            guard let self, let completed else { return nil }
+            // Stopped before the first frame landed: the accumulator still holds the last
+            // framing frame, and saving that under the session's name is a lie.
+            guard let self, let completed, progress.framesStacked > 0 else { return nil }
             guard let rendered = accumulator.resolve(
                 tone: completed.tone, mode: completed.stackMode
             ) else { return nil }
