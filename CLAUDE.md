@@ -287,6 +287,21 @@ The domain is separated from the platform precisely so it can be tested without 
   (`app_launched`, `capture_started`, `capture_saved`, `paywall_shown`, `pro_purchased`)
   are listed in all four places by name, and the policy promises exactly those.
 
+## Moon mode
+
+`StackMode.moon` (`docs/plan/moon-mode.md`). Three rules it rests on:
+
+- **The shutter is not the frame.** `FormatChoice.frameWindow` keeps the frame at the
+  format's shortest duration while the shutter goes to `FormatFacts.shortestShutter`. Tying
+  the two capped the shutter at ~1/30 s, five stops too long for a full Moon.
+- **Meter, then wait.** After an exposure change the meter sleeps 1 s: frames in flight were
+  shot at the old exposure, and metering one corrects the same error twice.
+- **The disc's level is its 99th percentile.** One saturated pixel (a star, a hot pixel, the
+  stub sky's meteor) read as a blown Moon and stepped the shutter down three stops at a time.
+
+Verify in the Simulator with `UITEST_SKY=1 UITEST_MOON=1 UITEST_MODE=moon`: the stub disc
+answers shutter × ISO.
+
 ## Open data
 
 Contributions (opt-in, `Services/SkyDataset.swift`) land in D1 + R2 behind `server/`

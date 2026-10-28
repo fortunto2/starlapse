@@ -1,1 +1,1 @@
-Artık şehir göğünde, puslu ve bulutlu havada da istifleme yapılıyor. Hizalama için yeterli yıldız görünmediğinde kareler atılmıyor, olduğu yerde istifleniyor; böylece Kaydet tek bir önizleme karesini değil, pozun tamamını saklıyor.
+Ay modu. Ay’a dokunun ve doğrultun: uygulama pozlamayı diskten kendisi ölçer, en uzun lensle kısa kareler çeker, daha sabit yarısını tutup hizalar ve gece göğü germesi olmadan işler. Pusula Ay’ı kadrajda gördüğünde Ay modu tek dokunuş uzaklıkta. Ayrıca: istifler artık şehir göğünde ve bulutta tek bir önizleme karesi yerine gerçekten oluşuyor.

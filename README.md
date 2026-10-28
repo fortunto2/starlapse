@@ -25,6 +25,9 @@ stars or as star trails after the fact.
   - *Star trails* — brightest pixel wins, the sky draws arcs
   - *Clean landscape* — averaged as shot
 - **Star alignment** — sub-pixel centroids, closed-form rotation fit, hot pixels rejected
+- **Moon mode** — short frames (down to the sensor's shortest shutter) on the longest lens,
+  metered off the disc, aligned on it, and the steadier half kept; offered in one tap when
+  the compass puts the Moon in the frame
 - **Night time-lapse** — every output frame is its own stack ("holy grail" night lapse)
 - **Aiming overlay** — meteor shower radiants, the Moon, bright stars, the Milky Way as
   the band it is, and where to actually point (40° off the radiant, away from the Moon, at

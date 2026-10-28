@@ -1,1 +1,1 @@
-Stacks now build under city skies, haze and cloud. When too few stars are visible to align on, frames are stacked in place instead of being dropped, so Save keeps the whole exposure rather than a single preview frame.
+Moon mode. Tap Moon and point at it: the app meters the disc itself, shoots short frames on the longest lens, keeps and aligns the steadier half, and develops them without the night-sky stretch. When the compass sees the Moon in the frame, Moon mode is one tap away. Also: stacks now build under city skies and cloud instead of saving a single preview frame.

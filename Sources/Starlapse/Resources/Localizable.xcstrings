@@ -1335,6 +1335,64 @@
         }
       }
     },
+    "1/%.0f s · ISO %.0f · steadiest %d frames": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f ث · ISO %.0f · أثبت %d إطار"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f s · ISO %.0f · ruhigste %d Bilder"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f s · ISO %.0f · las %d tomas más estables"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f s · ISO %.0f · les %d images les plus stables"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f s · ISO %.0f · सबसे स्थिर %d फ़्रेम"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f s · ISO %.0f · i %d fotogrammi più stabili"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f 秒 · ISO %.0f · 最も安定した %d コマ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f sn · ISO %.0f · en sabit %d kare"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1/%.0f 秒 · ISO %.0f · 最稳定的 %d 帧"
+          }
+        }
+      }
+    },
     "15 min": {
       "localizations": {
         "ar": {
@@ -6091,6 +6149,64 @@
         }
       }
     },
+    "Moon": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القمر"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चाँद"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮"
+          }
+        }
+      }
+    },
     "Moon %d%% up on every dark night of the window.": {
       "localizations": {
         "ar": {
@@ -6377,6 +6493,238 @@
           "stringUnit": {
             "state": "translated",
             "value": "月亮在地平线下"
+          }
+        }
+      }
+    },
+    "Moon found, bringing the exposure down": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وُجد القمر، جارٍ خفض التعريض"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond gefunden, Belichtung wird gesenkt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna encontrada, bajando la exposición"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune trouvée, exposition en baisse"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चाँद मिला, एक्सपोज़र घटाया जा रहा है"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna trovata, esposizione in calo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月を検出、露出を下げています"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay bulundu, pozlama düşürülüyor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已找到月亮，正在降低曝光"
+          }
+        }
+      }
+    },
+    "Moon found, exposure set from the disc": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وُجد القمر، التعريض مقيس من القرص"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond gefunden, Belichtung von der Scheibe gemessen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna encontrada, exposición medida en el disco"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune trouvée, exposition mesurée sur le disque"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चाँद मिला, एक्सपोज़र चाँद की चकती से तय"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna trovata, esposizione misurata sul disco"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月を検出、月面から露出を決定"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay bulundu, pozlama diskten ölçüldü"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已找到月亮，曝光按月面测定"
+          }
+        }
+      }
+    },
+    "Moon in frame: switch to Moon mode": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "القمر في الإطار: انتقل إلى وضع القمر"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mond im Bild: zum Mond-Modus wechseln"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna en el encuadre: cambiar al modo Luna"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lune dans le cadre : passer en mode Lune"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़्रेम में चाँद: चाँद मोड पर जाएँ"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luna nell’inquadratura: passa alla modalità Luna"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月が画面内に：月モードに切り替え"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay kadrajda: Ay moduna geç"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮在画面中：切换到月亮模式"
+          }
+        }
+      }
+    },
+    "Moon mode sets shutter and ISO from the disc.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "في وضع القمر تُضبط سرعة الغالق وISO من القرص."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Mond-Modus kommen Verschlusszeit und ISO von der Mondscheibe."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En modo Luna, el obturador y el ISO se miden en el disco."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En mode Lune, la vitesse et l’ISO sont mesurés sur le disque."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चाँद मोड में शटर और ISO चाँद की चकती से तय होते हैं।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In modalità Luna tempo e ISO si misurano sul disco."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月モードではシャッターと ISO を月面から決めます。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay modunda enstantane ve ISO diskten ölçülür."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月亮模式下，快门和 ISO 由月面测定。"
           }
         }
       }
@@ -7653,6 +8001,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "可见行星"
+          }
+        }
+      }
+    },
+    "Point at the Moon": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وجّه الكاميرا نحو القمر"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf den Mond richten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apunta a la Luna"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visez la Lune"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चाँद की ओर कैमरा करें"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inquadra la Luna"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月に向けてください"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ay’a doğrultun"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对准月亮"
           }
         }
       }
@@ -9049,6 +9455,64 @@
         }
       }
     },
+    "Short frames aligned on the disc; the steadier half is averaged. Exposure follows the Moon.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إطارات قصيرة محاذاة على القرص، ويُحسب متوسط النصف الأثبت. التعريض يتبع القمر."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurze Bilder, auf die Scheibe ausgerichtet; die ruhigere Hälfte wird gemittelt. Die Belichtung folgt dem Mond."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomas cortas alineadas en el disco; se promedia la mitad más estable. La exposición sigue a la Luna."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poses courtes alignées sur le disque ; la moitié la plus stable est moyennée. L’exposition suit la Lune."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "छोटे फ़्रेम चकती पर संरेखित; ज़्यादा स्थिर आधे फ़्रेमों का औसत। एक्सपोज़र चाँद के हिसाब से बदलता है।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pose brevi allineate sul disco; si fa la media della metà più stabile. L’esposizione segue la Luna."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "短いコマを月面で位置合わせし、安定した半分を平均します。露出は月に合わせて変わります。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diske hizalanmış kısa kareler; daha sabit yarısının ortalaması alınır. Pozlama Ay’ı izler."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "短曝光帧按月面对齐，取较稳定的一半平均。曝光随月亮调整。"
+          }
+        }
+      }
+    },
     "Sky moves %.1f° between frames — motion will look steppy.": {
       "localizations": {
         "ar": {
@@ -9393,6 +9857,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "Starlapse 在这部手机上意外关闭。报告包含相机的错误信息和代码路径，不含照片和位置。发送到 info@superduperai.co 能让我们准确知道该修什么。"
+          }
+        }
+      }
+    },
+    "Steadiest %d frames × 1/%.0f s": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أثبت %d إطار × 1/%.0f ث"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhigste %d Bilder × 1/%.0f s"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las %d tomas más estables × 1/%.0f s"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les %d images les plus stables × 1/%.0f s"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सबसे स्थिर %d फ़्रेम × 1/%.0f s"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I %d fotogrammi più stabili × 1/%.0f s"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最も安定した %d コマ × 1/%.0f 秒"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En sabit %d kare × 1/%.0f sn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最稳定的 %d 帧 × 1/%.0f 秒"
           }
         }
       }
