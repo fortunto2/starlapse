@@ -4,6 +4,7 @@ import Metal
 import os
 import SkyKit
 import SkyMeter
+import StackKit
 import SuperDuperAnalytics
 import SwiftUI
 
@@ -83,6 +84,11 @@ final class CaptureViewModel {
     /// the file next door, so not `private`.
     var forecastKey: String?
     var showsEventsSheet = false
+    /// Moon mode — see the extension in `CaptureViewModel+Moon.swift`. What to put back on
+    /// leaving it, the meter's loop, and the disc it last saw.
+    var moonReturn: MoonReturn?
+    var moonMetering: Task<Void, Never>?
+    var moonDisc: MoonDisc?
     /// The person's pick from `plan.aimCandidates`; nil lets the plan choose.
     var aimChoice: AimCandidate.Kind?
     /// Written by the saving extension in the file next door, so no `private(set)` here —

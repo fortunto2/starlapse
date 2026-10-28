@@ -67,6 +67,8 @@ final class StackEngine: @unchecked Sendable {
     private var previousStars: [StarPoint] = []
     /// Transform from the current frame back to the reference frame.
     private var accumulatedTransform = SimilarityTransform.identity
+    /// Moon mode's registration: the reference disc and the judge of steady frames.
+    private var moonTracker = MoonTracker()
 
     private var progress = StackProgress()
 
@@ -168,6 +170,7 @@ final class StackEngine: @unchecked Sendable {
         referenceStars = []
         previousStars = []
         accumulatedTransform = .identity
+        moonTracker = MoonTracker()
     }
 
     // MARK: - Frame intake
@@ -196,7 +199,15 @@ final class StackEngine: @unchecked Sendable {
         }
 
         var transform: simd_float3x3?
-        if plan.aligns {
+        if plan.stackMode == .moon {
+            guard let alignment = trackMoon(frame) else {
+                // No disc, or a frame shake left softer than the median so far.
+                progress.framesRejected += 1
+                report()
+                return
+            }
+            transform = alignment
+        } else if plan.aligns {
             guard let alignment = track(frame) else {
                 // Tracking lost: clouds, a bumped tripod, or a frame with too few stars.
                 // Stacking it anyway would smear the whole result, so it is dropped —
@@ -279,6 +290,18 @@ final class StackEngine: @unchecked Sendable {
             onEventRecorded?(url, event, LumaImage.Size(width: accumulator.lumaWidth, height: accumulator.lumaHeight))
         }
         report()
+    }
+
+    /// Register a Moon frame onto the reference disc, or nil to drop it — see `MoonTracker`.
+    private func trackMoon(_ frame: SensorFrame) -> simd_float3x3? {
+        guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer),
+              let shift = moonTracker.register(luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
+        else { return nil }
+        // Luma pixels to frame pixels; the shader wants accumulator → frame, the inverse.
+        let scale = Double(accumulator.width) / Double(max(accumulator.lumaWidth, 1))
+        return SimilarityTransform(
+            rotation: 0, translationX: shift.translationX * scale, translationY: shift.translationY * scale
+        ).inverted.matrix
     }
 
     /// Detect stars and solve this frame's transform back to the reference frame.
@@ -435,7 +458,7 @@ final class StackEngine: @unchecked Sendable {
     /// trails: a maximum is not a mean, and the sky in it reads brighter than it was.
     func skyLuminance() async -> LumaImage? {
         await queue.perform { [weak self] in
-            guard let self, let completed, completed.stackMode != .trails else { return nil }
+            guard let self, let completed, completed.stackMode.measuresSky else { return nil }
             return accumulator.stackLuminance()
         }
     }

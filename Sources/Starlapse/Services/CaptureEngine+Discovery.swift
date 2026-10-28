@@ -63,7 +63,7 @@ extension CaptureEngine {
             lenses: lenses,
             isoRange: facts.isoRange,
             maxFrameExposure: facts.longestFrame,
-            minFrameExposure: facts.shortestFrame,
+            minFrameExposure: facts.shortestShutter,
             supportsAppleProRAW: discovery.devices.count >= 3,
             deviceModel: primary.localizedName
         )

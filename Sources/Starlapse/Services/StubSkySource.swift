@@ -41,6 +41,10 @@ final class StubSkySource: @unchecked Sendable {
 
     private let stars: [Star]
 
+    /// Shutter × ISO in force, when the stub sky carries a Moon (`UITEST_MOON=1`). The disc
+    /// answers the exposure, so Moon mode's meter can be watched converging in the Simulator.
+    var moonLight: Double?
+
     /// Frames on which a meteor crosses. Frequent, because a screenshot has to catch one —
     /// and in a stacked shot it stays in the result anyway, which is exactly what happens
     /// on a real Perseid night.
@@ -119,8 +123,49 @@ final class StubSkySource: @unchecked Sendable {
         drawMilkyWay(into: pixels, bytesPerRow: bytesPerRow)
         drawStars(into: pixels, bytesPerRow: bytesPerRow, angle: angle)
 
-        if (frameIndex - 1) % meteorPeriod == meteorFrame {
+        // No meteor across the Moon: one every fourth frame is a screenshot's convenience,
+        // and through the disc it reads as a blown-out Moon to the meter.
+        if moonLight == nil, (frameIndex - 1) % meteorPeriod == meteorFrame {
             drawMeteor(into: pixels, bytesPerRow: bytesPerRow)
+        }
+        if let moonLight {
+            drawMoon(into: pixels, bytesPerRow: bytesPerRow, light: moonLight)
+        }
+    }
+
+    /// A full Moon with three maria, jittered a few pixels per frame like a hand-held phone,
+    /// and soft on every third frame like a shaken one. Its highlands reach linear 1.0 at
+    /// 1/250 s and ISO 55, roughly what a real full Moon does through the telephoto.
+    private func drawMoon(into pixels: UnsafeMutablePointer<UInt8>, bytesPerRow: Int, light: Double) {
+        let jitter = Double((frameIndex * 7919) % 7) - 3
+        let centerX = Double(width) * 0.5 + jitter
+        let centerY = Double(height) * 0.42 - jitter * 0.6
+        let radius = 150.0
+        let softness = frameIndex % 3 == 0 ? 7.0 : 1.2
+        let gain = light / (55.0 / 250.0)
+        // Maria as offset from the centre and radius, in pixels.
+        let maria: [SIMD3<Double>] = [[-45, -30, 50], [40, 10, 38], [-10, 60, 30]]
+
+        let lowY = max(0, Int(centerY - radius - 10)), highY = min(height - 1, Int(centerY + radius + 10))
+        let lowX = max(0, Int(centerX - radius - 10)), highX = min(width - 1, Int(centerX + radius + 10))
+        for py in lowY...highY {
+            for px in lowX...highX {
+                let dx = Double(px) - centerX, dy = Double(py) - centerY
+                let inside = min(1, max(0, (radius - (dx * dx + dy * dy).squareRoot()) / softness + 0.5))
+                guard inside > 0 else { continue }
+                var albedo = 1.0
+                for mare in maria {
+                    let mx = dx - mare.x, my = dy - mare.y
+                    let depth = min(1, max(0, (mare.z - (mx * mx + my * my).squareRoot()) / (softness * 2) + 0.5))
+                    albedo -= 0.3 * depth
+                }
+                let linear = min(1, albedo * gain * inside)
+                let value = 255 * pow(linear, 1 / 2.2)
+                let offset = py * bytesPerRow + px * 4
+                pixels[offset] = UInt8(max(Double(pixels[offset]), value * 0.94))
+                pixels[offset + 1] = UInt8(max(Double(pixels[offset + 1]), value * 0.97))
+                pixels[offset + 2] = UInt8(max(Double(pixels[offset + 2]), value))
+            }
         }
     }
 

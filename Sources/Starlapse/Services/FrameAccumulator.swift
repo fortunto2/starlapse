@@ -25,6 +25,9 @@ final class FrameAccumulator: @unchecked Sendable {
         var saturation: Float = 1.35
 
         static let neutral = ToneSettings(blackPoint: 0, stretch: 0.001, exposure: 1, saturation: 1)
+        /// The Moon is metered to a linear peak, so it is developed straight: a stretch made
+        /// to pull faint stars out of the noise would flatten the maria into the highlands.
+        static let moon = ToneSettings(blackPoint: 0.002, stretch: 0.001, exposure: 1, saturation: 1.1)
     }
 
     private struct StackParams {

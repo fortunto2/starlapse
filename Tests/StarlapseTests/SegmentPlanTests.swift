@@ -93,4 +93,35 @@ struct SegmentPlanTests {
         #expect(settings.clipDuration > 0.8)
         #expect(settings.warning == nil)
     }
+
+    // MARK: - Moon
+
+    static var moon: CaptureSettings {
+        var moon = settings
+        moon.stackMode = .moon
+        moon.iso = 50
+        moon.frameExposure = 1.0 / 1000
+        return moon
+    }
+
+    @Test("A Moon stack is counted in kept frames, not in seconds of light")
+    func moonCountsFrames() {
+        // 300 s of light at 1/1000 s would be 300 000 frames.
+        #expect(Self.moon.frameCount == CaptureSettings.moonFrames)
+        #expect(SegmentPlan.still(Self.moon, tone: .moon).totalFrames == CaptureSettings.moonFrames)
+    }
+
+    @Test("The Moon is framed at the exposure it is shot at")
+    func moonFramingKeepsItsExposure() {
+        let framing = Self.moon.forFraming(Self.capabilities)
+        #expect(framing.frameExposure == 1.0 / 1000)
+        #expect(framing.iso == 50)
+    }
+
+    @Test("A Moon stack does not align on stars, and nobody measures sky brightness from it")
+    func moonIsNotAStarStack() {
+        #expect(!SegmentPlan.still(Self.moon, tone: .moon).aligns)
+        #expect(!StackMode.moon.measuresSky)
+        #expect(StackMode.stars.measuresSky)
+    }
 }

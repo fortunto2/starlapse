@@ -14,6 +14,8 @@ struct FormatFacts: Sendable, Equatable {
     /// delivers 0.667 s, and asking it for the full second is what raises an exception.
     let longestFrame: Double
     let shortestFrame: Double
+    /// Shortest shutter, which may sit well inside the shortest frame: what Moon mode uses.
+    var shortestShutter: Double = 0
     let isoRange: ClosedRange<Float>
     /// Plain 8-bit 4:2:0 video (`420v`/`420f`) — the only kind the BGRA output is known to
     /// convert on every iPhone. Newer phones list 10-bit, Apple Log and ProRes variants at
@@ -124,8 +126,20 @@ enum FormatChoice {
     /// An unknown window counts as widening: that is the first call after a format change,
     /// where the exposure in force is whatever the camera picked for itself. An unbounded
     /// one does not, because any shutter already fits inside it.
-    static func frameWindowFirst(exposure: Double, currentWindow: Double) -> Bool {
-        currentWindow.isNaN || exposure > currentWindow
+    static func frameWindowFirst(window: Double, currentWindow: Double) -> Bool {
+        currentWindow.isNaN || window > currentWindow
+    }
+
+    /// The frame duration for a shutter: the shutter itself, or the format's shortest frame
+    /// when the shutter is shorter than that.
+    ///
+    /// The two used to be one number, which tied the shortest shutter to the frame-rate
+    /// ceiling (1/30 s on a 30 fps format). That is four to six stops too long for the Moon,
+    /// which wants 1/500–1/2000 s. The sensor is happy with a short shutter in a longer
+    /// frame; it only refuses the reverse.
+    static func frameWindow(for exposure: Double, bounds: ClosedRange<Double>?) -> Double {
+        guard let bounds else { return exposure }
+        return exposure.clamped(to: bounds)
     }
 
     /// The frame durations a format will accept, in seconds.
@@ -156,6 +170,7 @@ extension FormatFacts {
         // format where they cross would otherwise build a ClosedRange that traps.
         longestFrame = max(ceiling, floor)
         shortestFrame = min(ceiling, floor)
+        shortestShutter = min(format.minExposureDuration.seconds, longestFrame)
         isoRange = min(format.minISO, format.maxISO)...max(format.minISO, format.maxISO)
 
         let subtype = CMFormatDescriptionGetMediaSubType(format.formatDescription)

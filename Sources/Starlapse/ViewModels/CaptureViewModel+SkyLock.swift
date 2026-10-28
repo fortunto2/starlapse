@@ -41,7 +41,8 @@ extension CaptureViewModel {
     }
 
     private func solveSkyLock() async {
-        guard state == .aiming, !isFocusing, !mode.isDetector, attitude.hasFullFix,
+        // Not on the Moon: its frames are too short to hold a star to solve on.
+        guard state == .aiming, !isFocusing, !mode.isDetector, !isMoonMode, attitude.hasFullFix,
               let location = attitude.location, let stackEngine,
               let frame = await stackEngine.watchedLuminance()
         else { return }

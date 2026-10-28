@@ -34,6 +34,10 @@ enum StackMode: String, CaseIterable, Sendable, Identifiable {
     /// Average without aligning. Sky smears slightly, ground gets very clean — the right
     /// choice when the landscape is the subject and the stars are texture.
     case smooth
+    /// Short frames aligned on the lunar disc, the steadier half averaged. The shutter is
+    /// metered off the disc rather than set by hand: the Moon spans six stops between a
+    /// crescent and full, and a night-sky exposure turns it into a white blob.
+    case moon
 
     var id: String { rawValue }
 
@@ -42,6 +46,7 @@ enum StackMode: String, CaseIterable, Sendable, Identifiable {
         case .stars: String(localized: "Pinpoint stars")
         case .trails: String(localized: "Star trails")
         case .smooth: String(localized: "Clean landscape")
+        case .moon: String(localized: "Moon")
         }
     }
 
@@ -53,10 +58,17 @@ enum StackMode: String, CaseIterable, Sendable, Identifiable {
             String(localized: "Brightest pixel wins. The sky's rotation draws arcs, the ground stays sharp.")
         case .smooth:
             String(localized: "Averaged as shot. Stars trail a little, the landscape gets very clean.")
+        case .moon:
+            String(
+                localized: "Short frames aligned on the disc; the steadier half is averaged. Exposure follows the Moon."
+            )
         }
     }
 
     var alignsStars: Bool { self == .stars }
+    /// Measures the sky from its stars. Not trails (a maximum, not a mean) and not the Moon,
+    /// whose frames are far too short to hold a star.
+    var measuresSky: Bool { self == .stars || self == .smooth }
 }
 
 /// Everything the user controls. Deliberately explicit: nothing here is ever changed
@@ -78,14 +90,22 @@ struct CaptureSettings: Sendable, Equatable {
     var totalLightSeconds: Double
 
     static let minimumTotalLight: Double = 10
+    /// Frames a Moon stack keeps. About half of those shot pass the steadiness test, so this
+    /// is roughly 200 frames, several seconds at the sensor's frame rate.
+    static let moonFrames = 100
+    /// Longest Moon shutter before shake and seeing smear the limb; gain takes over past it.
+    static let longestMoonShutter: Double = 1.0 / 60
     static let maximumTotalLight: Double = 3600
 
     /// How many frames that adds up to. The honest translation of "a one-hour exposure"
     /// into what the hardware will really do.
     var frameCount: Int {
+        // The Moon is counted in kept frames, not in light: at 1/1000 s, ten seconds of
+        // light would be ten thousand frames.
+        if stackMode == .moon { return Self.moonFrames }
         // Never divide by the raw value: a camera that reports a zero exposure ceiling
         // makes this infinite, and converting an infinite Double to Int traps.
-        max(1, Int((totalLightSeconds / max(frameExposure, 0.001)).rounded()))
+        return max(1, Int((totalLightSeconds / max(frameExposure, 0.001)).rounded()))
     }
 
     /// Noise improvement from averaging, in stops. Only meaningful for the averaging modes.
@@ -111,6 +131,9 @@ struct CaptureSettings: Sendable, Equatable {
     /// definition of "what the camera should be doing right now", derived from state
     /// instead of applied by hand at transition points.
     func forFraming(_ capabilities: CameraCapabilities) -> Self {
+        // The Moon is framed at the exposure it will be shot at: that is what the meter
+        // reads, and a hot framing frame would show a white disc to aim at.
+        if stackMode == .moon { return self }
         var framing = self
         framing.frameExposure = min(1.0 / 8.0, capabilities.maxFrameExposure)
         framing.iso = capabilities.isoRange.upperBound

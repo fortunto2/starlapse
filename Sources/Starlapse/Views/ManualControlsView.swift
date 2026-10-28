@@ -112,6 +112,12 @@ struct ManualControlsView: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionTitle("EXPOSURE — LOCKED")
 
+            if model.isMoonMode {
+                Text("Moon mode sets shutter and ISO from the disc.")
+                    .font(NightTheme.mono(10))
+                    .foregroundStyle(NightTheme.accent)
+            }
+
             NightSlider(
                 label: "ISO",
                 value: Binding(
@@ -121,13 +127,15 @@ struct ManualControlsView: View {
                 range: Double(model.capabilities.isoRange.lowerBound)...Double(model.capabilities.isoRange.upperBound),
                 format: { String(format: "%.0f", $0) }
             )
+            .disabled(model.isMoonMode)
 
             NightSlider(
                 label: "Frame exposure",
                 value: $model.settings.frameExposure,
-                range: 0.1...max(0.2, model.capabilities.maxFrameExposure),
-                format: { String(format: "%.2f s", $0) }
+                range: shortestShutterOnSlider...max(0.2, model.capabilities.maxFrameExposure),
+                format: { $0 < 0.1 ? String(format: "1/%.0f s", 1 / $0) : String(format: "%.2f s", $0) }
             )
+            .disabled(model.isMoonMode)
 
             NightSlider(
                 label: "Total light",
@@ -135,6 +143,7 @@ struct ManualControlsView: View {
                 range: CaptureSettings.minimumTotalLight...CaptureSettings.maximumTotalLight,
                 format: { $0 >= 60 ? String(format: "%.0f min", $0 / 60) : String(format: "%.0f s", $0) }
             )
+            .disabled(model.isMoonMode)
 
             VStack(alignment: .leading, spacing: 4) {
                 ReadoutRow(label: "Stacking", value: model.exposureExplanation, highlighted: true)
@@ -173,43 +182,6 @@ struct ManualControlsView: View {
                 format: { String(format: "%.0f K", $0) },
                 step: 50
             )
-        }
-        .nightPanel()
-    }
-
-    // MARK: - Stack mode
-
-    private var stackSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionTitle("WHAT TO BUILD")
-
-            Picker("Mode", selection: $model.settings.stackMode) {
-                ForEach(StackMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            Text(model.settings.stackMode.explanation)
-                .font(NightTheme.mono(10))
-                .foregroundStyle(NightTheme.dim)
-
-            Toggle(isOn: Binding(
-                get: { model.mode.isTimelapse },
-                set: { model.mode = $0 ? .timelapse(model.timelapse) : .still }
-            )) {
-                Text("Time-lapse")
-                    .font(NightTheme.mono(12))
-                    .foregroundStyle(NightTheme.primary)
-            }
-            .tint(NightTheme.secondary)
-
-            Toggle(isOn: $model.dimsScreenDuringCapture) {
-                Text("Dim screen while capturing")
-                    .font(NightTheme.mono(12))
-                    .foregroundStyle(NightTheme.primary)
-            }
-            .tint(NightTheme.secondary)
         }
         .nightPanel()
     }
@@ -367,7 +339,7 @@ struct ManualControlsView: View {
 
     // MARK: - Privacy
 
-    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
+    func sectionTitle(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(NightTheme.mono(11, weight: .bold))
             .foregroundStyle(NightTheme.secondary)

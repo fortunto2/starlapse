@@ -283,7 +283,12 @@ final class CaptureEngine: @unchecked Sendable {
 
     private func applyOnQueue(_ settings: CaptureSettings) throws {
         #if DEBUG
-        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" { return }
+        if ProcessInfo.processInfo.environment["UITEST_SKY"] == "1" {
+            if ProcessInfo.processInfo.environment["UITEST_MOON"] == "1" {
+                stubSky?.moonLight = settings.frameExposure * Double(settings.iso)
+            }
+            return
+        }
         #endif
         guard let device else { throw CameraError.noCameraAvailable }
 
@@ -293,9 +298,14 @@ final class CaptureEngine: @unchecked Sendable {
         // as the app closing the moment it is given camera access.
         let format = device.activeFormat
         let facts = FormatFacts(format)
-        let exposure = settings.frameExposure.clamped(to: facts.shortestFrame...facts.longestFrame)
+        let exposure = settings.frameExposure.clamped(to: facts.shortestShutter...facts.longestFrame)
         let iso = settings.iso.clamped(to: facts.isoRange)
         let duration = CMTime(seconds: exposure, preferredTimescale: 1_000_000)
+        // A shutter shorter than the format's shortest frame runs inside that frame.
+        let windowSeconds = FormatChoice.frameWindow(
+            for: exposure, bounds: FormatChoice.frameDurationBounds(format.videoSupportedFrameRateRanges)
+        )
+        let frame = CMTime(seconds: windowSeconds, preferredTimescale: 1_000_000)
 
         try device.lockForConfiguration()
         defer { device.unlockForConfiguration() }
@@ -312,12 +322,12 @@ final class CaptureEngine: @unchecked Sendable {
         // So: widen the window before lengthening the shutter, and shorten the shutter
         // before narrowing the window. Every intermediate state is then legal on its own.
         let window = device.activeVideoMaxFrameDuration.seconds
-        if FormatChoice.frameWindowFirst(exposure: exposure, currentWindow: window) {
-            applyFrameWindow(duration, seconds: exposure, on: device, format: format)
+        if FormatChoice.frameWindowFirst(window: windowSeconds, currentWindow: window) {
+            applyFrameWindow(frame, seconds: windowSeconds, on: device, format: format)
             applyExposure(duration, seconds: exposure, iso: iso, on: device)
         } else {
             applyExposure(duration, seconds: exposure, iso: iso, on: device)
-            applyFrameWindow(duration, seconds: exposure, on: device, format: format)
+            applyFrameWindow(frame, seconds: windowSeconds, on: device, format: format)
         }
 
         // Infinity, held. Autofocus in the dark hunts forever and lands on nothing.
@@ -353,9 +363,9 @@ final class CaptureEngine: @unchecked Sendable {
     /// Pin the frame rate to the exposure, so the sensor is not asked for more frames a
     /// second than the shutter can deliver.
     ///
-    /// `exposure` is already inside the format's frame-duration window — that is what
-    /// `FormatFacts.longestFrame` means — so this only has to survive a format that
-    /// reports no window at all.
+    /// `seconds` is already inside the format's frame-duration window: `frameWindow(for:)`
+    /// clamps it there, raising a Moon shutter to the shortest frame. So this only has to
+    /// survive a format that reports no window at all.
     private func applyFrameWindow(
         _ duration: CMTime,
         seconds: Double,
@@ -406,6 +416,10 @@ final class CaptureEngine: @unchecked Sendable {
     #if DEBUG
     private func startStubSky() {
         let source = StubSkySource()
+        if ProcessInfo.processInfo.environment["UITEST_MOON"] == "1" {
+            // Moon mode's opening guess, 1/1000 s at the stub's base ISO, until it meters.
+            source.moonLight = 55.0 / 1000
+        }
         stubSky = source
         stubTimer = DispatchSource.makeTimerSource(queue: captureQueue.dispatch)
         stubTimer?.schedule(deadline: .now(), repeating: 0.35)

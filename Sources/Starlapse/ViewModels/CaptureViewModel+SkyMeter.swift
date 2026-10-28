@@ -128,7 +128,9 @@ extension CaptureViewModel {
 
     /// After a still is saved: send it, or ask the first time.
     func contribute(_ rendered: RenderedImage) async {
-        guard SkyDataset.choice != false, let start = sky.start else { return }
+        // A Moon stack holds no sky worth measuring: its frames are too short for stars.
+        guard SkyDataset.choice != false, settings.stackMode.measuresSky || settings.stackMode == .trails,
+              let start = sky.start else { return }
         // A save in the second after review opens can beat the measurement; it is worth
         // waiting a few seconds for, the reading is the point of the contribution.
         for _ in 0..<20 where sky.isMeasuring { try? await Task.sleep(for: .milliseconds(250)) }

@@ -187,17 +187,35 @@ struct FormatChoiceTests {
     func widenBeforeLengthening() {
         // 1 s of sky into a window currently holding 1/8 s. Narrowing first is what threw
         // the exception on an iPhone 15.
-        #expect(FormatChoice.frameWindowFirst(exposure: 1.0, currentWindow: 0.125))
+        #expect(FormatChoice.frameWindowFirst(window: 1.0, currentWindow: 0.125))
     }
 
     @Test("Shortening the shutter sets the exposure first")
     func shortenBeforeNarrowing() {
-        #expect(!FormatChoice.frameWindowFirst(exposure: 0.125, currentWindow: 1.0))
+        #expect(!FormatChoice.frameWindowFirst(window: 0.125, currentWindow: 1.0))
     }
 
     @Test("An unknown window counts as widening")
     func unknownWindowWidens() {
-        #expect(FormatChoice.frameWindowFirst(exposure: 0.125, currentWindow: .nan))
-        #expect(FormatChoice.frameWindowFirst(exposure: 0.125, currentWindow: .infinity) == false)
+        #expect(FormatChoice.frameWindowFirst(window: 0.125, currentWindow: .nan))
+        #expect(FormatChoice.frameWindowFirst(window: 0.125, currentWindow: .infinity) == false)
+    }
+
+    // MARK: - A shutter shorter than the frame
+
+    @Test("A Moon shutter runs inside the shortest frame the format allows")
+    func shortShutterKeepsTheFormatsFrameFloor() {
+        // 1/1000 s of Moon on a 30 fps format: the frame stays 1/30 s, the shutter does not.
+        #expect(FormatChoice.frameWindow(for: 0.001, bounds: (1.0 / 30)...1.0) == 1.0 / 30)
+    }
+
+    @Test("A long shutter is its own frame window")
+    func longShutterIsTheWindow() {
+        #expect(FormatChoice.frameWindow(for: 0.5, bounds: (1.0 / 30)...1.0) == 0.5)
+    }
+
+    @Test("A format that reports no window leaves the shutter alone")
+    func noBoundsMeansExposure() {
+        #expect(FormatChoice.frameWindow(for: 0.001, bounds: nil) == 0.001)
     }
 }

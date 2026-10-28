@@ -57,12 +57,19 @@ struct CaptureView: View {
                     if showsOverlay, model.plan != nil, !model.state.isCapturing {
                         targetRow
                     }
+                    if model.moonInFrame, !model.state.isCapturing {
+                        MoonInFrameChip { model.enterMoonMode() }
+                            .padding(.top, 6)
+                    }
                     Spacer()
                     if model.state.isCapturing || showsOverlay {
                         StatusPanels(model: model)
                     }
                     if !model.state.isCapturing {
-                        if case .still = model.mode {
+                        if model.isMoonMode {
+                            MoonCaption(model: model)
+                                .padding(.top, 8)
+                        } else if case .still = model.mode {
                             LightPicker(model: model)
                                 .padding(.top, 8)
                         }
@@ -131,6 +138,9 @@ struct CaptureView: View {
         if environment["UITEST_MODE"] == "detector" {
             model.mode = .detector(model.detectorSettings)
         }
+        if environment["UITEST_MODE"] == "moon" {
+            model.enterMoonMode()
+        }
         if environment["UITEST_PANEL"] == "controls" {
             showsControls = true
         }
@@ -138,6 +148,8 @@ struct CaptureView: View {
             model.showsPaywall = true
         }
         if environment["UITEST_CAPTURE"] == "1" {
+            // The Moon's meter needs a few frames before the shutter is worth pressing.
+            if model.isMoonMode { try? await Task.sleep(for: .seconds(5)) }
             await model.start()
         }
     }
@@ -424,17 +436,23 @@ extension CaptureView {
     private var modeSwitcher: some View {
         VStack(spacing: 4) {
             HStack(spacing: 6) {
-                modeButton("Exposure", isOn: !model.mode.isTimelapse && !model.mode.isDetector) {
+                modeButton("Exposure", isOn: !model.mode.isTimelapse && !model.mode.isDetector && !model.isMoonMode) {
+                    model.leaveMoonMode()
                     model.mode = .still
                 }
+                modeButton("Moon", isOn: model.isMoonMode) {
+                    model.enterMoonMode()
+                }
                 modeButton("Time-lapse", isOn: model.mode.isTimelapse) {
+                    model.leaveMoonMode()
                     model.mode = .timelapse(model.timelapse)
                 }
                 modeButton("Detector", isOn: model.mode.isDetector) {
+                    model.leaveMoonMode()
                     model.mode = .detector(model.detectorSettings)
                 }
             }
-            Text(model.mode.explanation)
+            Text(model.isMoonMode ? model.settings.stackMode.explanation : model.mode.explanation)
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
         }
@@ -445,6 +463,8 @@ extension CaptureView {
         Button(action: action) {
             Text(title)
                 .font(NightTheme.mono(11, weight: isOn ? .bold : .regular))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .foregroundStyle(isOn ? Color.black : NightTheme.dim)
                 .frame(maxWidth: .infinity, minHeight: 34)
                 .background(isOn ? NightTheme.primary : Color.clear)

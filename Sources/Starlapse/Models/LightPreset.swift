@@ -27,6 +27,8 @@ enum LightPreset: String, CaseIterable, Identifiable, Sendable {
         case .stars: 300
         case .trails: 1800
         case .smooth: 120
+        // Counted in frames, not light; the presets are not shown for the Moon.
+        case .moon: CaptureSettings.minimumTotalLight
         }
     }
 

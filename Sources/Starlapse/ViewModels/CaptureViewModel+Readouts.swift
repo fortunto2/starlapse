@@ -10,6 +10,12 @@ extension CaptureViewModel {
 
     /// The honest translation of the requested exposure into what the hardware will do.
     var exposureExplanation: String {
+        if isMoonMode {
+            return String(
+                format: String(localized: "Steadiest %d frames × 1/%.0f s"),
+                CaptureSettings.moonFrames, 1 / max(settings.frameExposure, 1e-6)
+            )
+        }
         let frames = settings.frameCount
         let total = settings.totalLightSeconds
         let minutes = total / 60
