@@ -37,7 +37,7 @@ offers Moon mode in one tap.
       format's minimum in Moon mode, `.moon` left out of the sheet's stack picker.
 - [x] 9. Auto part: Moon inside the frame (SkyKit position + attitude) → one-tap chip.
 - [x] 10. l10n (9 languages), PRIVACY/README untouched (no new data), whats-new 1.2.0.
-- [ ] 11. make test / test-app / lint / build, commit, TestFlight.
+- [x] 11. make test / test-app / lint / build, commit, TestFlight.
 
 ## Verified in the Simulator (stub sky with a Moon, `UITEST_MOON=1`)
 
