@@ -20,7 +20,7 @@ struct CaptureView: View {
                 .ignoresSafeArea()
 
             // In daylight there is no star or Milky Way to mark, and the layer dims the view.
-            if showsOverlay && !model.state.isReviewing && !model.isDaylight {
+            if showsOverlay && !model.state.isReviewing {
                 let pointing = model.overlayPointing
                 SkyOverlayView(
                     plan: model.plan,

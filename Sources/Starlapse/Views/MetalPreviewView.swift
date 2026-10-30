@@ -22,6 +22,11 @@ struct MetalPreviewView: UIViewRepresentable {
         view.device = device
         view.framebufferOnly = false
         view.colorPixelFormat = .bgra8Unorm
+        // The developed frame is display-referred sRGB. Left nil, the layer is shown as is
+        // while nothing covers it and colour-matched once SwiftUI composites a full-screen
+        // view over it — the sky overlay's horizon line was enough — and the preview went
+        // about a stop darker the moment the overlay was on. Said outright, both paths agree.
+        (view.layer as? CAMetalLayer)?.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
         // Redraw only when a new frame arrives. During a session frames land once a second;
         // a 60 Hz display loop would burn battery all night to show the same pixels.
         view.isPaused = true

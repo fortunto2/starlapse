@@ -29,7 +29,7 @@ for whatever stack mode is set, whatever the sky.
 - [x] 4. Day photo: Auto + daylight → one frame, `.day` tone, session tone kept for review.
 - [x] 5. UI: LightPicker caption, exposure readout. l10n.
 - [x] 6. Stub sky that answers exposure in daylight (`UITEST_DAY=1`); verify in the Simulator.
-- [ ] 7. Tests, lint, commit, build to the phone.
+- [x] 7. Tests, lint, commit, build to the phone.
 
 ## Verified in the Simulator (`UITEST_SKY=1 UITEST_DAY=1`)
 
@@ -37,6 +37,9 @@ for whatever stack mode is set, whatever the sky.
   1/30 s ISO 180 → 1/2346 s → 1/1038 s), median held at 0.174 against 0.18.
 - Auto in daylight: caption "Auto: daylight, so one photo", one frame, review on the day curve.
 - Night stub unchanged: framing stays at the night exposure, Auto still 5 min for stars.
-- Found on the way: the sky overlay darkens the preview by ~40% (pre-existing, cause not
-  found); hidden in daylight, where it marks nothing. The stub's per-pixel `pow` took longer
+- Found on the way: the sky overlay darkened the preview by ~40%, at night too, since the
+  first build. Bisected by part: any full-screen SwiftUI view over the MTKView (the horizon
+  line alone) did it. The CAMetalLayer had no colour space, so it was shown as is when
+  uncovered and colour-matched when composited. Set to sRGB, both paths agree; the overlay
+  stays on in daylight, stars over a day sky being the point. The stub's per-pixel `pow` took longer
   than a frame and starved the capture queue — encoded per row now.
