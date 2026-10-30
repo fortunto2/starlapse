@@ -19,7 +19,8 @@ struct CaptureView: View {
             MetalPreviewView(frame: model.previewFrame)
                 .ignoresSafeArea()
 
-            if showsOverlay && !model.state.isReviewing {
+            // In daylight there is no star or Milky Way to mark, and the layer dims the view.
+            if showsOverlay && !model.state.isReviewing && !model.isDaylight {
                 let pointing = model.overlayPointing
                 SkyOverlayView(
                     plan: model.plan,
@@ -112,6 +113,7 @@ struct CaptureView: View {
             model.startSkyUpdates()
             await model.prepare()
             model.startSkyLock()
+            model.startFramingMeter()
             #if DEBUG
             await applyScreenshotHooks()
             #endif
@@ -138,6 +140,9 @@ struct CaptureView: View {
         if environment["UITEST_MODE"] == "detector" {
             model.mode = .detector(model.detectorSettings)
         }
+        if environment["UITEST_OVERLAY"] == "0" {
+            showsOverlay = false
+        }
         if environment["UITEST_MODE"] == "moon" {
             model.enterMoonMode()
         }
@@ -149,7 +154,7 @@ struct CaptureView: View {
         }
         if environment["UITEST_CAPTURE"] == "1" {
             // The Moon's meter needs a few frames before the shutter is worth pressing.
-            if model.isMoonMode { try? await Task.sleep(for: .seconds(5)) }
+            if model.isMoonMode || environment["UITEST_DAY"] == "1" { try? await Task.sleep(for: .seconds(5)) }
             await model.start()
         }
     }

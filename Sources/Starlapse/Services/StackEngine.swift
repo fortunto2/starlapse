@@ -49,6 +49,8 @@ final class StackEngine: @unchecked Sendable {
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "stack")
 
     private var plan: SegmentPlan?
+    /// How framing frames are developed: linear at night, a day curve in daylight.
+    private var framingTone = FrameAccumulator.ToneSettings.neutral
     /// The plan of a finished capture, kept so the result can be re-rendered.
     ///
     /// While this is set the engine ignores incoming frames and the accumulator is left
@@ -115,6 +117,7 @@ final class StackEngine: @unchecked Sendable {
 
     private func beginOnQueue(_ plan: SegmentPlan) {
         self.plan = plan
+        if plan.isFraming { self.plan?.tone = framingTone }
         completed = nil
 
         previewCountdown = 0
@@ -298,10 +301,12 @@ final class StackEngine: @unchecked Sendable {
               let shift = moonTracker.register(luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
         else { return nil }
         // Luma pixels to frame pixels; the shader wants accumulator → frame, the inverse.
-        let scale = Double(accumulator.width) / Double(max(accumulator.lumaWidth, 1))
-        return SimilarityTransform(
-            rotation: 0, translationX: shift.translationX * scale, translationY: shift.translationY * scale
-        ).inverted.matrix
+        return shift.translationScaled(by: lumaToFrame).inverted.matrix
+    }
+
+    /// Star and disc positions are in the quarter-size luma buffer; the shader samples the frame.
+    private var lumaToFrame: Double {
+        Double(accumulator.width) / Double(max(accumulator.lumaWidth, 1))
     }
 
     /// Detect stars and solve this frame's transform back to the reference frame.
@@ -346,12 +351,7 @@ final class StackEngine: @unchecked Sendable {
         // Star coordinates come from the downsampled luma buffer; the shader samples the
         // full-resolution frame, so the translation scales up by the same factor. Rotation
         // is scale-invariant and passes through untouched.
-        let scale = Double(accumulator.width) / Double(max(accumulator.lumaWidth, 1))
-        let scaled = SimilarityTransform(
-            rotation: accumulatedTransform.rotation,
-            translationX: accumulatedTransform.translationX * scale,
-            translationY: accumulatedTransform.translationY * scale
-        )
+        let scaled = accumulatedTransform.translationScaled(by: lumaToFrame)
 
         // The shader walks accumulator coordinates back to frame coordinates, which is the
         // inverse of the frame-to-reference transform solved above.
@@ -460,6 +460,14 @@ final class StackEngine: @unchecked Sendable {
         await queue.perform { [weak self] in
             guard let self, let completed, completed.stackMode.measuresSky else { return nil }
             return accumulator.stackLuminance()
+        }
+    }
+
+    /// Develop framing frames with this curve from now on, including the framing running now.
+    func setFramingTone(_ tone: FrameAccumulator.ToneSettings) {
+        queue.run { [weak self] in
+            self?.framingTone = tone
+            if self?.plan?.isFraming == true { self?.plan?.tone = tone }
         }
     }
 

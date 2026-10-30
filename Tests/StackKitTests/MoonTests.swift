@@ -68,12 +68,14 @@ struct MoonTests {
 
     // MARK: - Exposure
 
-    static let limits = MoonExposure.Limits(shutter: 1.0 / 8000...1.0 / 60, iso: 50...3200)
+    static let limits = ExposureMeter.Limits(shutter: 1.0 / 8000...1.0 / 60, iso: 50...3200)
 
-    @Test("A blown disc steps the shutter down hard")
+    @Test("A blown disc steps the shutter down hard, harder when it is mostly white")
     func clippedStepsDown() {
-        let next = MoonExposure.next(
-            shutter: 1.0 / 30, iso: 50, peak: 1, clippedFraction: 0.8, limits: Self.limits
+        let next = ExposureMeter.next(
+            Exposure(shutter: 1.0 / 30, iso: 50),
+            reading: LightReading(level: 1, clippedFraction: 0.8),
+            target: ExposureMeter.moonTarget, limits: Self.limits
         )
         #expect(next.shutter <= 1.0 / 240)
         #expect(next.iso == 50)
@@ -81,8 +83,10 @@ struct MoonTests {
 
     @Test("An underexposed disc lengthens the shutter at base ISO")
     func darkGoesLonger() {
-        let next = MoonExposure.next(
-            shutter: 1.0 / 2000, iso: 50, peak: 0.175, clippedFraction: 0, limits: Self.limits
+        let next = ExposureMeter.next(
+            Exposure(shutter: 1.0 / 2000, iso: 50),
+            reading: LightReading(level: 0.175, clippedFraction: 0),
+            target: ExposureMeter.moonTarget, limits: Self.limits
         )
         #expect(abs(next.shutter - 1.0 / 500) < 1e-6)
         #expect(next.iso == 50)
@@ -91,8 +95,10 @@ struct MoonTests {
     @Test("Past the shake limit, ISO takes the rest")
     func isoAfterShutter() {
         // A thin crescent: wants 8× the light of 1/120 s.
-        let next = MoonExposure.next(
-            shutter: 1.0 / 120, iso: 50, peak: 0.0875, clippedFraction: 0, limits: Self.limits
+        let next = ExposureMeter.next(
+            Exposure(shutter: 1.0 / 120, iso: 50),
+            reading: LightReading(level: 0.0875, clippedFraction: 0),
+            target: ExposureMeter.moonTarget, limits: Self.limits
         )
         #expect(next.shutter == 1.0 / 60)
         #expect(abs(next.iso - 200) < 0.5)
@@ -100,8 +106,10 @@ struct MoonTests {
 
     @Test("Close to the target, nothing moves")
     func holdsNearTarget() {
-        let next = MoonExposure.next(
-            shutter: 1.0 / 1000, iso: 50, peak: 0.66, clippedFraction: 0, limits: Self.limits
+        let next = ExposureMeter.next(
+            Exposure(shutter: 1.0 / 1000, iso: 50),
+            reading: LightReading(level: 0.66, clippedFraction: 0),
+            target: ExposureMeter.moonTarget, limits: Self.limits
         )
         #expect(next.shutter == 1.0 / 1000)
         #expect(next.iso == 50)
@@ -147,10 +155,55 @@ struct MoonTests {
         sky[60 * Self.width + 80] = 1
         let disc = try #require(MoonDisc.locate(in: sky, width: Self.width, height: Self.height))
         #expect(disc.peak < 0.7)
-        let next = MoonExposure.next(
-            shutter: 1.0 / 1000, iso: 50, peak: disc.peak, clippedFraction: disc.clippedFraction,
-            limits: Self.limits
+        let next = ExposureMeter.next(
+            Exposure(shutter: 1.0 / 1000, iso: 50),
+            reading: LightReading(level: disc.peak, clippedFraction: disc.clippedFraction),
+            target: ExposureMeter.moonTarget, limits: Self.limits
         )
         #expect(next.shutter >= 1.0 / 1000)
+    }
+
+    // MARK: - Scene
+
+    static let sceneLimits = ExposureMeter.Limits(shutter: 1.0 / 8000...1.0 / 30, iso: 50...3200)
+
+    @Test("A scene's level is its median, and the white part is counted")
+    func sceneLevel() {
+        var frame = [Float](repeating: 0.3, count: 10_000)
+        for index in 0..<7_000 { frame[index] = 1 }
+        let reading = SceneLevel.measure(frame)
+        #expect(reading.level == 1)
+        #expect(abs(reading.clippedFraction - 0.7) < 0.01)
+        #expect(abs(SceneLevel.measure([Float](repeating: 0.05, count: 400)).level - 0.05) < 1e-6)
+    }
+
+    @Test("Daylight on night framing comes down five stops a reading")
+    func whiteFramingDropsFast() {
+        let night = Exposure(shutter: 1.0 / 8, iso: 3200)
+        let next = ExposureMeter.next(
+            night, reading: LightReading(level: 1, clippedFraction: 0.9),
+            target: ExposureMeter.sceneTarget, limits: Self.sceneLimits
+        )
+        #expect(abs(next.light - night.light / 32) < 1e-6)
+    }
+
+    @Test("A dim scene is brought to mid-grey at base ISO")
+    func sceneToMidGrey() {
+        let next = ExposureMeter.next(
+            Exposure(shutter: 1.0 / 1000, iso: 50), reading: LightReading(level: 0.045, clippedFraction: 0),
+            target: ExposureMeter.sceneTarget, limits: Self.sceneLimits
+        )
+        #expect(abs(next.shutter - 1.0 / 250) < 1e-6)
+        #expect(next.iso == 50)
+    }
+
+    @Test("A white screen drops eight stops in one reading")
+    func whiteScreenDropsEightStops() {
+        let night = Exposure(shutter: 1.0 / 8, iso: 3200)
+        let next = ExposureMeter.next(
+            night, reading: LightReading(level: 1, clippedFraction: 0.99),
+            target: ExposureMeter.sceneTarget, limits: Self.sceneLimits
+        )
+        #expect(abs(next.light - night.light / 256) < 1e-6)
     }
 }

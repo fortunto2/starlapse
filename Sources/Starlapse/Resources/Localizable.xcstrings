@@ -2089,6 +2089,64 @@
         }
       }
     },
+    "Auto: daylight, so one photo": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تلقائي: النهار، لذا صورة واحدة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto: Tageslicht, also ein Foto"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto: es de día, así que una foto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto : il fait jour, donc une photo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ऑटो: दिन की रोशनी, इसलिए एक फ़ोटो"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto: è giorno, quindi una foto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オート：昼間なので写真1枚"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik: gündüz, tek fotoğraf"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动：白天，拍一张照片"
+          }
+        }
+      }
+    },
     "Averaged as shot. Stars trail a little, the landscape gets very clean.": {
       "localizations": {
         "ar": {
@@ -3419,6 +3477,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "最暗的夜"
+          }
+        }
+      }
+    },
+    "Day photo · 1/%.0f s · ISO %.0f": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صورة نهارية · 1/%.0f ث · ISO %.0f"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesfoto · 1/%.0f s · ISO %.0f"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foto de día · 1/%.0f s · ISO %.0f"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo de jour · 1/%.0f s · ISO %.0f"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दिन की फ़ोटो · 1/%.0f s · ISO %.0f"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foto di giorno · 1/%.0f s · ISO %.0f"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昼の写真 · 1/%.0f 秒 · ISO %.0f"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gündüz fotoğrafı · 1/%.0f sn · ISO %.0f"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "白天照片 · 1/%.0f 秒 · ISO %.0f"
           }
         }
       }

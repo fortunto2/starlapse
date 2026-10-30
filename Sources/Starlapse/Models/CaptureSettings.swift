@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import StackKit
 
 /// One physical lens. The aperture is a fact about the glass, not a setting — this is the
 /// single biggest misconception people bring from DSLR astrophotography. On iPhone you do
@@ -130,13 +131,16 @@ struct CaptureSettings: Sendable, Equatable {
     /// not. Living on the settings type rather than in the view model means there is one
     /// definition of "what the camera should be doing right now", derived from state
     /// instead of applied by hand at transition points.
-    func forFraming(_ capabilities: CameraCapabilities) -> Self {
+    ///
+    /// `metered` is the framing meter's answer when the scene is brighter than that — dusk,
+    /// a lit street, daylight — where the night framing is a white screen.
+    func forFraming(_ capabilities: CameraCapabilities, metered: Exposure? = nil) -> Self {
         // The Moon is framed at the exposure it will be shot at: that is what the meter
         // reads, and a hot framing frame would show a white disc to aim at.
         if stackMode == .moon { return self }
         var framing = self
-        framing.frameExposure = min(1.0 / 8.0, capabilities.maxFrameExposure)
-        framing.iso = capabilities.isoRange.upperBound
+        framing.frameExposure = metered?.shutter ?? min(1.0 / 8.0, capabilities.maxFrameExposure)
+        framing.iso = metered?.iso ?? capabilities.isoRange.upperBound
         return framing
     }
 

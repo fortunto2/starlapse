@@ -28,11 +28,17 @@ struct LightPicker: View {
         .onChange(of: model.settings.stackMode) { apply() }
         .onChange(of: model.settings.totalLightSeconds) { _, seconds in
             // Moved by the slider in the sheet: whatever the row said no longer holds.
-            if let preset, preset.seconds(for: mode) != seconds { stored = "" }
+            if let preset, preset.seconds(for: mode) != seconds {
+                stored = ""
+                model.autoLight = false
+            }
         }
     }
 
     private var caption: String {
+        if model.isDayPhoto {
+            return String(localized: "Auto: daylight, so one photo")
+        }
         let total = LightPreset.spoken(model.settings.totalLightSeconds)
         return preset == .auto
             ? String(format: String(localized: "Auto: %@ for %@"), total, mode.title.lowercased())
@@ -40,6 +46,7 @@ struct LightPicker: View {
     }
 
     private func apply() {
+        model.autoLight = preset == .auto
         guard let preset else { return }
         model.settings.totalLightSeconds = preset.seconds(for: mode)
     }

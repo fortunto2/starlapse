@@ -287,6 +287,9 @@ final class CaptureEngine: @unchecked Sendable {
             if ProcessInfo.processInfo.environment["UITEST_MOON"] == "1" {
                 stubSky?.moonLight = settings.frameExposure * Double(settings.iso)
             }
+            if ProcessInfo.processInfo.environment["UITEST_DAY"] == "1" {
+                stubSky?.dayLight = settings.frameExposure * Double(settings.iso)
+            }
             return
         }
         #endif
@@ -413,30 +416,6 @@ final class CaptureEngine: @unchecked Sendable {
         }
     }
 
-    #if DEBUG
-    private func startStubSky() {
-        let source = StubSkySource()
-        if ProcessInfo.processInfo.environment["UITEST_MOON"] == "1" {
-            // Moon mode's opening guess, 1/1000 s at the stub's base ISO, until it meters.
-            source.moonLight = 55.0 / 1000
-        }
-        stubSky = source
-        stubTimer = DispatchSource.makeTimerSource(queue: captureQueue.dispatch)
-        stubTimer?.schedule(deadline: .now(), repeating: 0.35)
-        stubTimer?.setEventHandler { [weak self] in
-            guard let self, let buffer = source.nextFrame() else { return }
-            stubFrameIndex += 1
-            onFrame(SensorFrame(
-                pixelBuffer: buffer,
-                timestamp: Double(stubFrameIndex) * 0.35,
-                index: stubFrameIndex
-            ))
-        }
-        stubTimer?.resume()
-        logger.info("Stub sky running — Simulator screenshots")
-    }
-    #endif
-
     func stop() async {
         #if DEBUG
         stubTimer?.cancel()
@@ -481,4 +460,37 @@ extension CaptureEngine {
             return true
         }
     }
+}
+
+// The Simulator's stand-in camera. Out of the type body to keep it inside the length limit;
+// same file, so it reaches the engine's private state.
+extension CaptureEngine {
+
+    #if DEBUG
+    fileprivate func startStubSky() {
+        let source = StubSkySource()
+        if ProcessInfo.processInfo.environment["UITEST_MOON"] == "1" {
+            // Moon mode's opening guess, 1/1000 s at the stub's base ISO, until it meters.
+            source.moonLight = 55.0 / 1000
+        }
+        if ProcessInfo.processInfo.environment["UITEST_DAY"] == "1" {
+            // The night framing in daylight: 1/8 s at the top ISO, a white screen.
+            source.dayLight = 0.125 * 12288
+        }
+        stubSky = source
+        stubTimer = DispatchSource.makeTimerSource(queue: captureQueue.dispatch)
+        stubTimer?.schedule(deadline: .now(), repeating: 0.35)
+        stubTimer?.setEventHandler { [weak self] in
+            guard let self, let buffer = source.nextFrame() else { return }
+            stubFrameIndex += 1
+            onFrame(SensorFrame(
+                pixelBuffer: buffer,
+                timestamp: Double(stubFrameIndex) * 0.35,
+                index: stubFrameIndex
+            ))
+        }
+        stubTimer?.resume()
+        logger.info("Stub sky running — Simulator screenshots")
+    }
+    #endif
 }

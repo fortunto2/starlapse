@@ -87,8 +87,17 @@ final class CaptureViewModel {
     /// Moon mode — see the extension in `CaptureViewModel+Moon.swift`. What to put back on
     /// leaving it, the meter's loop, and the disc it last saw.
     var moonReturn: MoonReturn?
-    var moonMetering: Task<Void, Never>?
     var moonDisc: MoonDisc?
+    /// The framing meter — see `CaptureViewModel+Meter.swift`. Its loop, its answer (nil is
+    /// the night framing), and whether that answer is daylight.
+    var meterTask: Task<Void, Never>?
+    var framingExposure: Exposure?
+    var isDaylight = false
+    /// Auto is the chosen light preset; mirrored here by `LightPicker`, which owns it.
+    var autoLight = true
+    /// What the running or last session was: a one-frame day photo or not, and its curve.
+    var sessionIsDayPhoto = false
+    var sessionTone = FrameAccumulator.ToneSettings()
     /// The person's pick from `plan.aimCandidates`; nil lets the plan choose.
     var aimChoice: AimCandidate.Kind?
     /// Written by the saving extension in the file next door, so no `private(set)` here —
@@ -223,7 +232,8 @@ final class CaptureViewModel {
     /// transition points. Framing gets short, high-gain frames; a session gets exactly what
     /// the user dialled in.
     var activeSettings: CaptureSettings {
-        guard state.isCapturing else { return settings.forFraming(capabilities) }
+        guard state.isCapturing else { return settings.forFraming(capabilities, metered: framingExposure) }
+        if sessionIsDayPhoto { return dayPhotoSettings }
         // Watching needs short frames at a usable rate — an exposure long enough for a deep
         // stack would smear the meteor into the background and give three frames a second.
         if case .detector(let detector) = mode {
@@ -232,14 +242,6 @@ final class CaptureViewModel {
             return watching
         }
         return settings
-    }
-
-    var detectorSettings: DetectorSettings {
-        get {
-            if case .detector(let settings) = mode { return settings }
-            return .default
-        }
-        set { mode = .detector(newValue) }
     }
 
     /// Save every clip the detector caught.
@@ -329,6 +331,8 @@ final class CaptureViewModel {
         // before the transition asked for framing settings and got them — the detector ran
         // at the still-mode exposure instead of its own, and this line said `settings`
         // directly, which sidestepped the derivation entirely.
+        sessionIsDayPhoto = isDayPhoto
+        sessionTone = sessionIsDayPhoto ? .day : tone
         state = .capturing
 
         do {
@@ -364,14 +368,19 @@ final class CaptureViewModel {
         lastSavedMessage = nil
         Analytics.track(
             "capture_started",
-            props: ["mode": mode.analyticsName, "stack": settings.stackMode.rawValue]
+            props: ["mode": mode.analyticsName, "stack": sessionIsDayPhoto ? "day" : settings.stackMode.rawValue]
         )
         let plan: SegmentPlan = switch mode {
-        case .still: .still(settings, tone: tone)
+        case .still: .still(sessionIsDayPhoto ? dayPhotoSettings : settings, tone: sessionTone)
         case .timelapse(let timelapseSettings): .timelapse(settings, timelapse: timelapseSettings, tone: tone)
         case .detector(let detectorSettings): .watching(detectorSettings)
         }
-        beginSkyMeasurement()
+        if sessionIsDayPhoto {
+            // A daylight frame holds no night sky to measure, and no star to solve on.
+            sky = SkyMeasurement()
+        } else {
+            beginSkyMeasurement()
+        }
         stackEngine.begin(plan)
         solveDetectorPointing()
 
@@ -406,7 +415,7 @@ final class CaptureViewModel {
 
         restoreScreen()
         lastSavedMessage = nil
-        reviewTone = tone
+        reviewTone = sessionTone
 
         if mode.isTimelapse, let writer = timelapseWriter {
             reviewVideoURL = await writer.finish()
@@ -461,4 +470,16 @@ final class CaptureViewModel {
         UIScreen.main.brightness = previousBrightness
     }
 
+}
+
+// Out of the type body to keep it inside the length limit.
+extension CaptureViewModel {
+
+    var detectorSettings: DetectorSettings {
+        get {
+            if case .detector(let settings) = mode { return settings }
+            return .default
+        }
+        set { mode = .detector(newValue) }
+    }
 }

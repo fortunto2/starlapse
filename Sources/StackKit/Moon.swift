@@ -152,50 +152,6 @@ public struct MoonTracker: Sendable {
     }
 }
 
-/// Shutter and ISO for the Moon, metered off the disc.
-///
-/// The Moon's brightness swings by more than six stops between a thin crescent and full, and
-/// a camera meter averaging the whole frame sees mostly black sky and blows the disc out.
-/// This meters the disc's own peak to a target with headroom, prefers base ISO, and only
-/// raises gain once the shutter would be long enough for shake and seeing to smear the limb.
-public enum MoonExposure {
-
-    public struct Limits: Sendable, Equatable {
-        public var shutter: ClosedRange<Double>
-        public var iso: ClosedRange<Float>
-        public init(shutter: ClosedRange<Double>, iso: ClosedRange<Float>) {
-            self.shutter = shutter
-            self.iso = iso
-        }
-    }
-
-    /// Linear peak the disc is steered to. Highlands sit near it; the maria well below.
-    public static let targetPeak = 0.7
-    /// Closer than this (in stops) and nothing changes: no hunting between two frames.
-    static let deadband = 0.15
-
-    public static func next(
-        shutter: Double, iso: Float, peak: Double, clippedFraction: Double, limits: Limits
-    ) -> (shutter: Double, iso: Float) {
-        let factor: Double
-        if clippedFraction > 0.02 || peak >= Double(MoonDisc.clipLevel) {
-            // A clipped disc's real brightness is unknown, so step down by a fixed three stops.
-            factor = 1.0 / 8
-        } else {
-            guard peak > 0 else { return (shutter, iso) }
-            let wanted = targetPeak / peak
-            guard abs(log2(wanted)) > deadband else { return (shutter, iso) }
-            factor = min(16, max(1.0 / 16, wanted))
-        }
-
-        let light = shutter * Double(iso) * factor
-        let baseISO = Double(limits.iso.lowerBound)
-        let newShutter = (light / baseISO).clamped(to: limits.shutter)
-        let newISO = Float(light / newShutter).clamped(to: limits.iso)
-        return (newShutter, newISO)
-    }
-}
-
 /// Keeps the steadier half of a stream of frames: lucky imaging, as a running decision.
 ///
 /// The stack cannot wait for the session to end and pick the best frames afterwards — it has
@@ -218,11 +174,5 @@ public struct LuckySelector: Sendable {
             ? (sorted[sorted.count / 2 - 1] + sorted[sorted.count / 2]) / 2
             : sorted[sorted.count / 2]
         return score >= median
-    }
-}
-
-private extension Comparable {
-    func clamped(to range: ClosedRange<Self>) -> Self {
-        min(max(self, range.lowerBound), range.upperBound)
     }
 }

@@ -10,6 +10,13 @@ extension CaptureViewModel {
 
     /// The honest translation of the requested exposure into what the hardware will do.
     var exposureExplanation: String {
+        if isDayPhoto {
+            let day = dayPhotoSettings
+            return String(
+                format: String(localized: "Day photo · 1/%.0f s · ISO %.0f"),
+                1 / max(day.frameExposure, 1e-6), day.iso
+            )
+        }
         if isMoonMode {
             return String(
                 format: String(localized: "Steadiest %d frames × 1/%.0f s"),

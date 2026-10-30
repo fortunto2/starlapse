@@ -41,6 +41,14 @@ public struct SimilarityTransform: Sendable, Hashable {
         )
     }
 
+    /// The same motion with its translation multiplied by `factor`: luma-buffer pixels to
+    /// full-frame pixels. Rotation does not depend on scale and passes through.
+    public func translationScaled(by factor: Double) -> SimilarityTransform {
+        SimilarityTransform(
+            rotation: rotation, translationX: translationX * factor, translationY: translationY * factor
+        )
+    }
+
     public var inverted: SimilarityTransform {
         let cosine = cos(-rotation)
         let sine = sin(-rotation)

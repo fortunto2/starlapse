@@ -44,6 +44,10 @@ final class StubSkySource: @unchecked Sendable {
     /// Shutter × ISO in force, when the stub sky carries a Moon (`UITEST_MOON=1`). The disc
     /// answers the exposure, so Moon mode's meter can be watched converging in the Simulator.
     var moonLight: Double?
+    /// Shutter × ISO in force, when the stub is a daylight scene (`UITEST_DAY=1`): a sky over
+    /// a darker ground whose median reaches linear 0.18 at 1/1000 s and ISO 55, so the framing
+    /// meter can be watched pulling a white screen down to a photograph.
+    var dayLight: Double?
 
     /// Frames on which a meteor crosses. Frequent, because a screenshot has to catch one —
     /// and in a stacked shot it stays in the result anyway, which is exactly what happens
@@ -125,11 +129,42 @@ final class StubSkySource: @unchecked Sendable {
 
         // No meteor across the Moon: one every fourth frame is a screenshot's convenience,
         // and through the disc it reads as a blown-out Moon to the meter.
-        if moonLight == nil, (frameIndex - 1) % meteorPeriod == meteorFrame {
+        if moonLight == nil, dayLight == nil, (frameIndex - 1) % meteorPeriod == meteorFrame {
             drawMeteor(into: pixels, bytesPerRow: bytesPerRow)
         }
         if let moonLight {
             drawMoon(into: pixels, bytesPerRow: bytesPerRow, light: moonLight)
+        }
+        if let dayLight {
+            drawDay(into: pixels, bytesPerRow: bytesPerRow, light: dayLight)
+        }
+    }
+
+    private func drawDay(into pixels: UnsafeMutablePointer<UInt8>, bytesPerRow: Int, light: Double) {
+        let gain = light / (55.0 / 1000)
+        let horizon = Double(height) * 0.55
+        // Tinted in linear light and clipped per channel, as a sensor does: far over, the
+        // blue sky goes white rather than staying a brighter blue. Encoded once per row —
+        // per pixel, this stub took longer than a frame and starved the capture queue.
+        func encode(_ level: Double, _ tint: SIMD3<Double>) -> SIMD3<UInt8> {
+            let value = { (channel: Double) in UInt8(255 * pow(min(1, level * gain * channel), 1 / 2.2)) }
+            return [value(tint.x), value(tint.y), value(tint.z)]
+        }
+        let skyTint: SIMD3<Double> = [1.0, 0.85, 0.65]
+        let groundTint: SIMD3<Double> = [0.5, 0.8, 0.55]
+        let hillColour = encode(0.09, groundTint)
+        let groundColour = encode(0.07, groundTint)
+        let hillTop = (0..<width).map { horizon - 120 * sin(Double($0) / Double(width) * .pi) }
+        for py in 0..<height {
+            let sky = Double(py) < horizon
+            let skyColour = sky ? encode(0.22 + 0.18 * Double(py) / horizon, skyTint) : groundColour
+            for px in 0..<width {
+                let colour = sky ? (Double(py) > hillTop[px] ? hillColour : skyColour) : groundColour
+                let offset = py * bytesPerRow + px * 4
+                pixels[offset] = colour.x
+                pixels[offset + 1] = colour.y
+                pixels[offset + 2] = colour.z
+            }
         }
     }
 

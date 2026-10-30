@@ -28,6 +28,9 @@ final class FrameAccumulator: @unchecked Sendable {
         /// The Moon is metered to a linear peak, so it is developed straight: a stretch made
         /// to pull faint stars out of the noise would flatten the maria into the highlands.
         static let moon = ToneSettings(blackPoint: 0.002, stretch: 0.001, exposure: 1, saturation: 1.1)
+        /// Daylight, metered to a linear mid-grey of 0.18: a gentle asinh puts it near 0.45 on
+        /// screen, where a photograph keeps it. Linear would show a daytime scene murky.
+        static let day = ToneSettings(blackPoint: 0, stretch: 10, exposure: 1, saturation: 1.05)
     }
 
     private struct StackParams {
