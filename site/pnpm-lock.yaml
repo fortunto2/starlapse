@@ -11,6 +11,9 @@ importers:
       astro:
         specifier: ^5.13.0
         version: 5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)
+      superduper-site-kit:
+        specifier: git+file:///Users/rustam/startups/shared/superduper-site-kit
+        version: git+file:///Users/rustam/startups/shared/superduper-site-kit#26a001d242fd221d48034232dc0d60ccb4af7fbc(astro@5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3))
     devDependencies:
       '@astrojs/sitemap':
         specifier: ^3.7.3
@@ -1821,6 +1824,15 @@ packages:
   strip-ansi@7.2.0:
     resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
+
+  superduper-site-kit@git+file:///Users/rustam/startups/shared/superduper-site-kit#26a001d242fd221d48034232dc0d60ccb4af7fbc:
+    resolution: {commit: 26a001d242fd221d48034232dc0d60ccb4af7fbc, repo: file:///Users/rustam/startups/shared/superduper-site-kit, type: git}
+    version: 0.1.0
+    peerDependencies:
+      astro: '>=5.0.0'
+    peerDependenciesMeta:
+      astro:
+        optional: true
 
   supports-color@10.2.2:
     resolution: {integrity: sha512-SS+jx45GF1QjgEXQx4NJZV9ImqmO2NPz5FNsIHrsDjh2YsHnawpan7SNQ1o8NuhrbHZy9AZhIoCUiCeaW/C80g==}
@@ -4069,6 +4081,10 @@ snapshots:
   strip-ansi@7.2.0:
     dependencies:
       ansi-regex: 6.4.0
+
+  superduper-site-kit@git+file:///Users/rustam/startups/shared/superduper-site-kit#26a001d242fd221d48034232dc0d60ccb4af7fbc(astro@5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)):
+    optionalDependencies:
+      astro: 5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)
 
   supports-color@10.2.2: {}
 

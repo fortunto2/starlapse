@@ -1,6 +1,12 @@
 ---
+import Analytics from 'superduper-site-kit/astro/Analytics.astro';
+import LegalFooter from 'superduper-site-kit/astro/LegalFooter.astro';
+import { product } from 'superduper-site-kit/registry';
+import { appLd } from 'superduper-site-kit/seo';
 interface Props { title: string; description: string }
 const { title, description } = Astro.props;
+// starlapse.app is Starlapse's home: its one SoftwareApplication comes from the registry.
+const app = { ...appLd(product('starlapse')), image: 'https://starlapse.app/icon-512.png', downloadUrl: 'https://apps.apple.com/app/id6801191027' };
 ---
 <!doctype html>
 <html lang="en">
@@ -26,15 +32,7 @@ const { title, description } = Astro.props;
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <script type="application/ld+json" set:html={JSON.stringify([
     { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Starlapse', url: 'https://starlapse.app/' },
-    {
-      '@context': 'https://schema.org', '@type': 'MobileApplication', name: 'Starlapse',
-      operatingSystem: 'iOS 18 or later', applicationCategory: 'PhotographyApplication',
-      description: 'Long-exposure night sky camera for iPhone: stacking, star trails, night time-lapse, a meteor detector, where to aim for meteor showers, and sky brightness measured from every photo.',
-      url: 'https://starlapse.app/', downloadUrl: 'https://apps.apple.com/app/id6801191027',
-      image: 'https://starlapse.app/icon-512.png',
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-      publisher: { '@type': 'Organization', name: 'SuperDuperAI', url: 'https://superduperai.co' },
-    },
+    app,
   ])} />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -42,7 +40,7 @@ const { title, description } = Astro.props;
   <!-- Our own counter, the same source id as the iOS app so the site and the app are one
        funnel. No cookie and no client-side id: the anonymous id is made at the edge and
        rotates daily, so no consent banner. https://github.com/fortunto2/superduper-analytics -->
-  <script defer src="https://analytics.superduperai.co/sda.js" data-source="starlapse" is:inline></script>
+  <Analytics source="starlapse" />
 </head>
 <body>
   <nav>
@@ -63,9 +61,10 @@ const { title, description } = Astro.props;
         <a href="https://github.com/fortunto2/starlapse">Source ↗</a>
         <a href="https://github.com/fortunto2/starlapse-sky-data">Open data ↗</a>
         <a href="/privacy/">Privacy</a>
-        <a href="mailto:info@superduperai.co">Contact</a>
+        <a href="/support/">Support</a>
       </div>
       <div class="copy">© 2026 SuperDuperAI · made for dark skies</div>
+      <LegalFooter class="legal" />
     </div>
   </footer>
 </body>
@@ -108,4 +107,6 @@ const { title, description } = Astro.props;
   footer .flinks{display:flex;gap:18px;flex-wrap:wrap;font-size:14px}
   footer .flinks a:hover{color:var(--accent)}
   footer .copy{width:100%;font-size:13px;opacity:.6}
+  footer .legal{width:100%;opacity:.6}
+  :root{--sdk-muted:var(--dim);--sdk-border:var(--line);--sdk-mono:var(--mono)}
 </style>

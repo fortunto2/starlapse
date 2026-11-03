@@ -1,0 +1,20 @@
+---
+/** Starlapse support: contact and common questions, from superduper-site-kit's registry. */
+import Base from '../layouts/Base.astro';
+import Support from 'superduper-site-kit/astro/Support.astro';
+import { product } from 'superduper-site-kit/registry';
+import { t } from 'superduper-site-kit/i18n';
+const p = product('starlapse');
+---
+<Base title="Support · Starlapse" description={t('en').supportDescription('Starlapse', 'info@superduperai.co')}>
+  <section class="kit"><div class="wrap narrow"><Support product={p} privacyHref="/privacy/" homeHref="/" cardClass="box" /></div></section>
+</Base>
+<style>
+  .narrow{max-width:760px}
+  .kit :global(h1){font-size:clamp(28px,4vw,38px);font-weight:800;letter-spacing:-.4px}
+  .kit :global(p){color:var(--dim)}
+  .kit :global(a){color:var(--accent)}
+  .kit :global(section){padding:0}
+  .kit :global(.box){background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .kit :global(summary){color:var(--ink)}
+</style>

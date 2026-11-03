@@ -1,16 +1,25 @@
 ---
+/**
+ * The Starlapse privacy policy: the one copy, rendered from superduper-site-kit's product registry
+ * (facts audited against the app's code). superduperai.co/products/starlapse/privacy/ and the old
+ * GitHub Pages URL both redirect here.
+ */
 import Base from '../layouts/Base.astro';
-import { Content } from '../privacy.md';
+import PrivacyPolicy from 'superduper-site-kit/astro/PrivacyPolicy.astro';
+import { product } from 'superduper-site-kit/registry';
+const p = product('starlapse');
 ---
-<Base title="Privacy Policy · Starlapse" description="What Starlapse uses, what it sends, and what it never does.">
-  <section class="privacy"><div class="wrap narrow"><Content /></div></section>
+<Base title="Privacy Policy · Starlapse" description={`Starlapse privacy policy: ${p.privacy.summary}`.slice(0, 300)}>
+  <section class="kit"><div class="wrap narrow"><PrivacyPolicy product={p} supportHref="/support/" /></div></section>
 </Base>
 <style>
   .narrow{max-width:760px}
-  .privacy :global(h1){font-size:clamp(28px,4vw,38px);font-weight:800;letter-spacing:-.4px;margin-bottom:8px}
-  .privacy :global(h2){font-size:20px;margin:32px 0 10px}
-  .privacy :global(p),.privacy :global(li){color:var(--dim);margin:0 0 12px}
-  .privacy :global(ul){padding-left:22px}
-  .privacy :global(strong){color:var(--ink)}
-  .privacy :global(a){color:var(--accent)}
+  .kit :global(h1){font-size:clamp(28px,4vw,38px);font-weight:800;letter-spacing:-.4px;margin-bottom:8px}
+  .kit :global(h2){font-size:20px;margin:32px 0 10px}
+  .kit :global(p),.kit :global(li),.kit :global(td){color:var(--dim);margin:0 0 12px}
+  .kit :global(ul){padding-left:22px}
+  .kit :global(strong),.kit :global(th){color:var(--ink)}
+  .kit :global(a){color:var(--accent)}
+  .kit :global(table){border-collapse:collapse;margin:0 0 16px;font-size:14px}
+  .kit :global(th),.kit :global(td){border-bottom:1px solid var(--line);padding:8px 10px 8px 0;text-align:left;vertical-align:top}
 </style>
