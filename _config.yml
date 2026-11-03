@@ -4,6 +4,17 @@ title: Starlapse
 description: Long-exposure astrophotography for iPhone
 theme: jekyll-theme-minimal
 exclude:
+  # Only PRIVACY.md (a redirect to starlapse.app/privacy/) is published. Builds from 20 Oct failed on
+  # Liquid in docs/; the app's docs, the Astro site and the server are not Pages content.
+  - docs
+  - site
+  - server
+  - .claude
+  - CLAUDE.md
+  - Starlapse.xcodeproj
+  - Starlapse.storekit
+  - lefthook.yml
+  - build-rel
   - Sources
   - Tests
   - tools
