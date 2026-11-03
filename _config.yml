@@ -14,3 +14,6 @@ exclude:
   - build
   - build-sim
   - build-test
+# Old pages redirect to their one canonical home (superduperai-site docs/ecosystem.md, step 4).
+plugins:
+  - jekyll-redirect-from
