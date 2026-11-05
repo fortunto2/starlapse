@@ -13,7 +13,7 @@ importers:
         version: 5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)
       superduper-site-kit:
         specifier: git+file:///Users/rustam/startups/shared/superduper-site-kit
-        version: git+file:///Users/rustam/startups/shared/superduper-site-kit#26a001d242fd221d48034232dc0d60ccb4af7fbc(astro@5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3))
+        version: git+file:///Users/rustam/startups/shared/superduper-site-kit#f49fca7ce9030b3047aeceb64759e4d8f2107cfa(astro@5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3))
     devDependencies:
       '@astrojs/sitemap':
         specifier: ^3.7.3
@@ -1825,8 +1825,8 @@ packages:
     resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
 
-  superduper-site-kit@git+file:///Users/rustam/startups/shared/superduper-site-kit#26a001d242fd221d48034232dc0d60ccb4af7fbc:
-    resolution: {commit: 26a001d242fd221d48034232dc0d60ccb4af7fbc, repo: file:///Users/rustam/startups/shared/superduper-site-kit, type: git}
+  superduper-site-kit@git+file:///Users/rustam/startups/shared/superduper-site-kit#f49fca7ce9030b3047aeceb64759e4d8f2107cfa:
+    resolution: {commit: f49fca7ce9030b3047aeceb64759e4d8f2107cfa, repo: file:///Users/rustam/startups/shared/superduper-site-kit, type: git}
     version: 0.1.0
     peerDependencies:
       astro: '>=5.0.0'
@@ -4082,7 +4082,7 @@ snapshots:
     dependencies:
       ansi-regex: 6.4.0
 
-  superduper-site-kit@git+file:///Users/rustam/startups/shared/superduper-site-kit#26a001d242fd221d48034232dc0d60ccb4af7fbc(astro@5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)):
+  superduper-site-kit@git+file:///Users/rustam/startups/shared/superduper-site-kit#f49fca7ce9030b3047aeceb64759e4d8f2107cfa(astro@5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)):
     optionalDependencies:
       astro: 5.18.2(@types/node@24.19.2)(rollup@4.64.12)(typescript@5.9.3)
 

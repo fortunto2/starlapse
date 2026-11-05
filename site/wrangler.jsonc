@@ -2,8 +2,16 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "starlapse-site",
   "compatibility_date": "2026-07-31",
-  // Static only: no Worker script, Cloudflare serves dist/ as it is.
-  "assets": { "directory": "./dist", "not_found_handling": "404-page" },
+  // Static assets plus a thin Worker (worker/index.ts): markdown for agents on "/" and the
+  // read-only MCP endpoint. run_worker_first sends only those two paths to it; the rest of the
+  // site is served from dist/ without invoking any code.
+  "main": "worker/index.ts",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/", "/mcp"]
+  },
   "routes": [
     { "pattern": "starlapse.app", "custom_domain": true },
     { "pattern": "www.starlapse.app", "custom_domain": true }

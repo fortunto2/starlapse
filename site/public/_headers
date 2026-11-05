@@ -1,0 +1,14 @@
+# Link headers (RFC 8288): how an agent finds the machine-readable side without parsing HTML first.
+/
+  Link: </llms.txt>; rel="describedby"; type="text/plain"
+  Link: </sitemap-index.xml>; rel="sitemap"; type="application/xml"
+  Link: </.well-known/mcp/server-card.json>; rel="service-desc"; type="application/json"; title="MCP server"
+  Link: </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"
+  Link: </.well-known/ard.json>; rel="ard"; type="application/json"; title="Agentic resource catalogue"
+
+/.well-known/*
+  Access-Control-Allow-Origin: *
+
+# RFC 9727 requires this type; an extensionless file would otherwise be served as a guess.
+/.well-known/api-catalog
+  Content-Type: application/linkset+json; profile="https://www.rfc-editor.org/info/rfc9727"
