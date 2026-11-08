@@ -21,7 +21,24 @@ Rules Apple enforces that are not obvious:
 - **Territories are required.** Pass the app's full availability list.
 - Copy limits: name 30, short 50, long 120 characters.
 
-Media: `meteors.py` draws the showers; `moonscape.py` sets NASA's public-domain full Moon
-(Goddard, LRO) over a ridge at dusk. Dates were checked against EarthSky, Star Walk, Sky at
+Media is one template, so every event looks like the same app:
+
+```bash
+uv run --with numpy --with pillow python3 bg.py . bg <nasa-full-moon.jpg>   # skies, no overlay
+uv run --with pillow python3 template.py bg out                              # overlay, 12 JPEGs
+```
+
+- `layout.py` holds the one rule: the subject sits where App Store text never goes, upper
+  right third on the 16:9 card, upper 45% on the 9:16 details page. A new event is one line.
+- `template.py` lays the app's own overlay over the sky: the yellow it draws targets in, the
+  dashed aim circle and the radiant for a shower, the Moon-mode metering ring, a ring on a
+  planet, viewfinder corners, vignette, grain. No words: Apple shows the event's name and
+  description over the media, and text baked in collides with it.
+- `meteors.py` draws the showers; `moonscape.py` sets NASA's public-domain full Moon
+  (Goddard, LRO) over a ridge at dusk, with trees, snow or lanterns.
+- HTML is shot by headless Chrome (`--user-data-dir` in a temp dir, or it fights the running
+  browser for the profile).
+
+Dates were checked against EarthSky, Star Walk, Sky at
 Night and the IMO calendar on 7–8 Nov 2026; Chinese New Year (6 Feb 2027) is a new Moon, so
 the lunar-calendar event is the Lantern Festival full Moon a fortnight later.
