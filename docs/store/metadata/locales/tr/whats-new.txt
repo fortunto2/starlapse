@@ -1,1 +1,1 @@
-Ay modu. Ay’a dokunun ve doğrultun: uygulama pozlamayı diskten kendisi ölçer, en uzun lensle kısa kareler çeker, daha sabit yarısını tutup hizalar ve gece göğü germesi olmadan işler. Pusula Ay’ı kadrajda gördüğünde Ay modu tek dokunuş uzaklıkta. Ayrıca: istifler artık şehir göğünde ve bulutta tek bir önizleme karesi yerine gerçekten oluşuyor. Gündüz önizleme beyaz kalmak yerine ölçülüyor ve Otomatik tek bir normal fotoğraf çekiyor.
+App Store etkinlikleri artık doğrudan doğru modu açıyor: dolunay etkinliği Ay modunu, meteor yağmuru her izi koruyan gece pozlamasını.

@@ -1,0 +1,398 @@
+{
+ "geminids": {
+  "id": "6832169411",
+  "ref": "Geminids 2026",
+  "priority": "HIGH",
+  "publish": "2026-11-28T00:00:00Z",
+  "start": "2026-12-12T00:00:00Z",
+  "end": "2026-12-15T12:00:00Z",
+  "deep_link": "starlapse://sky",
+  "copy": {
+   "en-US": [
+    "Catch the Geminids",
+    "Shoot the year's best meteor shower on iPhone",
+    "Peak night Dec 13–14, and the thin Moon sets early. Lock the camera, stack the night, keep every meteor in one frame."
+   ],
+   "en-GB": [
+    "Catch the Geminids",
+    "Shoot the year's best meteor shower on iPhone",
+    "Peak night 13–14 Dec, and the thin Moon sets early. Lock the camera, stack the night, keep every meteor in one frame."
+   ],
+   "hi": [
+    "जेमिनिड्स को कैद करें",
+    "iPhone पर साल की सबसे शानदार उल्का वर्षा शूट करें",
+    "चरम रात 13–14 दिसंबर, पतला चाँद जल्दी डूब जाता है। कैमरा लॉक करें, पूरी रात स्टैक करें, हर उल्का एक फ़्रेम में।"
+   ],
+   "zh-Hans": [
+    "捕捉双子座流星雨",
+    "用 iPhone 拍下年度最佳流星雨",
+    "12月13–14日夜迎来极大，细月很早落下。锁定相机，叠加整夜，把每一颗流星留在一张照片里。"
+   ],
+   "ja": [
+    "ふたご座流星群を撮ろう",
+    "今年いちばんの流星群をiPhoneで撮影",
+    "極大は12月13〜14日の夜。細い月は早めに沈みます。カメラを固定し、一晩をスタックして、流れ星をすべて一枚に。"
+   ],
+   "de-DE": [
+    "Fang die Geminiden ein",
+    "Der schönste Meteorstrom des Jahres, mit iPhone",
+    "Höhepunkt in der Nacht 13./14. Dez., der Mond geht früh unter. Kamera fixieren, Nacht stacken, jeden Meteor festhalten."
+   ],
+   "fr-FR": [
+    "Capturez les Géminides",
+    "La plus belle pluie d'étoiles filantes, sur iPhone",
+    "Pic la nuit du 13 au 14 déc., la Lune se couche tôt. Bloquez l'appareil, empilez la nuit, gardez chaque météore."
+   ],
+   "es-MX": [
+    "Captura las Gemínidas",
+    "La mejor lluvia de estrellas del año, con iPhone",
+    "Máximo la noche del 13 al 14 de dic.; la Luna se pone temprano. Fija la cámara, apila la noche, guarda cada meteoro."
+   ],
+   "it": [
+    "Cattura le Geminidi",
+    "Lo sciame meteorico più bello dell'anno su iPhone",
+    "Picco la notte tra 13 e 14 dic., la Luna tramonta presto. Blocca la fotocamera, impila la notte, tieni ogni meteora."
+   ],
+   "tr": [
+    "Geminid yağmurunu yakala",
+    "Yılın en güzel meteor yağmurunu iPhone ile çek",
+    "Zirve 13–14 Aralık gecesi, ince Ay erken batıyor. Kamerayı sabitle, geceyi istifle, her meteoru tek karede topla."
+   ],
+   "ar-SA": [
+    "التقط شهب التوأميات",
+    "صوّر أجمل زخة شهب في العام بهاتف iPhone",
+    "الذروة ليلة 13–14 ديسمبر والقمر النحيل يغيب مبكرًا. ثبّت الكاميرا، كدّس الليل، واحتفظ بكل شهاب في صورة واحدة."
+   ]
+  }
+ },
+ "christmas": {
+  "id": "6832170336",
+  "ref": "Christmas Eve Supermoon 2026",
+  "priority": "NORMAL",
+  "publish": "2026-12-08T12:00:00Z",
+  "start": "2026-12-22T12:00:00Z",
+  "end": "2026-12-26T00:00:00Z",
+  "deep_link": "starlapse://moon",
+  "copy": {
+   "en-US": [
+    "Christmas Eve Supermoon",
+    "The closest full Moon of 2026, in Moon mode",
+    "Dec 23–24: the year's biggest, brightest full Moon. Shoot it rising: Moon mode meters the disc and stacks it sharp."
+   ],
+   "en-GB": [
+    "Christmas Eve Supermoon",
+    "The closest full Moon of 2026, in Moon mode",
+    "23–24 Dec: the year's biggest, brightest full Moon. Shoot it rising: Moon mode meters the disc and stacks it sharp."
+   ],
+   "hi": [
+    "क्रिसमस ईव का सुपरमून",
+    "2026 का सबसे नज़दीकी पूर्ण चाँद, चाँद मोड में",
+    "23–24 दिसंबर: साल का सबसे बड़ा, सबसे चमकीला पूर्ण चाँद। उगते चाँद को शूट करें: चाँद मोड डिस्क से मीटर कर स्टैक करता है।"
+   ],
+   "zh-Hans": [
+    "平安夜超级月亮",
+    "2026年最近的满月，用月亮模式拍",
+    "12月23–24日：全年最大、最亮的满月。趁它升起时拍：月亮模式按月面测光，叠加出清晰的月亮。"
+   ],
+   "ja": [
+    "クリスマスイブのスーパームーン",
+    "2026年でいちばん近い満月を月モードで",
+    "12月23〜24日は今年いちばん大きく明るい満月。昇る月を撮ろう。月モードが月面で測光し、くっきりスタックします。"
+   ],
+   "de-DE": [
+    "Supermond an Heiligabend",
+    "Der erdnächste Vollmond 2026, im Mond-Modus",
+    "23./24. Dez.: der größte, hellste Vollmond des Jahres. Fotografiere den Aufgang, der Mond-Modus misst und stackt scharf."
+   ],
+   "fr-FR": [
+    "Super Lune de Noël",
+    "La pleine Lune la plus proche de 2026",
+    "23–24 déc. : la plus grande pleine Lune de l'année. Photographiez son lever : le mode Lune mesure le disque et empile."
+   ],
+   "es-MX": [
+    "Superluna de Nochebuena",
+    "La Luna llena más cercana de 2026, en modo Luna",
+    "23–24 de dic.: la Luna llena más grande y brillante del año. Fotografíala al salir: el modo Luna mide el disco y apila."
+   ],
+   "it": [
+    "Superluna della Vigilia",
+    "La Luna piena più vicina del 2026",
+    "23–24 dic.: la Luna piena più grande e luminosa dell'anno. Fotografala al sorgere: la modalità Luna misura e impila."
+   ],
+   "tr": [
+    "Noel Arifesi Süper Ay",
+    "2026'nın en yakın dolunayı, Ay modunda",
+    "23–24 Aralık: yılın en büyük, en parlak dolunayı. Doğarken çek: Ay modu ölçümü diskten alır ve keskin biçimde istifler."
+   ],
+   "ar-SA": [
+    "قمر عملاق ليلة الميلاد",
+    "أقرب بدر في 2026، مع وضع القمر",
+    "23–24 ديسمبر: أكبر بدر وألمعه هذا العام. صوّره وهو يشرق: وضع القمر يقيس الضوء من القرص ويكدّس اللقطات بوضوح."
+   ]
+  }
+ },
+ "beaver": {
+  "id": "6832171285",
+  "ref": "November Supermoon 2026",
+  "priority": "HIGH",
+  "publish": "2026-11-09T12:00:00Z",
+  "start": "2026-11-23T06:00:00Z",
+  "end": "2026-11-25T18:00:00Z",
+  "copy": {
+   "en-US": [
+    "November Supermoon",
+    "A supermoon rises Nov 24. Meet it in Moon mode",
+    "Nov 23–24: a supermoon, bigger and brighter than usual. Shoot it rising: Moon mode meters the disc and stacks it sharp."
+   ],
+   "en-GB": [
+    "November Supermoon",
+    "A supermoon rises 24 Nov. Meet it in Moon mode",
+    "23–24 Nov: a supermoon, bigger and brighter than usual. Shoot it rising: Moon mode meters the disc and stacks it sharp."
+   ],
+   "hi": [
+    "नवंबर का सुपरमून",
+    "24 नवंबर को सुपरमून, चाँद मोड में शूट करें",
+    "23–24 नवंबर: सुपरमून, आम पूर्णिमा से बड़ा और चमकीला। उगते चाँद को शूट करें: चाँद मोड डिस्क से मीटर कर स्टैक करता है।"
+   ],
+   "zh-Hans": [
+    "十一月超级月亮",
+    "11月24日超级月亮，用月亮模式拍",
+    "11月23–24日：超级月亮，比平时更大更亮。趁它升起时拍：月亮模式按月面测光，叠加出清晰的月亮。"
+   ],
+   "ja": [
+    "11月のスーパームーン",
+    "11月24日のスーパームーンを月モードで",
+    "11月23〜24日はスーパームーン。いつもより大きく明るい満月です。昇る月を撮ろう。月モードが月面で測光し、くっきりスタック。"
+   ],
+   "de-DE": [
+    "Supermond im November",
+    "Am 24. Nov. geht ein Supermond auf, im Mond-Modus",
+    "23./24. Nov.: ein Supermond, größer und heller als sonst. Fotografiere den Aufgang, der Mond-Modus misst und stackt."
+   ],
+   "fr-FR": [
+    "Super Lune de novembre",
+    "Une super Lune se lève le 24 nov., en mode Lune",
+    "23–24 nov. : une super Lune, plus grande et plus brillante. Photographiez son lever : le mode Lune mesure et empile."
+   ],
+   "es-MX": [
+    "Superluna de noviembre",
+    "Una superluna sale el 24 de nov., en modo Luna",
+    "23–24 de nov.: una superluna, más grande y brillante que de costumbre. Fotografíala al salir: el modo Luna mide y apila."
+   ],
+   "it": [
+    "Superluna di novembre",
+    "Il 24 nov. sorge una superluna, in modalità Luna",
+    "23–24 nov.: una superluna, più grande e luminosa del solito. Fotografala al sorgere: la modalità Luna misura e impila."
+   ],
+   "tr": [
+    "Kasım Süper Ayı",
+    "24 Kasım'da süper ay doğuyor, Ay modunda çek",
+    "23–24 Kasım: her zamankinden büyük ve parlak bir süper ay. Doğarken çek: Ay modu ölçümü diskten alır ve keskin istifler."
+   ],
+   "ar-SA": [
+    "القمر العملاق في نوفمبر",
+    "قمر عملاق يشرق في 24 نوفمبر، مع وضع القمر",
+    "23–24 نوفمبر: قمر عملاق أكبر وألمع من المعتاد. صوّره وهو يشرق: وضع القمر يقيس الضوء من القرص ويكدّس اللقطات بوضوح."
+   ]
+  },
+  "deep_link": "starlapse://moon"
+ },
+ "quad": {
+  "id": "6832172629",
+  "ref": "Quadrantids 2027",
+  "priority": "HIGH",
+  "publish": "2026-12-20T06:00:00Z",
+  "start": "2027-01-03T00:00:00Z",
+  "end": "2027-01-04T18:00:00Z",
+  "copy": {
+   "en-US": [
+    "Catch the Quadrantids",
+    "The first meteor shower of 2027, peak Jan 3–4",
+    "The peak lasts hours, not days: the night of Jan 3–4, with only a thin Moon. Lock the camera and stack the night."
+   ],
+   "en-GB": [
+    "Catch the Quadrantids",
+    "The first meteor shower of 2027, peak 3–4 Jan",
+    "The peak lasts hours, not days: the night of 3–4 Jan, with only a thin Moon. Lock the camera and stack the night."
+   ],
+   "hi": [
+    "क्वाड्रेंटिड्स को कैद करें",
+    "2027 की पहली उल्का वर्षा, चरम 3–4 जनवरी",
+    "चरम 3–4 जनवरी की रात बस कुछ घंटे रहता है, पतला चाँद बाधा नहीं बनता। कैमरा लॉक करें, पूरी रात स्टैक करें।"
+   ],
+   "zh-Hans": [
+    "捕捉象限仪座流星雨",
+    "2027年首场流星雨，1月3–4日迎来极大",
+    "极大只持续几个小时，在1月3–4日夜间，细月几乎不干扰。锁定相机，叠加整夜。"
+   ],
+   "ja": [
+    "しぶんぎ座流星群を撮ろう",
+    "2027年最初の流星群、極大は1月3〜4日",
+    "極大は1月3〜4日の夜、わずか数時間。細い月はほとんど邪魔をしません。カメラを固定して、一晩をスタック。"
+   ],
+   "de-DE": [
+    "Fang die Quadrantiden ein",
+    "Erster Meteorstrom 2027, Höhepunkt 3./4. Jan.",
+    "Der Höhepunkt dauert nur Stunden, Nacht 3./4. Jan., die schmale Mondsichel stört kaum. Kamera fixieren, Nacht stacken."
+   ],
+   "fr-FR": [
+    "Capturez les Quadrantides",
+    "Première pluie d'étoiles 2027, pic les 3–4 janv.",
+    "Le pic ne dure que quelques heures, nuit du 3 au 4 janv., et le croissant gêne peu. Bloquez l'appareil, empilez la nuit."
+   ],
+   "es-MX": [
+    "Captura las Cuadrántidas",
+    "La primera lluvia de estrellas de 2027, 3–4 ene.",
+    "El máximo dura solo horas la noche del 3 al 4 de ene. y la Luna fina apenas molesta. Fija la cámara, apila la noche."
+   ],
+   "it": [
+    "Cattura le Quadrantidi",
+    "Il primo sciame del 2027, picco il 3–4 gen.",
+    "Il picco dura poche ore, notte tra 3 e 4 gen., e la Luna sottile disturba poco. Blocca la fotocamera, impila la notte."
+   ],
+   "tr": [
+    "Kuadrantidleri yakala",
+    "2027'nin ilk meteor yağmuru, zirve 3–4 Ocak",
+    "Zirve 3–4 Ocak gecesi yalnızca birkaç saat sürer, ince Ay pek rahatsız etmez. Kamerayı sabitle, geceyi istifle."
+   ],
+   "ar-SA": [
+    "التقط شهب الربعيات",
+    "أول زخة شهب في 2027، الذروة 3–4 يناير",
+    "تدوم الذروة ساعات قليلة ليلة 3–4 يناير، والهلال النحيل لا يزعج. ثبّت الكاميرا وكدّس الليل."
+   ]
+  },
+  "deep_link": "starlapse://sky"
+ },
+ "wolf": {
+  "id": "6832175009",
+  "ref": "Wolf Supermoon 2027",
+  "priority": "NORMAL",
+  "publish": "2027-01-08T00:00:00Z",
+  "start": "2027-01-21T12:00:00Z",
+  "end": "2027-01-23T18:00:00Z",
+  "copy": {
+   "en-US": [
+    "Wolf Supermoon",
+    "January's full Moon is a supermoon. Moon mode",
+    "Jan 21–22: the Wolf Moon is a supermoon, bigger and brighter than usual. Catch it rising in Moon mode."
+   ],
+   "en-GB": [
+    "Wolf Supermoon",
+    "January's full Moon is a supermoon. Moon mode",
+    "21–22 Jan: the Wolf Moon is a supermoon, bigger and brighter than usual. Catch it rising in Moon mode."
+   ],
+   "hi": [
+    "वुल्फ सुपरमून",
+    "जनवरी की पूर्णिमा सुपरमून है, चाँद मोड में",
+    "21–22 जनवरी: वुल्फ मून सुपरमून है, आम से बड़ा और चमकीला। उगते चाँद को शूट करें: चाँद मोड मीटर कर स्टैक करता है।"
+   ],
+   "zh-Hans": [
+    "狼月超级月亮",
+    "一月满月是超级月亮，用月亮模式拍",
+    "1月21–22日：狼月是超级月亮，比平时更大更亮。趁它升起时拍：月亮模式测光并叠加。"
+   ],
+   "ja": [
+    "ウルフ・スーパームーン",
+    "1月の満月はスーパームーン。月モードで",
+    "1月21〜22日、ウルフムーンはスーパームーン。いつもより大きく明るい月です。昇る月を月モードで測光してスタック。"
+   ],
+   "de-DE": [
+    "Wolfs-Supermond",
+    "Der Januar-Vollmond ist ein Supermond",
+    "21./22. Jan.: Der Wolfsmond ist ein Supermond, größer und heller als sonst. Fotografiere den Aufgang im Mond-Modus."
+   ],
+   "fr-FR": [
+    "Super Lune du Loup",
+    "La pleine Lune de janvier est une super Lune",
+    "21–22 janv. : la Lune du Loup est une super Lune, plus grande et plus brillante. Photographiez son lever en mode Lune."
+   ],
+   "es-MX": [
+    "Superluna del Lobo",
+    "La Luna llena de enero es una superluna",
+    "21–22 de ene.: la Luna del Lobo es una superluna, más grande y brillante. Fotografíala al salir con el modo Luna."
+   ],
+   "it": [
+    "Superluna del Lupo",
+    "La Luna piena di gennaio è una superluna",
+    "21–22 gen.: la Luna del Lupo è una superluna, più grande e luminosa. Fotografala al sorgere con la modalità Luna."
+   ],
+   "tr": [
+    "Kurt Süper Ayı",
+    "Ocak dolunayı bir süper ay, Ay modunda çek",
+    "21–22 Ocak: Kurt Ayı bir süper ay, her zamankinden büyük ve parlak. Doğarken Ay moduyla çek."
+   ],
+   "ar-SA": [
+    "قمر الذئب العملاق",
+    "بدر يناير قمر عملاق، صوّره بوضع القمر",
+    "21–22 يناير: قمر الذئب عملاق، أكبر وألمع من المعتاد. صوّره وهو يشرق بوضع القمر."
+   ]
+  },
+  "deep_link": "starlapse://moon"
+ },
+ "lantern": {
+  "id": "6832177005",
+  "ref": "Lantern Festival Supermoon 2027",
+  "priority": "HIGH",
+  "publish": "2027-02-06T00:00:00Z",
+  "start": "2027-02-19T12:00:00Z",
+  "end": "2027-02-22T00:00:00Z",
+  "copy": {
+   "en-US": [
+    "Lantern Festival Supermoon",
+    "The first full Moon of the lunar year, with Mars",
+    "Feb 20: the Lantern Festival full Moon is a supermoon, with Mars at its brightest nearby. Moon mode stacks the disc."
+   ],
+   "en-GB": [
+    "Lantern Festival Supermoon",
+    "The first full Moon of the lunar year, with Mars",
+    "20 Feb: the Lantern Festival full Moon is a supermoon, with Mars at its brightest nearby. Moon mode stacks the disc."
+   ],
+   "hi": [
+    "लालटेन उत्सव का सुपरमून",
+    "चंद्र वर्ष की पहली पूर्णिमा, मंगल के साथ",
+    "20 फ़रवरी: लालटेन उत्सव की पूर्णिमा सुपरमून है, और पास में मंगल सबसे चमकीला। चाँद मोड डिस्क को स्टैक करता है।"
+   ],
+   "zh-Hans": [
+    "元宵节超级月亮",
+    "农历新年第一个满月，火星相伴",
+    "2月20日：元宵节的满月是超级月亮，最亮的火星就在旁边。用月亮模式叠加出清晰月面。"
+   ],
+   "ja": [
+    "元宵節のスーパームーン",
+    "旧暦の新年最初の満月、火星と一緒に",
+    "2月20日、元宵節の満月はスーパームーン。最も明るい火星がすぐそばに。月モードで月面をスタック。"
+   ],
+   "de-DE": [
+    "Laternenfest-Supermond",
+    "Erster Vollmond des Mondjahres, mit Mars",
+    "20. Feb.: Der Vollmond zum Laternenfest ist ein Supermond, daneben der helle Mars. Der Mond-Modus stackt die Scheibe."
+   ],
+   "fr-FR": [
+    "Super Lune des lanternes",
+    "Première pleine Lune de l'année lunaire, et Mars",
+    "20 févr. : la pleine Lune de la fête des lanternes est une super Lune, Mars brille tout près. Le mode Lune l'empile."
+   ],
+   "es-MX": [
+    "Superluna de los Faroles",
+    "La primera Luna llena del año lunar, con Marte",
+    "20 de feb.: la Luna llena del Festival de los Faroles es superluna y Marte brilla al lado. El modo Luna apila el disco."
+   ],
+   "it": [
+    "Superluna delle Lanterne",
+    "La prima Luna piena dell'anno lunare, con Marte",
+    "20 feb.: la Luna piena della Festa delle Lanterne è una superluna, Marte brilla vicino. La modalità Luna la impila."
+   ],
+   "tr": [
+    "Fener Festivali Süper Ayı",
+    "Ay yılının ilk dolunayı, yanında Mars",
+    "20 Şubat: Fener Festivali dolunayı bir süper ay, en parlak hâlindeki Mars hemen yanında. Ay modu diski istifler."
+   ],
+   "ar-SA": [
+    "قمر مهرجان الفوانيس العملاق",
+    "أول بدر في السنة القمرية، ومعه المريخ",
+    "20 فبراير: بدر مهرجان الفوانيس قمر عملاق، والمريخ في أوج لمعانه بجواره. وضع القمر يكدّس القرص بوضوح."
+   ]
+  },
+  "deep_link": "starlapse://moon"
+ }
+}

@@ -3,7 +3,7 @@ import SwiftUI
 
 struct CaptureView: View {
 
-    @State private var model = CaptureViewModel()
+    @State var model = CaptureViewModel()
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsControls = false
     /// The sky overlay is genuinely useful and genuinely in the way — it has to come off
@@ -11,6 +11,10 @@ struct CaptureView: View {
     @State private var showsOverlay = true
     /// Read, not mirrored: the store owns the mode, so any writer invalidates the view.
     @State private var theme = NightThemeStore.shared
+    /// A link that arrived before `prepare()` finished: applied after it, or the restored
+    /// settings would overwrite what the link set.
+    @State var pendingLink: DeepLink?
+    @State var prepared = false
 
     var body: some View {
         ZStack {
@@ -112,6 +116,8 @@ struct CaptureView: View {
         .task {
             model.startSkyUpdates()
             await model.prepare()
+            prepared = true
+            openPendingLink()
             model.startSkyLock()
             model.startFramingMeter()
             #if DEBUG
@@ -119,6 +125,7 @@ struct CaptureView: View {
             #endif
         }
         .onDisappear { model.stopSkyUpdates() }
+        .onOpenURL { receive($0) }
         // The reminders carry the Pro hour or not, and the zone they were built in: both can
         // change while they wait, and so can the iOS permission behind them.
         .onChange(of: model.entitlements.isPro) { model.rescheduleAlerts() }
