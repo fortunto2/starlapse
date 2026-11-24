@@ -34,6 +34,23 @@ extension CaptureViewModel {
         )
     }
 
+    /// The one line under the shutter: what the current mode will actually do. Time-lapse
+    /// and Detector have their own arithmetic; the still stack's "N min of light" does not
+    /// apply to them and read like the length of the session (a 1.2.1 user's screenshot).
+    var modeSummary: String {
+        switch mode {
+        case .timelapse: timelapse.summary
+        case .detector(let detector): detector.summary
+        case .still: exposureExplanation
+        }
+    }
+
+    /// Averaging gain worth showing. Star Trails keeps the brightest value, not the mean,
+    /// so it has none, and "−0.0 stops" only confused.
+    var showsNoiseReduction: Bool {
+        settings.stackMode != .trails && settings.noiseReductionStops > 0
+    }
+
     var hardwareCeilingNote: String {
         String(
             format: String(

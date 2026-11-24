@@ -293,7 +293,7 @@ struct CaptureView: View {
 
                 Text(model.settings.stackMode.title.uppercased())
                     .font(NightTheme.mono(9, weight: .bold))
-                Text(model.mode.isTimelapse ? model.timelapse.summary : model.exposureExplanation)
+                Text(model.modeSummary)
                     .font(NightTheme.mono(8))
                     .multilineTextAlignment(.trailing)
             }

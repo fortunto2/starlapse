@@ -137,20 +137,26 @@ struct ManualControlsView: View {
             )
             .disabled(model.isMoonMode)
 
-            NightSlider(
-                label: "Total light",
-                value: $model.settings.totalLightSeconds,
-                range: CaptureSettings.minimumTotalLight...CaptureSettings.maximumTotalLight,
-                format: { $0 >= 60 ? String(format: "%.0f min", $0 / 60) : String(format: "%.0f s", $0) }
-            )
-            .disabled(model.isMoonMode)
+            // Total light is the still stack's setting; Time-lapse and Detector set their
+            // own light per frame below, and showing both read as the session's length.
+            if model.mode == .still {
+                NightSlider(
+                    label: "Total light",
+                    value: $model.settings.totalLightSeconds,
+                    range: CaptureSettings.minimumTotalLight...CaptureSettings.maximumTotalLight,
+                    format: { $0 >= 60 ? String(format: "%.0f min", $0 / 60) : String(format: "%.0f s", $0) }
+                )
+                .disabled(model.isMoonMode)
+            }
 
             VStack(alignment: .leading, spacing: 4) {
-                ReadoutRow(label: "Stacking", value: model.exposureExplanation, highlighted: true)
-                ReadoutRow(
-                    label: "Noise reduction",
-                    value: String(format: "−%.1f stops", model.settings.noiseReductionStops)
-                )
+                ReadoutRow(label: "Stacking", value: model.modeSummary, highlighted: true)
+                if model.showsNoiseReduction {
+                    ReadoutRow(
+                        label: "Noise reduction",
+                        value: String(format: "−%.1f stops", model.settings.noiseReductionStops)
+                    )
+                }
                 ReadoutRow(
                     label: "Star drift per frame",
                     value: String(format: "%.0f\"", model.settings.starDriftArcseconds)

@@ -177,10 +177,12 @@ struct StatusPanels: View {
                 value: "\(model.progress.framesStacked) / \(model.progress.framesRequested)",
                 highlighted: true
             )
-            ReadoutRow(
-                label: "Noise reduction",
-                value: String(format: String(localized: "−%.1f stops"), model.progress.noiseReductionStops)
-            )
+            if model.settings.stackMode != .trails, model.progress.noiseReductionStops > 0 {
+                ReadoutRow(
+                    label: "Noise reduction",
+                    value: String(format: String(localized: "−%.1f stops"), model.progress.noiseReductionStops)
+                )
+            }
 
             if model.settings.stackMode.alignsStars {
                 let tracking = String(
