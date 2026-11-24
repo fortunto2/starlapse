@@ -4873,64 +4873,6 @@
         }
       }
     },
-    "Five events: app opened, capture started, capture saved, Pro page shown, Pro bought. No photos, no location, no name. The only id is a random one made on this phone and deleted with the app. It answers one question, whether anyone comes back. Off means nothing is sent.": {
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "خمسة أحداث: فتح التطبيق، بدء الالتقاط، حفظ الالتقاط، عرض صفحة Pro، شراء Pro. لا صور ولا موقع ولا اسم. المعرّف الوحيد عشوائي يُنشأ على هذا الهاتف ويُحذف مع التطبيق. يجيب عن سؤال واحد: هل يعود أحد. الإيقاف يعني أن لا شيء يُرسل."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fünf Ereignisse: App geöffnet, Aufnahme gestartet, Aufnahme gesichert, Pro-Seite gezeigt, Pro gekauft. Keine Fotos, kein Standort, kein Name. Die einzige ID ist eine zufällige, auf diesem iPhone erzeugt und mit der App gelöscht. Sie beantwortet eine Frage: ob jemand wiederkommt. Aus heißt, es wird nichts gesendet."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cinco eventos: app abierta, captura iniciada, captura guardada, página Pro mostrada, Pro comprado. Sin fotos, sin ubicación, sin nombre. El único id es aleatorio, creado en este teléfono y borrado con la app. Responde una sola pregunta: si alguien vuelve. Apagado significa que no se envía nada."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cinq événements : app ouverte, capture lancée, capture enregistrée, page Pro affichée, Pro acheté. Pas de photo, pas de position, pas de nom. Le seul identifiant est aléatoire, créé sur ce téléphone et supprimé avec l'app. Il répond à une seule question : est-ce que quelqu'un revient. Désactivé, rien n'est envoyé."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "पाँच घटनाएँ: ऐप खुला, कैप्चर शुरू हुआ, कैप्चर सहेजा गया, Pro पेज दिखाया गया, Pro खरीदा गया। कोई फ़ोटो नहीं, कोई जगह नहीं, कोई नाम नहीं। एकमात्र आईडी इस फ़ोन पर बनी एक रैंडम आईडी है, जो ऐप के साथ मिट जाती है। यह एक ही सवाल का जवाब देती है: क्या कोई वापस आता है। बंद करने पर कुछ नहीं भेजा जाता।"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cinque eventi: app aperta, scatto avviato, scatto salvato, pagina Pro mostrata, Pro acquistato. Nessuna foto, nessuna posizione, nessun nome. L'unico id è casuale, creato su questo telefono e cancellato con l'app. Risponde a una sola domanda: se qualcuno torna. Spento significa che non si invia nulla."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5つのイベント：アプリ起動、撮影開始、撮影保存、Proページ表示、Pro購入。写真・位置・名前は含みません。IDはこの端末で作られアプリと一緒に消えるランダムなものだけ。答える問いは一つ、誰かが戻ってくるかどうか。オフにすると何も送信されません。"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beş olay: uygulama açıldı, çekim başladı, çekim kaydedildi, Pro sayfası gösterildi, Pro satın alındı. Fotoğraf yok, konum yok, isim yok. Tek kimlik bu telefonda oluşturulan ve uygulamayla silinen rastgele bir kimliktir. Tek bir soruyu yanıtlar: biri geri geliyor mu. Kapalıysa hiçbir şey gönderilmez."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "五个事件：打开应用、开始拍摄、保存拍摄、显示 Pro 页面、购买 Pro。不含照片、位置或姓名。唯一的 ID 是在这部手机上随机生成的，随应用一起删除。它只回答一个问题：是否有人回来。关闭后不发送任何内容。"
-          }
-        }
-      }
-    },
     "Focus (1.0 = infinity)": {
       "localizations": {
         "ar": {
@@ -7367,6 +7309,64 @@
         }
       }
     },
+    "No video: the session ended before the first time-lapse frame.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يوجد فيديو: انتهت الجلسة قبل أول إطار في الفاصل الزمني."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Video: Die Sitzung endete vor dem ersten Zeitrafferbild."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin vídeo: la sesión terminó antes del primer fotograma del time-lapse."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas de vidéo : la session s'est terminée avant la première image du time-lapse."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वीडियो नहीं बना: टाइम-लैप्स का पहला फ़्रेम बनने से पहले ही सेशन खत्म हो गया।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun video: la sessione è terminata prima del primo fotogramma del time-lapse."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "動画なし：タイムラプスの最初のフレームができる前にセッションが終了しました。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video yok: oturum ilk time-lapse karesinden önce bitti."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有视频：会话在第一帧延时画面生成前就结束了。"
+          }
+        }
+      }
+    },
     "Noise reduction": {
       "localizations": {
         "ar": {
@@ -7421,6 +7421,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "降噪"
+          }
+        }
+      }
+    },
+    "Not now": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ليس الآن"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht jetzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora no"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus tard"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी नहीं"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ora"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今はしない"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Şimdi değil"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以后再说"
           }
         }
       }
@@ -9803,6 +9861,64 @@
         }
       }
     },
+    "Six events: app opened, capture started, capture finished, capture saved, Pro page shown, Pro bought. No photos, no location, no name. The only id is a random one made on this phone and deleted with the app. It answers one question, whether anyone comes back. Off means nothing is sent.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ستة أحداث: فتح التطبيق، بدء التصوير، انتهاء التصوير، حفظ التصوير، عرض صفحة Pro، شراء Pro. لا صور ولا موقع ولا اسم. المعرّف الوحيد عشوائي يُنشأ على هذا الهاتف ويُحذف مع التطبيق. يجيب عن سؤال واحد: هل يعود أحد. الإيقاف يعني أن لا شيء يُرسل."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sechs Ereignisse: App geöffnet, Aufnahme gestartet, Aufnahme beendet, Aufnahme gesichert, Pro-Seite angezeigt, Pro gekauft. Keine Fotos, kein Standort, kein Name. Die einzige ID ist eine zufällige, auf diesem iPhone erzeugt und mit der App gelöscht. Sie beantwortet eine Frage: ob jemand wiederkommt. Aus heißt, es wird nichts gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seis eventos: app abierta, captura iniciada, captura terminada, captura guardada, página Pro mostrada, Pro comprado. Sin fotos, sin ubicación, sin nombre. El único id es aleatorio, creado en este teléfono y borrado con la app. Responde una sola pregunta: si alguien vuelve. Apagado significa que no se envía nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Six événements : app ouverte, prise de vue lancée, prise de vue terminée, prise de vue enregistrée, page Pro affichée, Pro acheté. Pas de photo, pas de position, pas de nom. Le seul identifiant est aléatoire, créé sur ce téléphone et supprimé avec l'app. Il répond à une seule question : est-ce que quelqu'un revient. Désactivé, rien n'est envoyé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "छह इवेंट: ऐप खुला, कैप्चर शुरू, कैप्चर खत्म, कैप्चर सेव, Pro पेज दिखा, Pro खरीदा। कोई फ़ोटो नहीं, कोई जगह नहीं, कोई नाम नहीं। एकमात्र आईडी इस फ़ोन पर बनी एक रैंडम आईडी है, जो ऐप के साथ मिट जाती है। यह एक ही सवाल का जवाब देती है: क्या कोई वापस आता है। बंद करने पर कुछ नहीं भेजा जाता।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sei eventi: app aperta, scatto avviato, scatto terminato, scatto salvato, pagina Pro mostrata, Pro acquistato. Nessuna foto, nessuna posizione, nessun nome. L'unico id è casuale, creato su questo telefono e cancellato con l'app. Risponde a una sola domanda: se qualcuno torna. Spento significa che non si invia nulla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6つのイベント：アプリ起動、撮影開始、撮影終了、撮影保存、Proページ表示、Pro購入。写真・位置・名前は含みません。IDはこの端末で作られアプリと一緒に消えるランダムなものだけ。答える問いは一つ、誰かが戻ってくるかどうか。オフにすると何も送信されません。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altı olay: uygulama açıldı, çekim başladı, çekim bitti, çekim kaydedildi, Pro sayfası gösterildi, Pro satın alındı. Fotoğraf yok, konum yok, isim yok. Tek kimlik bu telefonda oluşturulan ve uygulamayla silinen rastgele bir kimliktir. Tek bir soruyu yanıtlar: biri geri geliyor mu. Kapalıysa hiçbir şey gönderilmez."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "六个事件：打开应用、开始拍摄、结束拍摄、保存拍摄、显示 Pro 页面、购买 Pro。不含照片、位置或姓名。唯一的 ID 是在这部手机上随机生成的，随应用一起删除。它只回答一个问题：是否有人回来。关闭后不发送任何内容。"
+          }
+        }
+      }
+    },
     "Sky moves %.1f° between frames — motion will look steppy.": {
       "localizations": {
         "ar": {
@@ -10727,6 +10843,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "目标位于放射点40°外并避开月亮，箭头指向它。"
+          }
+        }
+      }
+    },
+    "The video could not be written. The stacked image is kept instead.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر حفظ الفيديو. تم الاحتفاظ بالصورة المكدّسة بدلاً منه."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Video konnte nicht geschrieben werden. Stattdessen bleibt das gestapelte Bild erhalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo escribir el vídeo. Se conserva la imagen apilada en su lugar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vidéo n'a pas pu être écrite. L'image empilée est conservée à la place."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वीडियो लिखा नहीं जा सका। उसकी जगह स्टैक की गई इमेज रखी गई है।"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile scrivere il video. Al suo posto viene conservata l'immagine sommata."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "動画を書き出せませんでした。代わりにスタック画像を残しています。"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video yazılamadı. Onun yerine birleştirilmiş görüntü saklandı."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "视频无法写入。已改为保留叠加后的图像。"
           }
         }
       }

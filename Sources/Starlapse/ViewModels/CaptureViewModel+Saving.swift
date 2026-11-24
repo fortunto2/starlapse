@@ -52,6 +52,8 @@ extension CaptureViewModel {
         }
         do {
             try await PhotoLibraryWriter.write(videoAt: url)
+            // In Photos now: a kill before the review closes must not offer it back as recovered.
+            ScratchStore.remove(url)
             lastSavedMessage = String(
                 format: String(localized: "Saved %d-frame time-lapse to Photos."), progress.segmentsCompleted
             )
@@ -77,6 +79,8 @@ extension CaptureViewModel {
 
     /// Keep what an interrupted night left behind. Each clip is removed once it is in Photos.
     func saveRecoveredClips() async {
+        // Answered: the alert must not come back while this runs, or on a refusal below.
+        recoveryAnswered = true
         guard await PhotoLibraryWriter.requestAccess() else {
             lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
             return
@@ -99,6 +103,7 @@ extension CaptureViewModel {
     }
 
     func discardRecoveredClips() {
+        recoveryAnswered = true
         ScratchStore.remove(recoveredClips)
         recoveredClips = []
     }

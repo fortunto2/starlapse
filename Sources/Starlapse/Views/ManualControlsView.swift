@@ -361,8 +361,8 @@ extension ManualControlsView {
             .tint(NightTheme.accent)
 
             Text("""
-                Five events: app opened, capture started, capture saved, Pro page shown, Pro \
-                bought. No photos, no location, no name. The only id is a random one made on \
+                Six events: app opened, capture started, capture finished, capture saved, Pro \
+                page shown, Pro bought. No photos, no location, no name. The only id is a random one made on \
                 this phone and deleted with the app. It answers one question, whether anyone \
                 comes back. Off means nothing is sent.
                 """)

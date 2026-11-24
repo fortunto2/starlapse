@@ -114,6 +114,10 @@ final class CaptureViewModel {
     private(set) var reviewEncoderFailures = 0
     /// Time-lapses an earlier run left unfinished, offered once on the capture screen.
     var recoveredClips: [URL] = []
+    /// Asked once per launch; "Not now" leaves the clips for the next one.
+    var recoveryAnswered = false
+    /// When the running session began, for `capture_finished`.
+    var sessionStartedAt = Date()
     /// Clips saved this session, newest first. Detector mode never interrupts to ask —
     /// it keeps watching, and these pile up until the session is stopped.
     var events: [RecordedEvent] = []
@@ -338,6 +342,7 @@ final class CaptureViewModel {
         sessionIsDayPhoto = isDayPhoto
         sessionTone = sessionIsDayPhoto ? .day : tone
         state = .capturing
+        sessionStartedAt = Date()
 
         do {
             if mode.isDetector {
@@ -430,6 +435,7 @@ final class CaptureViewModel {
             reviewEncoderFailures = 0
         }
 
+        reportSessionFinished()
         state = .reviewing
         measureSky()
         contributeMeteors()

@@ -13,7 +13,7 @@ struct StarlapseApp: App {
         // which is the realistic case — never gets to clean up after itself.
         // An unfinished time-lapse is moved out of the way first: it is the one leftover
         // worth keeping. See RecoveredClips.
-        RecoveredClips.rescueLeftovers()
+        let interrupted = RecoveredClips.rescueLeftovers()
         ScratchStore.purgeLeftovers()
         // Before any camera work: if the last run died holding a sensor format, that format
         // is not offered again on this phone. See FormatQuarantine.
@@ -21,7 +21,7 @@ struct StarlapseApp: App {
         CrashDiagnostics.shared.start()
         // A reminder that fires mid-session is shown, not dropped. See ShowerAlertPresenter.
         UNUserNotificationCenter.current().delegate = ShowerAlertPresenter.shared
-        // App Store Connect counts downloads; nobody counts the second launch. Five events,
+        // App Store Connect counts downloads; nobody counts the second launch. Six events,
         // an id made on this phone, switchable off in the controls panel. A debug build is
         // marked as a machine so simulator runs do not count as people.
         #if DEBUG
@@ -30,6 +30,7 @@ struct StarlapseApp: App {
         Analytics.configure(source: "starlapse")
         #endif
         Analytics.track("app_launched")
+        CaptureViewModel.reportInterrupted(clips: interrupted)
     }
 
     var body: some Scene {

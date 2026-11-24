@@ -122,7 +122,7 @@ site — copy `Makefile.local.example`.
 ## Privacy
 
 No account. Location and motion are used on-device to work out where to point the camera.
-What leaves the phone: the Pro purchase, which goes to Apple; a five-event usage counter to
+What leaves the phone: the Pro purchase, which goes to Apple; a six-event usage counter to
 our own server, switchable off in the controls panel; and, only if the person says yes once
 asked, sky dataset contributions to `api.starlapse.app` (the sky reading, camera
 settings, a 2048 px JPEG, location rounded to ~10 km, a random contributor id), deletable

@@ -22,17 +22,24 @@ enum RecoveredClips {
 
     /// Called at launch, before `ScratchStore.purgeLeftovers()`. Synchronous and cheap:
     /// only renames. Whether a file actually plays is decided later, off the launch path.
-    static func rescueLeftovers() {
+    /// Returns how many sessions left files behind, playable or not.
+    @discardableResult
+    static func rescueLeftovers() -> Int {
         let manager = FileManager.default
         guard let contents = try? manager.contentsOfDirectory(
             at: ScratchStore.directory, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
-        ) else { return }
+        ) else { return 0 }
         let leftovers = contents.filter {
             $0.lastPathComponent.hasPrefix(TimelapseWriter.prefix) && $0.pathExtension == "mov"
         }
-        guard !leftovers.isEmpty else { return }
+        guard !leftovers.isEmpty else { return 0 }
 
         try? manager.createDirectory(at: directory, withIntermediateDirectories: true)
+        // A night of video does not belong in someone's iCloud backup.
+        var folder = directory
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? folder.setResourceValues(values)
         for url in leftovers {
             let target = directory.appendingPathComponent(url.lastPathComponent)
             try? manager.removeItem(at: target)
@@ -43,6 +50,11 @@ enum RecoveredClips {
             }
         }
         logger.info("Kept \(leftovers.count) unfinished time-lapse file(s)")
+        // starlapse-timelapse-<stamp>-<part>.mov: one stamp per session.
+        let sessions = Set(leftovers.map {
+            $0.deletingPathExtension().lastPathComponent.split(separator: "-").dropFirst(2).first ?? ""
+        })
+        return sessions.count
     }
 
     /// Rescued clips that play, oldest first. Files that hold no frame are deleted.
