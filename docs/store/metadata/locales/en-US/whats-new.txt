@@ -1,1 +1,1 @@
-App Store events now open straight into the right mode: a full-Moon event lands in Moon mode, a meteor shower on the night exposure that keeps every trail.
+A time-lapse cut short by a crash, a dead battery or a failed encoder is no longer lost: the app keeps what it recorded and offers it the next time you open it. Sky dataset photos are now checked on your phone, so only night skies with nobody in them are shared.

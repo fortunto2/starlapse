@@ -46,7 +46,7 @@ Tests/                   SkyKitTests, StackKitTests (emulated sky), StarlapseTes
 `make help` lists everything. The ones that matter:
 
 ```bash
-make test          # SPM tests — 27, run in ~3s on a Mac, no simulator
+make test          # SPM tests, a few seconds on a Mac, no simulator
 make integration   # CLI against the domain: tonight's aiming advice
 make build         # simulator build (compile check)
 make install       # build for device + install on the paired iPhone
@@ -329,6 +329,13 @@ Contributions (opt-in, `Services/SkyDataset.swift`) land in D1 + R2 behind `serv
 `fortunto2/starlapse-sky-data` (Zenodo mints a DOI per release; the hook is on), tables plus
 photos to Hugging Face. `uv run server/dataset/export.py build && … publish`. The contributor
 id is the delete secret and never ships; releases carry a salted code. Landing: `site/`.
+
+**Privacy screen (`Sources/PhotoScreen`).** The first month (85 photos, Nov 2026) carried a
+face indoors, a hand, parked cars and living rooms: every saved stack was uploaded. Since
+1.2.2 a photo goes only if Vision says night sky (≥ 0.25) with no face, person, hand or
+`people` label; thresholds set on those 85 (`PhotoScreenTests`). `export.py build` runs the
+same screen (`starlapse-stack screen`) on every photo, so old uploads are withheld too. Star
+counts and brightness cannot do this: JPEG noise reads as 150 "stars" in a dark room.
 
 ## Quality gate
 

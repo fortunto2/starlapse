@@ -73,13 +73,33 @@ def rows() -> list[dict]:
     return json.loads(raw)[0]["results"]
 
 
+def screener() -> pathlib.Path:
+    """The privacy screen (Sources/PhotoScreen) as a Mac binary, built once per release."""
+    root = HERE.parents[1]
+    subprocess.run(["swift", "build", "-c", "release", "--product", "starlapse-stack"], cwd=root, check=True)
+    return root / ".build" / "release" / "starlapse-stack"
+
+
+def publishable(binary: pathlib.Path, photo: pathlib.Path) -> bool:
+    """A night sky with nobody in it. The app screens before upload since 1.2.2; older
+    versions sent every saved stack, a face and two living rooms among them."""
+    result = subprocess.run([str(binary), "screen", str(photo)], capture_output=True, text=True, check=False)
+    if result.returncode not in (0, 1):
+        # Could not look is not "looked and refused": withholding every photo silently would
+        # ship a release with none and no error.
+        raise SystemExit(f"privacy screen failed on {photo} ({result.returncode}): {result.stdout}{result.stderr}")
+    return result.returncode == 0
+
+
 def build() -> pathlib.Path:
-    version = dt.date.today().strftime("%Y.%m.%d")
+    version = dt.datetime.now(dt.UTC).date().strftime("%Y.%m.%d")
     target = OUT / version
     shutil.rmtree(target, ignore_errors=True)
     (target / "photos").mkdir(parents=True)
     key = salt()
     data = rows()
+    binary = screener()
+    withheld = 0
 
     with open(target / "observations.csv", "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=COLUMNS)
@@ -91,6 +111,11 @@ def build() -> pathlib.Path:
             if row.get("photo_key"):
                 photo = f"photos/{row['id']}.jpg"
                 wrangler("r2", "object", "get", f"{BUCKET}/{row['photo_key']}", "--remote", "--file", str(target / photo))
+                if not publishable(binary, target / photo):
+                    (target / photo).unlink()
+                    photo, withheld = None, withheld + 1
+                    # Still in R2: listed outside the release so they can be purged by hand.
+                    print(f"withheld {row['id']} ({row['photo_key']})", file=sys.stderr)
             writer.writerow({
                 **{c: row.get(c) for c in COLUMNS if c in row},
                 "contributor": code, "photo": photo,
@@ -108,11 +133,12 @@ def build() -> pathlib.Path:
 
     card = (HERE / "README.template.md").read_text()
     card = card.replace("{{version}}", version).replace("{{count}}", str(len(data)))
-    card = card.replace("{{photos}}", str(sum(1 for r in data if r.get("photo_key"))))
+    card = card.replace("{{photos}}", str(sum(1 for r in data if r.get("photo_key")) - withheld))
     card = card.replace("{{meteors}}", str(len(meteors)))
     (target / "README.md").write_text(card)
     shutil.copy(HERE / "LICENSE", target / "LICENSE")
-    print(f"{target}: {len(data)} observations, {len(stars)} star samples, {len(meteors)} meteors")
+    print(f"{target}: {len(data)} observations, {len(stars)} star samples, {len(meteors)} meteors, "
+          f"{withheld} photos withheld by the privacy screen")
     return target
 
 

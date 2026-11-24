@@ -1,4 +1,5 @@
 import Foundation
+import PhotoScreen
 import SkyKit
 import SkyMeter
 import StackKit
@@ -134,7 +135,19 @@ extension CaptureViewModel {
         // A save in the second after review opens can beat the measurement; it is worth
         // waiting a few seconds for, the reading is the point of the contribution.
         for _ in 0..<20 where sky.isMeasuring { try? await Task.sleep(for: .milliseconds(250)) }
-        let photo = await Task.detached(priority: .utility) { SkyDataset.jpeg(from: rendered) }.value
+        // The photo goes only if it is a night sky with nobody in it (see PhotoScreen): the
+        // first month carried a face, a hand and two living rooms. The reading alone still goes.
+        let photo = await Task.detached(priority: .utility) { () -> Data? in
+            guard let jpeg = SkyDataset.jpeg(from: rendered) else { return nil }
+            guard let signals = PhotoScreen.signals(of: jpeg) else {
+                // Could not look, as opposed to looked and refused: a broken screen would
+                // otherwise stop every photo with nothing to show for it.
+                SkyDataset.logger.error("Privacy screen could not run; photo withheld")
+                return nil
+            }
+            return PhotoScreen.isPublishableSky(signals) ? jpeg : nil
+        }.value
+        guard photo != nil || sky.reading != nil else { return }
         let contribution = SkyDataset.contribution(kind: "stack", start: start, sky: sky.reading, camera: camera(start))
         if SkyDataset.choice == nil {
             sky.pendingContribution = (contribution, photo)

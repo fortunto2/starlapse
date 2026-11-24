@@ -1,1 +1,1 @@
-App Store etkinlikleri artık doğrudan doğru modu açıyor: dolunay etkinliği Ay modunu, meteor yağmuru her izi koruyan gece pozlamasını.
+Çökme, biten pil veya kodlayıcı hatası yüzünden yarıda kalan bir time-lapse artık kaybolmuyor: uygulama kaydedileni saklıyor ve bir sonraki açılışta size sunuyor. Gökyüzü veri seti fotoğrafları artık telefonunuzda kontrol ediliyor; yalnızca içinde kimse olmayan gece gökyüzü paylaşılıyor.

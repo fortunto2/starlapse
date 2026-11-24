@@ -44,6 +44,8 @@ targets:
         product: StackKit
       - package: SkyKit
         product: SkyMeter
+      - package: SkyKit
+        product: PhotoScreen
       - package: SuperDuperAnalytics
     settings:
       base:

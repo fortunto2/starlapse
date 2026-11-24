@@ -1,1 +1,1 @@
-App-Store-Events öffnen jetzt direkt den passenden Modus: ein Vollmond-Event den Mond-Modus, ein Meteorstrom die Nachtbelichtung, die jede Spur behält.
+Ein Zeitraffer, der durch einen Absturz, einen leeren Akku oder einen Encoder-Fehler abbricht, geht nicht mehr verloren: Die App behält, was aufgenommen wurde, und bietet es beim nächsten Öffnen an. Fotos für den Himmels-Datensatz werden jetzt auf dem iPhone geprüft, geteilt werden nur Nachthimmel ohne Menschen.

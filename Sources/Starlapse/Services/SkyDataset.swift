@@ -1,5 +1,6 @@
 import Foundation
 import ImageIO
+import os
 import Security
 import SkyMeter
 import UniformTypeIdentifiers
@@ -16,6 +17,8 @@ import UniformTypeIdentifiers
 /// instead of racing it, and switching off stops the queue between two files.
 @MainActor
 enum SkyDataset {
+
+    nonisolated static let logger = Logger(subsystem: "co.superduperai.starlapse", category: "dataset")
 
     static let endpoint = URL(string: "https://api.starlapse.app")
     static let enabledKey = "skyDataset"

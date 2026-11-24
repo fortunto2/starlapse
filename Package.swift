@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "SkyKit", targets: ["SkyKit"]),
         .library(name: "StackKit", targets: ["StackKit"]),
         .library(name: "SkyMeter", targets: ["SkyMeter"]),
+        .library(name: "PhotoScreen", targets: ["PhotoScreen"]),
         .executable(name: "starlapse-sky", targets: ["SkyKitCLI"]),
         .executable(name: "starlapse-stack", targets: ["StackKitCLI"]),
     ],
@@ -28,11 +29,14 @@ let package = Package(
         // The stars in a stack as a light meter: sky brightness in mag/arcsec² from the
         // catalogue magnitudes of the stars that frame caught. Needs both sides.
         .target(name: "SkyMeter", dependencies: ["SkyKit", "StackKit"]),
+        // Is a photo a night sky with nobody in it: Vision, on the device, before the dataset.
+        .target(name: "PhotoScreen"),
         .executableTarget(name: "SkyKitCLI", dependencies: ["SkyKit"]),
         // Emulated nights: every stacking pipeline scored against a sky with a known answer.
-        .executableTarget(name: "StackKitCLI", dependencies: ["StackKit"]),
+        .executableTarget(name: "StackKitCLI", dependencies: ["StackKit", "PhotoScreen"]),
         .testTarget(name: "SkyKitTests", dependencies: ["SkyKit"]),
         .testTarget(name: "StackKitTests", dependencies: ["StackKit"]),
         .testTarget(name: "SkyMeterTests", dependencies: ["SkyMeter", "SkyKit", "StackKit"]),
+        .testTarget(name: "PhotoScreenTests", dependencies: ["PhotoScreen"], resources: [.copy("Fixtures")]),
     ]
 )

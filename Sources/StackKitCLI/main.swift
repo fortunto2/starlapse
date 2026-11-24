@@ -1,4 +1,5 @@
 import Foundation
+import PhotoScreen
 import StackKit
 
 // `starlapse-stack` — compare stacking pipelines on an emulated night sky.
@@ -37,9 +38,44 @@ if command == "tone" {
     exit(0)
 }
 
+if command == "screen" {
+    // The dataset's privacy screen on files: prints pass/fail per photo. Exit 0 all passed,
+    // 1 some were refused, 2 the screen could not run (no files, unreadable, Vision failed):
+    // a caller must never read "could not look" as "looked and refused", or the reverse.
+    let paths = Array(arguments.dropFirst())
+    guard !paths.isEmpty else { print("usage: starlapse-stack screen <jpg...>"); exit(2) }
+    var failed = 0
+    for path in paths {
+        guard let data = FileManager.default.contents(atPath: path),
+              let signals = PhotoScreen.signals(of: data) else {
+            print("error\tunreadable or Vision failed\t\(path)"); exit(2)
+        }
+        let pass = PhotoScreen.isPublishableSky(signals)
+        if !pass { failed += 1 }
+        let verdict = pass ? "pass" : "fail"
+        print("\(verdict)\tnight_sky=\(number(signals.nightSky, 2)) people=\(number(signals.people, 2)) "
+              + "faces=\(signals.faces) humans=\(signals.humans) hands=\(signals.hands)\t\(path)")
+    }
+    exit(failed == 0 ? 0 : 1)
+}
+
+if command == "detect" {
+    // Stars and background of real photos, e.g. dataset contributions: is this a night sky?
+    for path in arguments.dropFirst() {
+        guard let luma = PhotoLuma.load(path) else { print("\(path)\tunreadable"); continue }
+        let stars = StarDetector(threshold: 5, maxStars: 150)
+            .detect(in: luma.pixels, width: luma.width, height: luma.height)
+        let sorted = luma.pixels.sorted()
+        let median = sorted[sorted.count / 2]
+        print("\(stars.count)\t\(number(median, 4))\t\((path as NSString).lastPathComponent)")
+    }
+    exit(0)
+}
+
 guard command == "compare" else {
     print("""
-        usage: starlapse-stack tone | compare [--frames N] [--sky L] [--electrons E] [--read R] [--clean]
+        usage: starlapse-stack tone | detect <jpg...> | screen <jpg...>
+               starlapse-stack compare [--frames N] [--sky L] [--electrons E] [--read R] [--clean]
           --frames     light frames in the stack (40)
           --sky        sky background, linear 0...1 (0.02 dark site, 0.06 suburb)
           --electrons  electrons at full scale; lower = higher ISO, more shot noise (800)
