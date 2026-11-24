@@ -108,6 +108,7 @@ struct CaptureView: View {
                 .presentationDetents([.medium])
                 .presentationBackground(NightTheme.background)
         }
+        .recoveredClipsAlert(model)
         .sheet(isPresented: $showsControls) {
             ManualControlsView(model: model)
                 .presentationDetents([.medium, .large])
@@ -117,6 +118,7 @@ struct CaptureView: View {
             model.startSkyUpdates()
             await model.prepare()
             prepared = true
+            await model.loadRecoveredClips()
             openPendingLink()
             model.startSkyLock()
             model.startFramingMeter()

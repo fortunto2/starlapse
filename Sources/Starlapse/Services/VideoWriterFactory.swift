@@ -23,12 +23,15 @@ enum VideoWriterFactory {
     /// low bitrates band badly and thin bright streaks vanish entirely.
     static let bitsPerPixel = 14
 
-    static func make(width: Int, height: Int, to url: URL) throws -> Stack {
+    /// - Parameter fragmentEvery: media time between movie fragments. Set, the file is
+    ///   playable up to its last fragment even if `finishWriting` never runs.
+    static func make(width: Int, height: Int, to url: URL, fragmentEvery: CMTime? = nil) throws -> Stack {
         // HEVC refuses odd dimensions.
         let evenWidth = width - (width % 2)
         let evenHeight = height - (height % 2)
 
         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+        if let fragmentEvery { writer.movieFragmentInterval = fragmentEvery }
 
         let input = AVAssetWriterInput(
             mediaType: .video,

@@ -213,6 +213,23 @@ writer that had failed (a frozen session, no log), and the detector's ring buffe
 in frames rather than bytes. **A number that comes from the hardware needs a budget, not a
 default.**
 
+## The night that left nothing
+
+24 Nov 2026, 1.2.1, iPhone 11 Pro: three hours of Star Trails time-lapse ended in one still,
+no video. Two faults compounded. One failed `AVAssetWriter` silently dropped every later frame,
+and the frames before it sat in a `.mov` with no index, which `ScratchStore.purgeLeftovers()`
+deleted on the next launch. The signature in analytics: a time-lapse whose next event is a
+**photo** save (`capture_saved{kind:photo}` after `capture_started{mode:timelapse}`). 80 in
+90 days, but 78 under 10 minutes, most likely stopped before the first output frame; the
+lost nights are the other two, 80 and 359 minutes. Relaunch with no save is ambiguous.
+
+1.2.2: `TimelapseWriter` writes fragmented files (`movieFragmentInterval`, every 2 output
+frames), starts a new part when the writer fails and joins the parts at the end;
+`RecoveredClips` moves unfinished time-lapses out of `tmp` before the purge and the capture
+screen offers them. `capture_saved` now carries `mode` (photo) and `encoder_failures` /
+`recovered` (video). Pinned by `TimelapseRecoveryTests`; without fragments the unfinished
+file does not play (measured: the test goes red).
+
 ## Stacking is argued from an emulated sky, not from taste
 
 `starlapse-stack compare` renders a linear sky with a known answer, pushes it through a

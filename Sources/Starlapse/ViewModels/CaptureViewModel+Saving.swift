@@ -8,6 +8,19 @@ import SuperDuperAnalytics
 /// note there about Swift 6 executor checks.
 extension CaptureViewModel {
 
+    /// Keep the result.
+    func saveResult() async {
+        guard state.isReviewing else { return }
+
+        if let url = reviewVideoURL {
+            await save(videoAt: url)
+        } else if let rendered = await stackEngine?.exportResult() {
+            await save(image: rendered)
+        } else {
+            lastSavedMessage = String(localized: "Nothing to save.")
+        }
+    }
+
     func save(image rendered: RenderedImage) async {
         guard await PhotoLibraryWriter.requestAccess() else {
             lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
@@ -19,7 +32,8 @@ extension CaptureViewModel {
             lastSavedMessage = String(format: String(localized: "Saved %d frames to Photos."), progress.framesStacked)
             Analytics.track(
                 "capture_saved",
-                props: ["kind": "photo", "watermark": credited ? "true" : "false"],
+                // A time-lapse that ends in a photo is one whose video was lost.
+                props: ["kind": "photo", "watermark": credited ? "true" : "false", "mode": mode.analyticsName],
                 metrics: ["frames": Double(progress.framesStacked)]
             )
             await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
@@ -44,12 +58,49 @@ extension CaptureViewModel {
             Analytics.track(
                 "capture_saved",
                 props: ["kind": "video", "watermark": Watermark.applies(isPro: entitlements.isPro) ? "true" : "false"],
-                metrics: ["frames": Double(progress.segmentsCompleted)]
+                metrics: [
+                    "frames": Double(progress.segmentsCompleted),
+                    "encoder_failures": Double(reviewEncoderFailures),
+                ]
             )
             await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
         }
+    }
+
+    // MARK: - Recovered time-lapses
+
+    func loadRecoveredClips() async {
+        recoveredClips = await RecoveredClips.pending()
+    }
+
+    /// Keep what an interrupted night left behind. Each clip is removed once it is in Photos.
+    func saveRecoveredClips() async {
+        guard await PhotoLibraryWriter.requestAccess() else {
+            lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
+            return
+        }
+        var saved = 0
+        for url in recoveredClips {
+            do {
+                try await PhotoLibraryWriter.write(videoAt: url)
+                ScratchStore.remove(url)
+                saved += 1
+                Analytics.track("capture_saved", props: ["kind": "video", "recovered": "true"])
+            } catch {
+                lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
+            }
+        }
+        recoveredClips = await RecoveredClips.pending()
+        if saved > 0 {
+            lastSavedMessage = String(localized: "Saved the recovered time-lapse to Photos.")
+        }
+    }
+
+    func discardRecoveredClips() {
+        ScratchStore.remove(recoveredClips)
+        recoveredClips = []
     }
 
     /// Every kind of save, photo, time-lapse or detector clip, is the moment to ask once for

@@ -110,6 +110,10 @@ final class CaptureViewModel {
     /// Finished time-lapse awaiting a decision. Video cannot be re-toned — the frames are
     /// already encoded — so review is watch-and-keep.
     private(set) var reviewVideoURL: URL?
+    /// Times the encoder died under the session in review; the clip is joined from parts.
+    private(set) var reviewEncoderFailures = 0
+    /// Time-lapses an earlier run left unfinished, offered once on the capture screen.
+    var recoveredClips: [URL] = []
     /// Clips saved this session, newest first. Detector mode never interrupts to ask —
     /// it keeps watching, and these pile up until the session is stopped.
     var events: [RecordedEvent] = []
@@ -419,9 +423,11 @@ final class CaptureViewModel {
 
         if mode.isTimelapse, let writer = timelapseWriter {
             reviewVideoURL = await writer.finish()
+            reviewEncoderFailures = writer.failures
             timelapseWriter = nil
         } else {
             reviewVideoURL = nil
+            reviewEncoderFailures = 0
         }
 
         state = .reviewing
@@ -436,22 +442,11 @@ final class CaptureViewModel {
         stackEngine?.rerender(tone: reviewTone)
     }
 
-    /// Keep the result.
-    func saveResult() async {
-        guard state.isReviewing else { return }
-
-        if let url = reviewVideoURL {
-            await save(videoAt: url)
-        } else if let rendered = await stackEngine?.exportResult() {
-            await save(image: rendered)
-        } else {
-            lastSavedMessage = String(localized: "Nothing to save.")
-        }
-    }
-
     /// Throw it away and go back to composing.
     func dismissReview() async {
         guard state.isReviewing else { return }
+        // Saved or thrown away, it is decided: the next launch must not offer it back.
+        if let url = reviewVideoURL { ScratchStore.remove(url) }
         reviewVideoURL = nil
         stackEngine?.resumeFraming()
         state = .aiming
