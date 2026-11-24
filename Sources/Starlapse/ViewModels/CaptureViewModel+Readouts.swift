@@ -48,7 +48,16 @@ extension CaptureViewModel {
     /// Averaging gain worth showing. Star Trails keeps the brightest value, not the mean,
     /// so it has none, and "−0.0 stops" only confused.
     var showsNoiseReduction: Bool {
-        settings.stackMode != .trails && settings.noiseReductionStops > 0
+        settings.stackMode != .trails && !mode.isDetector && noiseReductionStops > 0
+    }
+
+    /// Averaging gain of one stack in the current mode. A time-lapse frame stacks only its
+    /// own light per frame; counting the still stack's Total light claimed −4.1 stops for a
+    /// frame that averages ten.
+    var noiseReductionStops: Double {
+        guard case .timelapse = mode else { return settings.noiseReductionStops }
+        let frames = max(1, (timelapse.lightPerFrame / max(settings.frameExposure, 0.001)).rounded())
+        return log2(frames.squareRoot())
     }
 
     var hardwareCeilingNote: String {

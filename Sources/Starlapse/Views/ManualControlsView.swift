@@ -154,7 +154,7 @@ struct ManualControlsView: View {
                 if model.showsNoiseReduction {
                     ReadoutRow(
                         label: "Noise reduction",
-                        value: String(format: "−%.1f stops", model.settings.noiseReductionStops)
+                        value: String(format: "−%.1f stops", model.noiseReductionStops)
                     )
                 }
                 ReadoutRow(
