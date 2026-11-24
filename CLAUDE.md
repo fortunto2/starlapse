@@ -14,8 +14,8 @@ from them, and each one contradicts an assumption people bring from DSLR astroph
    ceiling; Night mode's 30 s is private API. Everything longer is **stacked**, not held.
    `CaptureSettings.totalLightSeconds` is the user's intent; `frameCount` is the truth.
 3. **Capture cannot run in the background.** iOS force-stops `AVCaptureSession` when the
-   app backgrounds. The substitute is `isIdleTimerDisabled` plus screen brightness at 0.05
-   and a red-on-black UI. Do not add `UIBackgroundModes` — it buys nothing and risks review.
+   app backgrounds. The substitute is `isIdleTimerDisabled` plus screen brightness at 0.2
+   (0.05 was unreadable outdoors) and a red-on-black UI option. Do not add `UIBackgroundModes` — it buys nothing and risks review.
 
 ## Stack
 
