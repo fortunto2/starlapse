@@ -1,5 +1,6 @@
 import Foundation
 import os
+import simd
 import StackKit
 
 /// The last few seconds of gyroscope readings, shared between the main actor that receives
@@ -14,11 +15,25 @@ final class ShakeLog: Sendable {
     private static let capacity = 600
 
     private let samples = OSAllocatedUnfairLock(initialState: [MotionSample]())
+    private let attitudes = OSAllocatedUnfairLock(initialState: [(time: Double, attitude: simd_quatd)]())
 
-    func record(time: Double, rate: Double) {
+    func record(time: Double, rate: Double, attitude: simd_quatd? = nil) {
         samples.withLock { buffer in
             buffer.append(MotionSample(time: time, rate: rate))
             if buffer.count > Self.capacity { buffer.removeFirst(buffer.count - Self.capacity) }
+        }
+        guard let attitude else { return }
+        attitudes.withLock { buffer in
+            buffer.append((time, attitude))
+            if buffer.count > Self.capacity { buffer.removeFirst(buffer.count - Self.capacity) }
+        }
+    }
+
+    /// The attitude read nearest `time`, if one was read within a tenth of a second of it.
+    func attitude(at time: Double) -> simd_quatd? {
+        attitudes.withLock { buffer in
+            buffer.min { abs($0.time - time) < abs($1.time - time) }
+                .flatMap { abs($0.time - time) <= 0.1 ? $0.attitude : nil }
         }
     }
 

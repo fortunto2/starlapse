@@ -41,6 +41,8 @@ final class StackEngine: @unchecked Sendable {
     /// Transform from the last aligned frame back to the reference frame: the next frame's
     /// starting guess.
     private var accumulatedTransform = SimilarityTransform.identity
+    /// When the reference frame was shot and how the phone was held then (`CameraTurn`).
+    private var referencePose: (time: Double, attitude: simd_quatd?) = (0, nil)
     /// Moon mode's registration: the reference disc and the judge of steady frames.
     private var moonTracker = MoonTracker()
 
@@ -314,6 +316,7 @@ final class StackEngine: @unchecked Sendable {
         case .reference:
             // First frame with stars defines the reference frame; nothing to solve.
             referenceStars = stars
+            referencePose = (frame.timestamp, shakeLog?.attitude(at: frame.timestamp))
             accumulatedTransform = .identity
             progress.alignmentResidual = 0
             return matrix_identity_float3x3
@@ -321,23 +324,19 @@ final class StackEngine: @unchecked Sendable {
             break
         }
 
-        // Straight onto the reference, from where the last frame landed. Chaining frame to
-        // frame let each step's error compound: on an emulated handheld sky the corners of a
-        // 60-frame stack drifted 4–9 px (quarter-res), the edges of the stack visibly rotated.
-        guard let step = aligner.align(
-            moving: stars,
-            reference: referenceStars,
-            initialGuess: accumulatedTransform
-        ), step.isTrustworthy else {
-            return nil
+        // Straight onto the reference, from where the last frame landed: chained steps compound.
+        // And never turned further than the gyroscope saw the phone turn, plus the sky's turn.
+        let twist = referencePose.attitude.flatMap { start in
+            shakeLog?.attitude(at: frame.timestamp).map { CameraTurn.twist(from: start, to: $0) }
         }
+        let allowed = CameraTurn.allowance(gyroTwist: twist, elapsed: frame.timestamp - referencePose.time)
+        guard let step = aligner.align(moving: stars, reference: referenceStars, initialGuess: accumulatedTransform),
+              step.isTrustworthy, abs(step.transform.rotation) <= allowed else { return nil }
 
         accumulatedTransform = step.transform
         progress.alignmentResidual = step.residual
 
-        // Star coordinates come from the downsampled luma buffer; the shader samples the
-        // full-resolution frame, so the translation scales up by the same factor. Rotation
-        // is scale-invariant and passes through untouched.
+        // Luma-buffer coordinates up to the full frame; rotation does not depend on scale.
         let scaled = accumulatedTransform.translationScaled(by: lumaToFrame)
 
         // The shader walks accumulator coordinates back to frame coordinates, which is the

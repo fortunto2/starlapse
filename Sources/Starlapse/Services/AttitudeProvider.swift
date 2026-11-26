@@ -2,6 +2,7 @@ import CoreLocation
 import CoreMotion
 import Foundation
 import os
+import simd
 import SkyKit
 import StackKit
 
@@ -164,7 +165,11 @@ final class AttitudeProvider: NSObject {
             }
             let rate = motion.rotationRate
             let speed = (rate.x * rate.x + rate.y * rate.y + rate.z * rate.z).squareRoot()
-            self.shakeLog.record(time: motion.timestamp, rate: speed)
+            let turn = motion.attitude.quaternion
+            self.shakeLog.record(
+                time: motion.timestamp, rate: speed,
+                attitude: simd_quatd(ix: turn.x, iy: turn.y, iz: turn.z, r: turn.w)
+            )
             guard motion.timestamp - self.lastPublished >= self.publishInterval * 0.9 else { return }
             self.lastPublished = motion.timestamp
             self.update(from: motion)
