@@ -20,6 +20,9 @@ struct LightPicker: View {
                     chip(option)
                 }
             }
+            // By day the length does not apply: one photo is taken whatever is picked, so the
+            // row steps back instead of promising five minutes it will not shoot.
+            .opacity(model.isDayPhoto ? 0.35 : 1)
             Text(caption)
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
