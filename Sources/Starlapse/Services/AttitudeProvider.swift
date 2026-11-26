@@ -3,6 +3,7 @@ import CoreMotion
 import Foundation
 import os
 import SkyKit
+import StackKit
 
 /// Where the camera is pointing, and where on Earth it stands.
 ///
@@ -35,6 +36,14 @@ final class AttitudeProvider: NSObject {
     private(set) var location: GeographicCoordinates?
     private(set) var isHeadingAvailable = false
     private(set) var authorizationDenied = false
+    /// How still the phone is, for the capture screen and the shutter delay.
+    private(set) var hold: HoldState = .unknown
+
+    /// Every gyroscope reading, at full rate, for the capture queue's frame gate.
+    nonisolated let shakeLog = ShakeLog()
+    /// Readings arrive at 30 Hz always; the observable state above changes at this rate.
+    private var publishInterval = Cadence.interactive.interval
+    private var lastPublished: TimeInterval = 0
 
     /// True north needs magnetic declination, which needs a rough position. Without
     /// location we can still show altitude, but azimuth would be magnetic, not true.
@@ -64,8 +73,9 @@ final class AttitudeProvider: NSObject {
     }
 
     func setCadence(_ cadence: Cadence) {
-        guard motion.isDeviceMotionActive else { return }
-        motion.deviceMotionUpdateInterval = cadence.interval
+        // The sensor keeps its rate, because the frame gate needs every reading during a
+        // session; only what the interface sees slows down.
+        publishInterval = cadence.interval
     }
 
     func start() {
@@ -152,7 +162,14 @@ final class AttitudeProvider: NSObject {
                 self.isHeadingAvailable = true
                 self.logger.info("Attitude running in frame \(frame.rawValue)")
             }
+            let rate = motion.rotationRate
+            let speed = (rate.x * rate.x + rate.y * rate.y + rate.z * rate.z).squareRoot()
+            self.shakeLog.record(time: motion.timestamp, rate: speed)
+            guard motion.timestamp - self.lastPublished >= self.publishInterval * 0.9 else { return }
+            self.lastPublished = motion.timestamp
             self.update(from: motion)
+            let hold = HoldState(rate: self.shakeLog.recentRate())
+            if hold != self.hold { self.hold = hold }
         }
 
         // A frame the phone lists but cannot actually serve yields no samples and no error.

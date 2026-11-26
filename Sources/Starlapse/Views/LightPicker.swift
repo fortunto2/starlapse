@@ -23,6 +23,11 @@ struct LightPicker: View {
             Text(caption)
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
+            if let advice = model.holdAdvice {
+                Text(advice)
+                    .font(NightTheme.mono(9, weight: .bold))
+                    .foregroundStyle(model.attitude.hold == .steady ? NightTheme.secondary : NightTheme.accent)
+            }
         }
         .onAppear(perform: apply)
         .onChange(of: model.settings.stackMode) { apply() }

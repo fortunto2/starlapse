@@ -38,6 +38,9 @@ struct SegmentPlan: Sendable, Equatable {
     var tone: FrameAccumulator.ToneSettings
     /// Watch for transients and save a clip around each one, instead of building a picture.
     var detector: DetectorSettings?
+    /// One frame's shutter, seconds: what the motion gate judges a frame's blur by. Zero
+    /// turns the gate off (framing, watching).
+    var exposure: Double = 0
 
     /// Live view for composing the shot: every frame replaces the last, nothing is kept.
     static let framing = SegmentPlan(
@@ -85,7 +88,8 @@ struct SegmentPlan: Sendable, Equatable {
             segments: 1,
             stackMode: settings.stackMode,
             tone: tone,
-            detector: nil
+            detector: nil,
+            exposure: settings.frameExposure
         )
     }
 
@@ -101,7 +105,8 @@ struct SegmentPlan: Sendable, Equatable {
             segments: timelapse.frameCount,
             stackMode: settings.stackMode,
             tone: tone,
-            detector: nil
+            detector: nil,
+            exposure: settings.frameExposure
         )
     }
 }

@@ -202,6 +202,20 @@ struct StatusPanels: View {
                 ReadoutRow(label: "Dropped", value: "\(model.progress.framesRejected)")
             }
 
+            if model.activeSettings.frameExposure < model.settings.frameExposure {
+                ReadoutRow(
+                    label: "Frames, in the hand",
+                    value: CaptureViewModel.shutterText(model.activeSettings.frameExposure)
+                )
+            }
+            if model.progress.framesMoved > 0 || model.attitude.hold == .handheld {
+                Text(String(
+                    format: String(localized: "HOLD STILL · %d FRAMES SHAKEN OFF"), model.progress.framesMoved
+                ))
+                .font(NightTheme.mono(10, weight: .bold))
+                .foregroundStyle(NightTheme.accent)
+            }
+
             if model.mode.isTimelapse {
                 ReadoutRow(
                     label: "Video frames",

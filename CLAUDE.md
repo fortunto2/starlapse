@@ -247,6 +247,10 @@ every candidate. `starlapse-stack tone` derives the display defaults. Measured o
 - 4σ clipping (after 8 samples) removes a one-frame satellite at no SNR cost; 3σ cost 8%.
 - Per-frame cosmetic correction (a lone spike 3× above its brightest neighbour) removes
   95–99% of hot pixels with no dark frames. Dark-frame subtraction is a UI step away.
+- **The hand is measured, not guessed** (`Steadiness`, `HoldState`, `ShakeLog`). The shutter
+  press reads the gyroscope: in the hand a still star stack gets shorter frames with the gain
+  raised (`handheldAdapted`), and a frame the phone turned through is dropped
+  (`framesMoved`). Alignment fixes wobble *between* frames; nothing fixes blur *inside* one.
 
 The Metal path mirrors the CPU reference in `StackKit`: `decode_ycbcr`/`decode_bgra` into
 linear `rgba16Float`, accumulate with Welford variance in a second texture, resolve by each

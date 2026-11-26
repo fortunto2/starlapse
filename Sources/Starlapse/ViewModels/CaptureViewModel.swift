@@ -97,6 +97,8 @@ final class CaptureViewModel {
     var autoLight = true
     /// What the running or last session was: a one-frame day photo or not, and its curve.
     var sessionIsDayPhoto = false
+    /// Gyroscope rate when the shutter was pressed: what the session's frame length is cut to.
+    var sessionHoldRate: Double?
     var sessionTone = FrameAccumulator.ToneSettings()
     /// The person's pick from `plan.aimCandidates`; nil lets the plan choose.
     var aimChoice: AimCandidate.Kind?
@@ -238,22 +240,6 @@ final class CaptureViewModel {
         }
     }
 
-    /// What the camera should be doing right now, derived from state rather than pushed at
-    /// transition points. Framing gets short, high-gain frames; a session gets exactly what
-    /// the user dialled in.
-    var activeSettings: CaptureSettings {
-        guard state.isCapturing else { return settings.forFraming(capabilities, metered: framingExposure) }
-        if sessionIsDayPhoto { return dayPhotoSettings }
-        // Watching needs short frames at a usable rate — an exposure long enough for a deep
-        // stack would smear the meteor into the background and give three frames a second.
-        if case .detector(let detector) = mode {
-            var watching = settings
-            watching.frameExposure = detector.frameExposure
-            return watching
-        }
-        return settings
-    }
-
     /// Save every clip the detector caught.
     func clearEvents() {
         ScratchStore.remove(events.map(\.url))
@@ -277,6 +263,7 @@ final class CaptureViewModel {
     }
 
     private func wire(_ stack: StackEngine) {
+        stack.shakeLog = attitude.shakeLog
         stack.onProgress = { [weak self] progress in
             Task { @MainActor in
                 self?.progress = progress
@@ -342,6 +329,7 @@ final class CaptureViewModel {
         // at the still-mode exposure instead of its own, and this line said `settings`
         // directly, which sidestepped the derivation entirely.
         sessionIsDayPhoto = isDayPhoto
+        sessionHoldRate = attitude.shakeLog.recentRate()
         sessionTone = sessionIsDayPhoto ? .day : tone
         state = .capturing
         sessionStartedAt = Date()
@@ -382,8 +370,8 @@ final class CaptureViewModel {
             props: ["mode": mode.analyticsName, "stack": sessionIsDayPhoto ? "day" : settings.stackMode.rawValue]
         )
         let plan: SegmentPlan = switch mode {
-        case .still: .still(sessionIsDayPhoto ? dayPhotoSettings : settings, tone: sessionTone)
-        case .timelapse(let timelapseSettings): .timelapse(settings, timelapse: timelapseSettings, tone: tone)
+        case .still: .still(activeSettings, tone: sessionTone)
+        case .timelapse(let timelapseSettings): .timelapse(activeSettings, timelapse: timelapseSettings, tone: tone)
         case .detector(let detectorSettings): .watching(detectorSettings)
         }
         if sessionIsDayPhoto {

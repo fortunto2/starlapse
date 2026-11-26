@@ -6,34 +6,6 @@ import simd
 import SkyMeter
 import StackKit
 
-/// Progress of a running capture, published to the UI.
-struct StackProgress: Sendable, Equatable {
-    var framesStacked: Int = 0
-    var framesRequested: Int = 0
-    var framesRejected: Int = 0
-    var starsTracked: Int = 0
-    var alignmentResidual: Double = 0
-    /// Output frames written, in time-lapse mode.
-    var segmentsCompleted: Int = 0
-    var segmentsRequested: Int = 0
-    /// Detector mode: transients seen, and clips actually written.
-    var eventsDetected: Int = 0
-    var eventsRecorded: Int = 0
-
-    var fraction: Double {
-        guard framesRequested > 0 else { return 0 }
-        return min(1, Double(framesStacked) / Double(framesRequested))
-    }
-
-    /// Noise improvement so far, in stops — the number that makes stacking feel worth it.
-    var noiseReductionStops: Double {
-        guard framesStacked > 1 else { return 0 }
-        return log2(Double(framesStacked).squareRoot())
-    }
-
-    var isTracking: Bool { starsTracked >= 6 }
-}
-
 /// Runs one `SegmentPlan`: gather frames, resolve them into a picture, repeat.
 ///
 /// Framing, a single deep exposure and a time-lapse are the same loop with different
@@ -47,6 +19,8 @@ final class StackEngine: @unchecked Sendable {
     private let aligner = StarAligner()
     private let transientDetector = TransientDetector()
     private let logger = Logger(subsystem: "co.superduperai.starlapse", category: "stack")
+    /// Gyroscope readings to judge each frame by; nil (or empty, in the Simulator) keeps all.
+    var shakeLog: ShakeLog?
 
     private var plan: SegmentPlan?
     /// How framing frames are developed: linear at night, a day curve in daylight.
@@ -196,6 +170,16 @@ final class StackEngine: @unchecked Sendable {
             reportFocusIfRequested(luminance)
             // And for the overlay's sky lock, which solves a framing frame every few seconds.
             latestLuminance = LumaImage(pixels: luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
+        }
+
+        // Blur inside a frame is the one thing alignment cannot undo: a frame the phone
+        // turned through is dropped before it costs a star detection.
+        if plan.aligns, plan.framesPerSegment > 1, plan.exposure > 0,
+           shakeLog?.moved(frameTime: frame.timestamp, exposure: plan.exposure) == true {
+            progress.framesRejected += 1
+            progress.framesMoved += 1
+            report()
+            return
         }
 
         var transform: simd_float3x3?
