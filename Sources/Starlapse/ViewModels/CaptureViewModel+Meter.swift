@@ -87,26 +87,42 @@ extension CaptureViewModel {
 
     /// Returns whether the exposure changed.
     func meterMoon(_ luma: LumaImage) async -> Bool {
-        let disc = await Task.detached(priority: .userInitiated) {
-            MoonDisc.locate(in: luma.pixels, width: luma.width, height: luma.height)
+        let (disc, brightest) = await Task.detached(priority: .userInitiated) {
+            (MoonDisc.locate(in: luma.pixels, width: luma.width, height: luma.height), Self.brightest(luma.pixels))
         }.value
         guard isMoonMode, state == .aiming else { return false }
         moonDisc = disc
-        guard let disc else { return false }
+        // No disc: meter on the brightest thing, and only upward. The opening guess is for a
+        // bright full Moon; a dimmer one (haze, a crescent, a screen) stayed under the
+        // detector at it, and with nothing found nothing ever changed: a black screen for
+        // good (26 Nov 2026, the Moon on a MacBook screen at 1/1000 s).
+        let reading = disc.map { LightReading(level: $0.peak, clippedFraction: $0.clippedFraction) }
+            ?? LightReading(level: brightest, clippedFraction: 0)
+        if disc == nil, brightest >= ExposureMeter.moonTarget { return false }
 
         let ceiling = max(
             capabilities.minFrameExposure, min(CaptureSettings.longestMoonShutter, capabilities.maxFrameExposure)
         )
+        // Searching never climbs past ISO 800: the Moon at 1/60 s is already blown at 100.
+        let range = capabilities.isoRange
+        let isoLimit = disc == nil ? range.lowerBound...max(range.lowerBound, min(range.upperBound, 800)) : range
         let next = ExposureMeter.next(
             Exposure(shutter: settings.frameExposure, iso: settings.iso),
-            reading: LightReading(level: disc.peak, clippedFraction: disc.clippedFraction),
+            reading: reading,
             target: ExposureMeter.moonTarget,
-            limits: ExposureMeter.Limits(shutter: capabilities.minFrameExposure...ceiling, iso: capabilities.isoRange)
+            limits: ExposureMeter.Limits(shutter: capabilities.minFrameExposure...ceiling, iso: isoLimit)
         )
         guard next.shutter != settings.frameExposure || next.iso != settings.iso else { return false }
         settings.frameExposure = next.shutter
         settings.iso = next.iso
         await settingsChanged()
         return true
+    }
+
+    /// The level a few hundred pixels reach, so one hot pixel does not count as light.
+    nonisolated static func brightest(_ pixels: [Float]) -> Double {
+        let sample = stride(from: 0, to: pixels.count, by: 7).map { pixels[$0] }.sorted()
+        guard !sample.isEmpty else { return 0 }
+        return Double(sample[sample.count - 1 - sample.count / 2000])
     }
 }
