@@ -1,6 +1,6 @@
 # Review outcome: name the session that was looked at and not kept
 
-Status: plan, not implemented (2026-11-26). Bet: product-hypotheses#2.
+Status: implemented 2026-11-26 (next release after 1.2.2), not released. Bet: product-hypotheses#2. `save_failed` also takes `why: empty` (Nothing to save).
 
 ## Why
 

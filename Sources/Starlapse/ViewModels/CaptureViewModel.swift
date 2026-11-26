@@ -112,6 +112,8 @@ final class CaptureViewModel {
     private(set) var reviewVideoURL: URL?
     /// Times the encoder died under the session in review; the clip is joined from parts.
     private(set) var reviewEncoderFailures = 0
+    /// How the open review was settled so far; `nil` when it closes is `discarded`.
+    var reviewResult: ReviewResult?
     /// Time-lapses an earlier run left unfinished, offered once on the capture screen.
     var recoveredClips: [URL] = []
     /// Asked once per launch; "Not now" leaves the clips for the next one.
@@ -451,6 +453,7 @@ final class CaptureViewModel {
     /// Throw it away and go back to composing.
     func dismissReview() async {
         guard state.isReviewing else { return }
+        reportReviewEnded(.discarded)
         // Saved or thrown away, it is decided: the next launch must not offer it back.
         if let url = reviewVideoURL { ScratchStore.remove(url) }
         reviewVideoURL = nil

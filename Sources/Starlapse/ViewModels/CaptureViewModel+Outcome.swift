@@ -7,6 +7,8 @@ import SuperDuperAnalytics
 /// mind. A failure has to be its own event with its outcome, or it cannot be counted.
 extension CaptureViewModel {
 
+    enum ReviewResult { case saved, failed }
+
     enum SessionOutcome: String {
         /// A still or a detector run with something to review.
         case result
@@ -18,10 +20,15 @@ extension CaptureViewModel {
         case noVideo = "no_video"
         /// Found at launch: the previous session never reached review.
         case interrupted
+        /// Second row of a `result`/`video` session: review closed without a save.
+        case discarded
+        /// Second row: Save was tapped and Photos refused or failed. `why` says which.
+        case saveFailed = "save_failed"
     }
 
     /// Called once, as a session enters review.
     func reportSessionFinished() {
+        reviewResult = nil
         let outcome: SessionOutcome
         if mode.isTimelapse {
             if reviewVideoURL != nil {
@@ -41,9 +48,24 @@ extension CaptureViewModel {
                 : String(localized: "The video could not be written. The stacked image is kept instead.")
         }
 
+        track(outcome)
+    }
+
+    /// How the review ended when it did not end in Photos. Not a new session: count sessions
+    /// by the outcomes above and read these as what became of a `result` or `video`.
+    func reportReviewEnded(_ outcome: SessionOutcome, why: String? = nil) {
+        // Saved, or a failed save already reported: the dismiss that follows is not a second row.
+        if outcome == .discarded, reviewResult != nil { return }
+        if outcome == .saveFailed { reviewResult = .failed }
+        track(outcome, why: why)
+    }
+
+    private func track(_ outcome: SessionOutcome, why: String? = nil) {
+        var props = ["mode": mode.analyticsName, "outcome": outcome.rawValue]
+        if let why { props["why"] = why }
         Analytics.track(
             "capture_finished",
-            props: ["mode": mode.analyticsName, "outcome": outcome.rawValue],
+            props: props,
             metrics: [
                 "minutes": (Date().timeIntervalSince(sessionStartedAt) / 60).rounded(),
                 "frames": Double(progress.framesStacked),

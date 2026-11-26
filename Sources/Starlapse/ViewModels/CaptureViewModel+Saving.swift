@@ -18,17 +18,20 @@ extension CaptureViewModel {
             await save(image: rendered)
         } else {
             lastSavedMessage = String(localized: "Nothing to save.")
+            reportReviewEnded(.saveFailed, why: "empty")
         }
     }
 
     func save(image rendered: RenderedImage) async {
         guard await PhotoLibraryWriter.requestAccess() else {
             lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
+            reportReviewEnded(.saveFailed, why: "denied")
             return
         }
         let credited = Watermark.applies(isPro: entitlements.isPro)
         do {
             try await PhotoLibraryWriter.write(credited ? Watermark.stamped(rendered) : rendered)
+            reviewResult = .saved
             lastSavedMessage = String(format: String(localized: "Saved %d frames to Photos."), progress.framesStacked)
             Analytics.track(
                 "capture_saved",
@@ -42,16 +45,19 @@ extension CaptureViewModel {
             Task { await contribute(rendered) }
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
+            reportReviewEnded(.saveFailed, why: "error")
         }
     }
 
     func save(videoAt url: URL) async {
         guard await PhotoLibraryWriter.requestAccess() else {
             lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
+            reportReviewEnded(.saveFailed, why: "denied")
             return
         }
         do {
             try await PhotoLibraryWriter.write(videoAt: url)
+            reviewResult = .saved
             // In Photos now: a kill before the review closes must not offer it back as recovered.
             ScratchStore.remove(url)
             lastSavedMessage = String(
@@ -68,6 +74,7 @@ extension CaptureViewModel {
             await remindersAfterSave(ratingPromptShown: RatingPrompt.saved())
         } catch {
             lastSavedMessage = String(format: String(localized: "Save failed: %@"), error.localizedDescription)
+            reportReviewEnded(.saveFailed, why: "error")
         }
     }
 
@@ -118,12 +125,18 @@ extension CaptureViewModel {
     func saveAllEvents() async {
         guard await PhotoLibraryWriter.requestAccess() else {
             lastSavedMessage = PhotoLibraryWriter.WriteError.accessDenied.localizedDescription
+            reportReviewEnded(.saveFailed, why: "denied")
             return
         }
         let saved = await PhotoLibraryWriter.write(videosAt: events.map(\.url))
         lastSavedMessage = saved == events.count
             ? String(format: String(localized: "Saved %d clips to Photos."), saved)
             : String(format: String(localized: "Saved %d of %d clips."), saved, events.count)
-        if saved > 0 { await remindersAfterSave() }
+        if saved > 0 {
+            reviewResult = .saved
+            await remindersAfterSave()
+        } else if !events.isEmpty {
+            reportReviewEnded(.saveFailed, why: "error")
+        }
     }
 }

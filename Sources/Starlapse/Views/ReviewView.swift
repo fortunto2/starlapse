@@ -14,6 +14,8 @@ struct ReviewView: View {
 
     @Bindable var model: CaptureViewModel
     @State private var player: AVPlayer?
+    /// The curve is closed until asked for: open, it covered half of the picture being judged.
+    @State private var showsDevelop = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,8 +25,7 @@ struct ReviewView: View {
                 eventList
             } else if let url = model.reviewVideoURL {
                 videoPlayer(url: url)
-            } else {
-                Spacer(minLength: 0)
+            } else if showsDevelop {
                 curveControls
             }
 
@@ -51,6 +52,9 @@ struct ReviewView: View {
                 }
             }
             Spacer()
+            if !model.mode.isDetector, model.reviewVideoURL == nil {
+                developToggle
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -196,12 +200,25 @@ struct ReviewView: View {
 
     // MARK: - Curve
 
+    private var developToggle: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.2)) { showsDevelop.toggle() }
+        } label: {
+            Label("DEVELOP", systemImage: showsDevelop ? "chevron.down" : "slider.horizontal.3")
+                .font(NightTheme.mono(11, weight: .bold))
+                .foregroundStyle(showsDevelop ? NightTheme.primary : NightTheme.secondary)
+                .padding(.horizontal, 10)
+                .frame(minHeight: 36)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(NightTheme.dim.opacity(0.5), lineWidth: 1)
+                )
+        }
+        .accessibilityLabel(showsDevelop ? "Hide develop controls" : "Show develop controls")
+    }
+
     private var curveControls: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("DEVELOP")
-                .font(NightTheme.mono(11, weight: .bold))
-                .foregroundStyle(NightTheme.secondary)
-
             ToneControls(tone: $model.reviewTone) {
                 model.reviewToneChanged()
             }

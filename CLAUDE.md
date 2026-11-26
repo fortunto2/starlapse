@@ -229,7 +229,9 @@ frames), starts a new part when the writer fails and joins the parts at the end;
 screen offers them. `capture_saved` now carries `mode` (photo) and `encoder_failures` /
 `recovered` (video), and `capture_finished` reports every session's outcome (`video`,
 `no_video`, `empty`, `result`, and `interrupted` at the launch that rescues files), so the next
-lost night is a count, not an inference. Pinned by `TimelapseRecoveryTests`; without fragments the unfinished
+lost night is a count, not an inference. A review that closes without a save sends a second
+`capture_finished` row, `discarded` or `save_failed{why: denied|error|empty}` (1.2.3,
+`docs/plan/review-outcome.md`): count sessions without those two. Pinned by `TimelapseRecoveryTests`; without fragments the unfinished
 file does not play (measured: the test goes red).
 
 ## Stacking is argued from an emulated sky, not from taste

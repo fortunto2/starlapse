@@ -49,11 +49,12 @@ struct CaptureView: View {
             }
 
             if model.state.isReviewing {
-                // The result fills the screen; the review panel owns the bottom half.
+                // The result fills the screen. The panel is a strip of decisions at the bottom;
+                // the curve opens on request (see `ReviewView.showsDevelop`).
                 VStack {
                     Spacer()
                     ReviewView(model: model)
-                        .frame(maxHeight: model.reviewVideoURL == nil ? 420 : .infinity)
+                        .frame(maxHeight: model.reviewVideoURL == nil ? 420 : .infinity, alignment: .bottom)
                 }
                 .transition(.move(edge: .bottom))
             } else {
