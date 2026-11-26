@@ -22,9 +22,13 @@ struct LivePreview: View {
 struct LiveOverlay: View {
 
     let model: CaptureViewModel
+    /// Where the phone pointed when the shutter went: during a capture the phone stands
+    /// still, and following the aim there only redrew the same markers (about 40% of the
+    /// app's CPU in a time-lapse, measured 26 Nov 2026). `??` keeps the attitude unread.
+    @State private var frozen: CaptureViewModel.OverlayPointing?
 
     var body: some View {
-        let pointing = model.overlayPointing
+        let pointing = frozen ?? model.overlayPointing
         SkyOverlayView(
             plan: model.plan,
             aim: pointing.aim,
@@ -39,6 +43,9 @@ struct LiveOverlay: View {
             isLocked: pointing.isLocked
         )
         .ignoresSafeArea()
+        .onChange(of: model.state.isCapturing, initial: true) { _, capturing in
+            frozen = capturing ? model.overlayPointing : nil
+        }
     }
 }
 
