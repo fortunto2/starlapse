@@ -79,8 +79,12 @@ extension CaptureViewModel {
     /// The plan's pick, unless the person chose otherwise and that choice is still up.
     var aimPoint: SkyDirector.AimPoint? { chosenCandidate?.aim ?? plan?.aim }
 
+    /// In Moon mode the arrow leads to the Moon, whatever was picked for the night.
     var chosenCandidate: AimCandidate? {
         guard let plan else { return nil }
+        if isMoonMode, let moon = plan.aimCandidates.first(where: { $0.kind == .moon }) {
+            return moon
+        }
         if let aimChoice, let chosen = plan.aimCandidates.first(where: { $0.kind == aimChoice }) {
             return chosen
         }

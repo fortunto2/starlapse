@@ -11,6 +11,7 @@ public struct AimCandidate: Sendable, Hashable, Identifiable {
         case milkyWay
         case pole
         case planet(name: String)
+        case moon
     }
 
     public let kind: Kind
@@ -104,7 +105,23 @@ extension SkyDirector {
                 )
             ))
         }
-        for planet in landmarks where planet.isPlanet {
+        // Always listed, even set: Moon mode follows it, and below the horizon the arrow
+        // still says where it is and where it will rise.
+        let moonAltitude = conditions.moonPosition.altitude
+        candidates.append(AimCandidate(
+            kind: .moon,
+            aim: AimPoint(
+                direction: conditions.moonPosition,
+                subject: "Moon",
+                reason: conditions.isMoonUp
+                    ? String(
+                        format: "%@, %.0f%% lit, %.0f° up — Moon mode shoots it",
+                        conditions.moon.phaseName, conditions.moon.illuminatedFraction * 100, moonAltitude
+                    )
+                    : String(format: "%@, %.0f° below the horizon", conditions.moon.phaseName, -moonAltitude)
+            )
+        ))
+        for planet in landmarks where planet.isPlanet && planet.isUp {
             candidates.append(AimCandidate(
                 kind: .planet(name: planet.name),
                 aim: AimPoint(

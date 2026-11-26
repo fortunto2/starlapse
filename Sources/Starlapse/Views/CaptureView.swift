@@ -419,6 +419,7 @@ extension CaptureView {
         case .milkyWay: "cloud.fill"
         case .pole: "circle.dotted"
         case .planet: "circle.fill"
+        case .moon: "moon.fill"
         }
     }
 

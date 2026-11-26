@@ -82,17 +82,23 @@ public enum SkyDirector {
         public let direction: HorizontalCoordinates
         /// Stars carry theirs; planets wander.
         public let constellation: String?
+        /// Next rise and set: drawn below the horizon too, so "when does it come up" has an answer.
+        public let crossings: SkyEvents.Crossings
 
         public init(
             name: String, kind: LandmarkKind, magnitude: Double,
-            direction: HorizontalCoordinates, constellation: String?
+            direction: HorizontalCoordinates, constellation: String?,
+            crossings: SkyEvents.Crossings = .none
         ) {
             self.name = name
             self.kind = kind
             self.magnitude = magnitude
             self.direction = direction
             self.constellation = constellation
+            self.crossings = crossings
         }
+
+        public var isUp: Bool { direction.isAboveHorizon }
 
         public var isPlanet: Bool { kind == .planet }
     }
@@ -109,7 +115,7 @@ public enum SkyDirector {
         public let location: GeographicCoordinates
         public let conditions: Conditions
         public let showers: [ShowerActivity]
-        /// Bright stars and visible planets, positions already resolved.
+        /// Bright stars and naked-eye planets, positions already resolved, below the horizon too.
         public let landmarks: [Landmark]
         public let milkyWayCore: HorizontalCoordinates
         /// The galactic equator as directions, in longitude order from the centre, with the
@@ -124,12 +130,18 @@ public enum SkyDirector {
         /// focus needs a bright point source — a planet is the brightest one available
         /// short of the Moon, and unlike the Moon it never blows out the frame.
         public let focusTarget: Landmark?
+        /// The Sun's place and its next rise and set; the Moon's next rise and set and phases.
+        public let events: SkyEvents.Ahead
+        public var sunPosition: HorizontalCoordinates { events.sunPosition }
+        public var sun: SkyEvents.Crossings { events.sun }
+        public var moon: SkyEvents.Crossings { events.moon }
+        public var moonPhases: SkyEvents.MoonPhases { events.moonPhases }
 
         public var headlineShower: ShowerActivity? { showers.first }
 
         /// Planets currently up and bright enough to see, brightest first.
         public var visiblePlanets: [Landmark] {
-            landmarks.filter(\.isPlanet)
+            landmarks.filter { $0.isPlanet && $0.isUp }
         }
     }
 
@@ -197,7 +209,8 @@ public enum SkyDirector {
                 landmarks: landmarks,
                 conditions: conditions
             ),
-            focusTarget: focusTarget(among: landmarks)
+            focusTarget: focusTarget(among: landmarks),
+            events: SkyEvents.ahead(at: location, from: date)
         )
     }
 
@@ -228,7 +241,12 @@ public enum SkyDirector {
                     kind: .planet,
                     magnitude: planet.magnitude,
                     direction: planet.position.horizontal(at: location, date: date),
-                    constellation: nil
+                    constellation: nil,
+                    // A planet barely moves against the stars in a day: its position now,
+                    // turned by the sky, is good to a minute or two.
+                    crossings: SkyEvents.crossings(after: date, horizon: SkyEvents.Horizon.point) { moment in
+                        planet.position.horizontal(at: location, date: moment).altitude
+                    }
                 )
             }
 
@@ -238,12 +256,14 @@ public enum SkyDirector {
                 kind: .star,
                 magnitude: star.magnitude,
                 direction: star.position.horizontal(at: location, date: date),
-                constellation: star.constellation
+                constellation: star.constellation,
+                crossings: SkyEvents.crossings(after: date, horizon: SkyEvents.Horizon.point) { moment in
+                    star.position.horizontal(at: location, date: moment).altitude
+                }
             )
         }
 
         return (planets + stars)
-            .filter(\.direction.isAboveHorizon)
             .sorted { $0.magnitude < $1.magnitude }
     }
 

@@ -30,6 +30,9 @@ struct StatusPanels: View {
                 Text(plan.conditions.summary.uppercased())
                     .font(NightTheme.mono(11, weight: .bold))
                     .foregroundStyle(NightTheme.primary)
+                Text(SkyEventText.summary(plan))
+                    .font(NightTheme.mono(9, weight: .semibold))
+                    .foregroundStyle(NightTheme.secondary)
 
                 if let shower = plan.headlineShower {
                     if model.showsEvents {

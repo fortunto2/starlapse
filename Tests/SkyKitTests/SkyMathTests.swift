@@ -282,8 +282,10 @@ struct SkyMathTests {
         #expect(kinds.contains(.shower(code: "PER")))
         #expect(kinds.contains(.pole))
         #expect(plan.aimCandidates.contains { $0.aim == plan.aim })
-        // Every candidate is something you can actually point at.
-        #expect(plan.aimCandidates.allSatisfy { $0.aim.direction.isAboveHorizon })
+        // Every candidate is something you can actually point at, except the Moon, which is
+        // listed set or not: Moon mode's arrow follows it either way.
+        #expect(plan.aimCandidates.filter { $0.kind != .moon }.allSatisfy { $0.aim.direction.isAboveHorizon })
+        #expect(kinds.contains(.moon))
         // Only showers are events.
         #expect(plan.aimCandidates.filter(\.isEvent).allSatisfy { if case .shower = $0.kind { true } else { false } })
     }

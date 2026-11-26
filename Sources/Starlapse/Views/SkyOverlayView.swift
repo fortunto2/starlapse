@@ -159,26 +159,49 @@ struct SkyOverlayView: View {
             // Directions were resolved when the plan was built. This body re-runs at
             // display rate, and the only thing that changes between redraws is where the
             // phone points — not where the sky is.
+            // Below the horizon too, faded and with when it rises: "is it coming soon?" was
+            // unanswerable while the set sky was simply not drawn.
             ForEach(plan.landmarks) { landmark in
                 if let point = project(landmark.direction, in: size) {
-                    landmarkMarker(landmark)
-                        .position(point)
+                    landmarkMarker(
+                        landmark,
+                        event: SkyEventText.horizon(
+                            landmark.crossings, altitude: landmark.direction.altitude, now: plan.date
+                        )
+                    )
+                    .opacity(landmark.isUp ? 1 : 0.45)
+                    .position(point)
                 }
             }
 
-            // The Moon, when it is up, is the thing you are trying to keep out of frame.
-            if plan.conditions.isMoonUp,
-               let point = project(plan.conditions.moonPosition, in: size) {
-                VStack(spacing: 2) {
-                    Circle()
-                        .strokeBorder(NightTheme.accent, lineWidth: 2)
-                        .frame(width: 26, height: 26)
-                    Text(String(
+            // The Moon, up or not: the thing to keep out of frame, or Moon mode's subject.
+            if let point = project(plan.conditions.moonPosition, in: size) {
+                BodyMarker(
+                    title: String(
                         format: String(localized: "MOON %d%%"), Int(plan.conditions.moon.illuminatedFraction * 100)
-                    ))
-                        .font(NightTheme.mono(9))
-                        .foregroundStyle(NightTheme.accent)
-                }
+                    ),
+                    lines: [
+                        SkyEventText.horizon(
+                            plan.moon, altitude: plan.conditions.moonPosition.altitude, now: plan.date, always: true
+                        ),
+                        SkyEventText.phase(plan.moonPhases, now: plan.date),
+                    ].compactMap { $0 },
+                    symbol: "moon.fill"
+                )
+                .opacity(plan.conditions.isMoonUp ? 1 : 0.5)
+                .position(point)
+            }
+            if let point = project(plan.sunPosition, in: size) {
+                BodyMarker(
+                    title: String(localized: "SUN"),
+                    lines: [
+                        SkyEventText.horizon(
+                            plan.sun, altitude: plan.sunPosition.altitude, now: plan.date, always: true
+                        ),
+                    ].compactMap { $0 },
+                    symbol: "sun.max.fill"
+                )
+                .opacity(plan.sunPosition.isAboveHorizon ? 1 : 0.5)
                 .position(point)
             }
 
@@ -195,7 +218,7 @@ struct SkyOverlayView: View {
     /// One marker for stars and planets alike — brighter objects get bigger dots, the way
     /// a printed chart plots them. Planets are ringed and carry their magnitude, since
     /// they are the ones you might aim a focus at.
-    private func landmarkMarker(_ landmark: SkyDirector.Landmark) -> some View {
+    private func landmarkMarker(_ landmark: SkyDirector.Landmark, event: String?) -> some View {
         let planet = landmark.isPlanet
         let color = planet ? NightTheme.accent : NightTheme.primary
         let diameter = planet
@@ -224,6 +247,12 @@ struct SkyOverlayView: View {
                 Text(String(format: "mag %.1f", landmark.magnitude))
                     .font(NightTheme.mono(8))
                     .foregroundStyle(color.opacity(0.85))
+                    .skyLegible()
+            }
+            if let event {
+                Text(event)
+                    .font(NightTheme.mono(8, weight: .semibold))
+                    .foregroundStyle(NightTheme.accent)
                     .skyLegible()
             }
         }
