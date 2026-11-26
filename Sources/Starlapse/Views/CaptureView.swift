@@ -195,11 +195,11 @@ struct CaptureView: View {
 
             Spacer()
 
-            if let plan = model.plan, showsOverlay {
+            if showsOverlay {
                 // The focus hint: autofocus is useless against a dark sky, so you set
                 // infinity by hand and confirm it on the brightest point source available.
-                if let focus = plan.focusTarget {
-                    Text(String(format: String(localized: "FOCUS ON %@"), focus.name.uppercased()))
+                if let focus = model.focusTargetName {
+                    Text(String(format: String(localized: "FOCUS ON %@"), focus))
                         .font(NightTheme.mono(10, weight: .semibold))
                         .foregroundStyle(NightTheme.accent)
                         .skyLegible()
@@ -227,13 +227,13 @@ struct CaptureView: View {
 
     private var focusOverlay: some View {
         VStack(spacing: 10) {
-            Text("FOCUSING ON STARS")
+            Text(model.focusingCaption.title)
                 .font(NightTheme.mono(13, weight: .bold))
                 .foregroundStyle(NightTheme.accent)
             ProgressView(value: model.focusProgress)
                 .tint(NightTheme.accent)
                 .frame(width: 180)
-            Text("Stepping the lens and measuring star size.\nHold still — the tripod must not move.")
+            Text(model.focusingCaption.detail)
                 .font(NightTheme.mono(10))
                 .foregroundStyle(NightTheme.dim)
                 .multilineTextAlignment(.center)

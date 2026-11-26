@@ -20,6 +20,25 @@ extension CaptureViewModel {
 
     var isMoonMode: Bool { settings.stackMode == .moon }
 
+    /// What to focus on, for the hint in the top bar. In Moon mode that is the Moon, which
+    /// the night hint skips on purpose: at a star exposure it is a blown-out blob.
+    var focusTargetName: String? {
+        if isMoonMode { return String(localized: "THE MOON") }
+        return plan?.focusTarget?.name.uppercased()
+    }
+
+    // The keys are the existing translated strings, so they cannot be wrapped.
+    // swiftlint:disable line_length
+    /// What the focus sweep says while it runs: stars measure by size, the Moon by its edge.
+    var focusingCaption: (title: String, detail: String) {
+        isMoonMode
+            ? (String(localized: "FOCUSING ON THE MOON"),
+               String(localized: "Stepping the lens and measuring the Moon's edge.\nHold still — the tripod must not move."))
+            : (String(localized: "FOCUSING ON STARS"),
+               String(localized: "Stepping the lens and measuring star size.\nHold still — the tripod must not move."))
+    }
+    // swiftlint:enable line_length
+
     /// The Moon is up and inside the frame, by the compass: the cue to offer Moon mode.
     var moonInFrame: Bool {
         guard !isMoonMode, let conditions = plan?.conditions, conditions.isMoonUp, attitude.hasFullFix

@@ -54,6 +54,8 @@ final class StackEngine: @unchecked Sendable {
 
     /// Star sharpness of the next frame, once requested.
     private var focusContinuation: CheckedContinuation<FocusMetric, Never>?
+    /// The pending focus reading is of the Moon's disc, not of stars.
+    private var focusOnMoon = false
     private let focusEvaluator = FocusEvaluator()
 
     /// A clip was written. Called on the capture queue.
@@ -125,7 +127,7 @@ final class StackEngine: @unchecked Sendable {
     ///
     /// Used by the autofocus sweep: set a lens position, wait for a frame taken at it, read
     /// the star size back. The wait is unavoidable — the sensor has to actually expose one.
-    func measureFocus() async -> FocusMetric {
+    func measureFocus(onMoon: Bool = false) async -> FocusMetric {
         await withCheckedContinuation { continuation in
             queue.run { [weak self] in
                 guard let self else {
@@ -135,6 +137,7 @@ final class StackEngine: @unchecked Sendable {
                 // A second request replaces the first rather than stacking up.
                 focusContinuation?.resume(returning: .none)
                 focusContinuation = continuation
+                focusOnMoon = onMoon
             }
         }
     }
@@ -471,9 +474,10 @@ final class StackEngine: @unchecked Sendable {
     private func reportFocusIfRequested(_ luminance: [Float]) {
         guard let continuation = focusContinuation else { return }
         focusContinuation = nil
-        continuation.resume(returning: focusEvaluator.measure(
-            luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight
-        ))
+        let (width, height) = (accumulator.lumaWidth, accumulator.lumaHeight)
+        continuation.resume(returning: focusOnMoon
+            ? focusEvaluator.measureMoon(luminance, width: width, height: height)
+            : focusEvaluator.measure(luminance, width: width, height: height))
     }
 
     private func report() {

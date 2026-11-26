@@ -72,6 +72,19 @@ public struct FocusEvaluator: Sendable {
         )
     }
 
+    /// Focus on the Moon, which is no point source: at a Moon shutter there are no stars to
+    /// measure, and the disc's size does not change with focus the way a star's does. What
+    /// does change is how crisp its limb and maria are (`MoonDisc.sharpness`). Returned as
+    /// its inverse in `halfFluxDiameter` so the sweep's "lower is sharper" holds unchanged;
+    /// it is a score, not a size in pixels.
+    public func measureMoon(_ buffer: [Float], width: Int, height: Int) -> FocusMetric {
+        guard let disc = MoonDisc.locate(in: buffer, width: width, height: height) else { return .none }
+        let sharpness = disc.sharpness(in: buffer, width: width, height: height)
+        guard sharpness > 0, sharpness.isFinite else { return .none }
+        // One disc is one measurement, but a whole one: usable by the sweep's own rule.
+        return FocusMetric(halfFluxDiameter: 1 / sharpness, sampleCount: 3)
+    }
+
     /// Half-flux diameter of one star: twice the flux-weighted mean distance from its centre.
     ///
     /// The weighted-mean-radius form is the standard estimator — it avoids searching for a

@@ -206,4 +206,27 @@ struct MoonTests {
         )
         #expect(abs(next.light - night.light / 256) < 1e-6)
     }
+
+    // MARK: - Focus
+
+    @Test("Focus on the Moon: the disc's edge finds the lens position")
+    func focusesOnTheDisc() throws {
+        let evaluator = FocusEvaluator()
+
+        // The limb softens with distance from the true focus at 0.62.
+        let sweep = FocusSweep()
+        let truth: Float = 0.62
+        func sample(_ position: Float) -> FocusSweep.Sample {
+            let blur = 0.5 + 40 * Double(abs(position - truth))
+            let frame = Self.frame(edgeBlur: blur)
+            return FocusSweep.Sample(
+                position: position, metric: evaluator.measureMoon(frame, width: Self.width, height: Self.height)
+            )
+        }
+        var samples = sweep.coarsePositions().map(sample)
+        let rough = try #require(sweep.bestPosition(from: samples))
+        samples += sweep.finePositions(around: rough).map(sample)
+        let best = try #require(sweep.bestPosition(from: samples))
+        #expect(abs(best - truth) < 0.03)
+    }
 }

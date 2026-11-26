@@ -36,7 +36,7 @@ extension CaptureViewModel {
             // lens exactly where the user had it rather than guessing.
             settings.focusPosition = startedAt
             try? await captureEngine.apply(activeSettings)
-            focusResult = .noStars
+            focusResult = isMoonMode ? .noMoon : .noStars
             return
         }
 
@@ -50,7 +50,7 @@ extension CaptureViewModel {
         guard let best = sweep.bestPosition(from: samples) else {
             settings.focusPosition = startedAt
             try? await captureEngine.apply(activeSettings)
-            focusResult = .noStars
+            focusResult = isMoonMode ? .noMoon : .noStars
             return
         }
 
@@ -62,7 +62,7 @@ extension CaptureViewModel {
             .min { $0.metric.sharper(than: $1.metric) }?
             .metric.halfFluxDiameter
 
-        focusResult = .found(position: best, starSize: sharpness ?? 0)
+        focusResult = isMoonMode ? .foundMoon(position: best) : .found(position: best, starSize: sharpness ?? 0)
         logger.info("Autofocus settled at \(best, format: .fixed(precision: 3))")
     }
 
@@ -82,8 +82,8 @@ extension CaptureViewModel {
 
         // Discard one frame: the sensor may already have been mid-exposure when the lens
         // moved, and a frame straddling the move measures neither position.
-        _ = await stack.measureFocus()
-        let metric = await stack.measureFocus()
+        _ = await stack.measureFocus(onMoon: isMoonMode)
+        let metric = await stack.measureFocus(onMoon: isMoonMode)
 
         return FocusSweep.Sample(position: position, metric: metric)
     }
@@ -91,6 +91,9 @@ extension CaptureViewModel {
     enum FocusResult: Equatable, Sendable {
         case found(position: Float, starSize: Double)
         case noStars
+        /// Moon mode: focused on the disc's edge, which has no size in pixels to report.
+        case foundMoon(position: Float)
+        case noMoon
 
         var message: String {
             switch self {
@@ -98,6 +101,10 @@ extension CaptureViewModel {
                 String(format: String(localized: "Focused at %.3f — stars %.1f px"), position, size)
             case .noStars:
                 String(localized: "No stars to focus on. Point at open sky, or wait for cloud to pass.")
+            case .foundMoon(let position):
+                String(format: String(localized: "Focused on the Moon at %.3f"), position)
+            case .noMoon:
+                String(localized: "No Moon to focus on. Put the disc in the frame, or wait for cloud to pass.")
             }
         }
     }
