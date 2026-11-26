@@ -93,6 +93,11 @@ final class CaptureViewModel {
     var meterTask: Task<Void, Never>?
     var framingExposure: Exposure?
     var isDaylight = false
+    /// Thermal state, see `CaptureViewModel+Heat.swift`: hot now, the session's peak, and
+    /// whether the session was stopped for it.
+    var isHot = false
+    var sessionHeat = ProcessInfo.ThermalState.nominal
+    var stoppedForHeat = false
     /// Auto is the chosen light preset; mirrored here by `LightPicker`, which owns it.
     var autoLight = true
     /// What the running or last session was: a one-frame day photo or not, and its curve.
@@ -177,7 +182,10 @@ final class CaptureViewModel {
         refreshPlan()
         skyTimer?.invalidate()
         skyTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.refreshPlan() }
+            Task { @MainActor in
+                self?.refreshPlan()
+                self?.checkHeat()
+            }
         }
     }
 
@@ -340,6 +348,8 @@ final class CaptureViewModel {
         // Moon mode switches to the telephoto; a press inside that second waits for it.
         await lensSwitch?.value
         sessionIsDayPhoto = isDayPhoto
+        sessionHeat = ProcessInfo.processInfo.thermalState
+        stoppedForHeat = false
         sessionHoldRate = attitude.shakeLog.recentRate()
         sessionTone = sessionIsDayPhoto ? .day : tone
         state = .capturing
@@ -442,6 +452,17 @@ final class CaptureViewModel {
         contributeMeteors()
     }
 
+    private func restoreScreen() {
+        attitude.setCadence(.interactive)
+        UIApplication.shared.isIdleTimerDisabled = false
+        UIScreen.main.brightness = previousBrightness
+    }
+
+}
+
+// Out of the type body to keep it inside the length limit.
+extension CaptureViewModel {
+
     /// Re-develop the result with the review curve. Free and lossless — same render the
     /// session would have produced with these settings.
     func reviewToneChanged() {
@@ -466,17 +487,6 @@ final class CaptureViewModel {
         }
         try? await captureEngine?.apply(activeSettings)
     }
-
-    private func restoreScreen() {
-        attitude.setCadence(.interactive)
-        UIApplication.shared.isIdleTimerDisabled = false
-        UIScreen.main.brightness = previousBrightness
-    }
-
-}
-
-// Out of the type body to keep it inside the length limit.
-extension CaptureViewModel {
 
     var detectorSettings: DetectorSettings {
         get {

@@ -8005,6 +8005,64 @@
         }
       }
     },
+    "PHONE IS HOT · SCREEN UPDATES SLOWED": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الهاتف ساخن · تحديث الشاشة أبطأ"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IPHONE IST HEISS · BILD SELTENER AKTUALISIERT"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TELÉFONO CALIENTE · PANTALLA MÁS LENTA"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TÉLÉPHONE CHAUD · ÉCRAN RAFRAÎCHI MOINS SOUVENT"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ़ोन गर्म है · स्क्रीन धीमे अपडेट"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TELEFONO CALDO · SCHERMO AGGIORNATO MENO SPESSO"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本体が高温 · 画面の更新を減らしています"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TELEFON SICAK · EKRAN DAHA SEYREK GÜNCELLENİYOR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机发热 · 已降低画面刷新"
+          }
+        }
+      }
+    },
     "PRO": {
       "localizations": {
         "ar": {
@@ -9161,6 +9219,64 @@
           "stringUnit": {
             "state": "translated",
             "value": "STARLAPSE PRO"
+          }
+        }
+      }
+    },
+    "STOPPED: THE PHONE GOT TOO HOT": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "توقّف: ارتفعت حرارة الهاتف كثيرًا"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GESTOPPT: DAS IPHONE WURDE ZU HEISS"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DETENIDO: EL TELÉFONO SE CALENTÓ DEMASIADO"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ARRÊTÉ : LE TÉLÉPHONE A TROP CHAUFFÉ"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रुका: फ़ोन बहुत गर्म हो गया"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FERMATO: IL TELEFONO SI È SCALDATO TROPPO"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止：iPhoneが熱くなりすぎました"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DURDURULDU: TELEFON FAZLA ISINDI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止：手机过热"
           }
         }
       }

@@ -61,7 +61,8 @@ extension CaptureViewModel {
     }
 
     private func track(_ outcome: SessionOutcome, why: String? = nil) {
-        var props = ["mode": mode.analyticsName, "outcome": outcome.rawValue]
+        var props = ["mode": mode.analyticsName, "outcome": outcome.rawValue, "heat": sessionHeatName]
+        if stoppedForHeat { props["stopped"] = "hot" }
         if let why { props["why"] = why }
         Analytics.track(
             "capture_finished",

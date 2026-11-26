@@ -13,7 +13,7 @@ import StackKit
 /// public methods that can be called from elsewhere hop onto it themselves.
 final class StackEngine: @unchecked Sendable {
 
-    private let accumulator: FrameAccumulator
+    let accumulator: FrameAccumulator
     private let queue: CaptureQueue
     private let detector = StarDetector()
     private let aligner = StarAligner()
@@ -32,7 +32,7 @@ final class StackEngine: @unchecked Sendable {
     /// holds the summed light, so changing the curve re-renders from the original data
     /// rather than pushing pixels around in an already-developed image.
     private var completed: SegmentPlan?
-    private var latestLuminance: LumaImage?
+    var latestLuminance: LumaImage?
     /// Frames gathered into the segment currently being built.
     private var framesInSegment = 0
 
@@ -46,14 +46,17 @@ final class StackEngine: @unchecked Sendable {
     /// Moon mode's registration: the reference disc and the judge of steady frames.
     private var moonTracker = MoonTracker()
 
-    private var progress = StackProgress()
+    var progress = StackProgress()
 
     /// Show one live frame in this many, while watching. Four frames a second is for the
     /// detector's benefit, not the viewer's.
     static let watchPreviewInterval = 4
     /// A Moon session that drops this many times its frame count ends with what it kept.
     static let moonAttempts = 10
-    private var previewCountdown = 0
+    var previewCountdown = 0
+    /// Redraws for the screen, paced apart from the frames themselves (`RenderPace`).
+    private var framingPace = RenderPace(gap: RenderPace.framing)
+    private var previewPace = RenderPace(gap: RenderPace.preview)
     private var watcher: SkyWatcher?
 
     /// Star sharpness of the next frame, once requested.
@@ -172,6 +175,9 @@ final class StackEngine: @unchecked Sendable {
             return
         }
 
+        // Composing needs a live view, not every frame the sensor makes.
+        if plan.isFraming, !framingPace.admit(frame.timestamp) { return }
+
         accumulator.prepare(
             width: CVPixelBufferGetWidth(frame.pixelBuffer),
             height: CVPixelBufferGetHeight(frame.pixelBuffer)
@@ -237,58 +243,13 @@ final class StackEngine: @unchecked Sendable {
 
         if framesInSegment >= plan.framesPerSegment {
             completeSegment(plan)
-        } else if let rendered = accumulator.resolve(tone: plan.tone, mode: plan.stackMode) {
+        } else if previewPace.admit(frame.timestamp),
+                  let rendered = accumulator.resolve(tone: plan.tone, mode: plan.stackMode) {
             // Push the growing stack to the screen. Watching stars precipitate out of the
             // noise is how you know focus and framing are right, minutes before the end.
             publish(rendered)
         }
 
-        report()
-    }
-
-    // MARK: - Detector
-
-    /// Hand the frame to the watcher, and keep the live view alive at a modest rate.
-    private func watch(_ frame: SensorFrame, watcher: SkyWatcher, plan: SegmentPlan) {
-        accumulator.prepare(
-            width: CVPixelBufferGetWidth(frame.pixelBuffer),
-            height: CVPixelBufferGetHeight(frame.pixelBuffer)
-        )
-
-        // The live view, but not every frame. Watching runs for hours at four frames a
-        // second with the screen dimmed and nobody looking; refreshing it each time wrote
-        // and read back the full float32 accumulator — around 500 MB of GPU traffic per
-        // frame — to redraw a picture of an empty sky.
-        previewCountdown -= 1
-        if previewCountdown <= 0 {
-            previewCountdown = Self.watchPreviewInterval
-            accumulator.add(frame.pixelBuffer, transform: nil, mode: plan.stackMode, replacingContents: true)
-            if let rendered = accumulator.resolve(tone: plan.tone, mode: plan.stackMode) {
-                publish(rendered)
-            }
-        }
-
-        guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer) else { return }
-        reportFocusIfRequested(luminance)
-        // Kept for the plate solve that orients the detector's meteors. An array is shared
-        // until written, so this is a reference, not a copy.
-        latestLuminance = LumaImage(pixels: luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
-
-        switch watcher.consume(
-            frame,
-            luminance: luminance,
-            width: accumulator.lumaWidth,
-            height: accumulator.lumaHeight
-        ) {
-        case .waiting:
-            break
-        case .discarded:
-            progress.eventsDetected += 1
-        case .recorded(let url, let event):
-            progress.eventsDetected += 1
-            progress.eventsRecorded = watcher.eventsRecorded
-            onEventRecorded?(url, event, LumaImage.Size(width: accumulator.lumaWidth, height: accumulator.lumaHeight))
-        }
         report()
     }
 
@@ -457,12 +418,21 @@ final class StackEngine: @unchecked Sendable {
         }
     }
 
+    /// A hot phone redraws a quarter as often; the stack keeps every frame.
+    func setHot(_ hot: Bool) {
+        let factor = hot ? RenderPace.hotFactor : 1
+        queue.run { [weak self] in
+            self?.framingPace.gap = RenderPace.framing * factor
+            self?.previewPace.gap = RenderPace.preview * factor
+        }
+    }
+
     /// Leave review and go back to composing the next shot.
     func resumeFraming() { begin(.framing) }
 
     /// Hand a rendered texture to the screen. Ownership goes with it: whoever displays
     /// the frame calls `release()` when the GPU has finished reading it.
-    private func publish(_ texture: MTLTexture) {
+    func publish(_ texture: MTLTexture) {
         guard let onPreviewReady else {
             accumulator.displayPool.release(texture)
             return
@@ -470,7 +440,7 @@ final class StackEngine: @unchecked Sendable {
         onPreviewReady(PreviewFrame(texture: texture, pool: accumulator.displayPool))
     }
 
-    private func reportFocusIfRequested(_ luminance: [Float]) {
+    func reportFocusIfRequested(_ luminance: [Float]) {
         guard let continuation = focusContinuation else { return }
         focusContinuation = nil
         let (width, height) = (accumulator.lumaWidth, accumulator.lumaHeight)
@@ -479,7 +449,7 @@ final class StackEngine: @unchecked Sendable {
             : focusEvaluator.measure(luminance, width: width, height: height))
     }
 
-    private func report() {
+    func report() {
         onProgress?(progress)
     }
 }

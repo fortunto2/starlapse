@@ -95,6 +95,7 @@ struct ReviewView: View {
     }
 
     private var headline: String {
+        if model.stoppedForHeat { return String(localized: "STOPPED: THE PHONE GOT TOO HOT") }
         if model.mode.isDetector { return String(localized: "WATCH ENDED") }
         if model.isMoonMode, model.progress.framesStacked == 0 { return String(localized: "NO MOON FOUND") }
         return model.reviewVideoURL == nil

@@ -167,6 +167,11 @@ struct StatusPanels: View {
                 )
             }
 
+            if model.isHot {
+                Text("PHONE IS HOT · SCREEN UPDATES SLOWED")
+                    .font(NightTheme.mono(10, weight: .bold))
+                    .foregroundStyle(NightTheme.accent)
+            }
             Text("KEEP THE APP OPEN — iOS STOPS THE CAMERA IN THE BACKGROUND")
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
@@ -236,6 +241,11 @@ struct StatusPanels: View {
                 )
             }
 
+            if model.isHot {
+                Text("PHONE IS HOT · SCREEN UPDATES SLOWED")
+                    .font(NightTheme.mono(10, weight: .bold))
+                    .foregroundStyle(NightTheme.accent)
+            }
             Text("KEEP THE APP OPEN — iOS STOPS THE CAMERA IN THE BACKGROUND")
                 .font(NightTheme.mono(9))
                 .foregroundStyle(NightTheme.dim)
