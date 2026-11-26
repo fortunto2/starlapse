@@ -86,4 +86,39 @@ struct HandheldAlignmentTests {
         #expect(abs((step?.transform.translationX ?? 0) + 41) < 2)
         #expect(abs((step?.transform.translationY ?? 0) - 27) < 2)
     }
+
+    /// A daylight test, 26 Nov 2026: "the frames rotate a lot", from a hand that rolled a
+    /// fraction of a degree. A blown highlight read as a cluster of "stars" (60 of 60 in a
+    /// 15 px patch of a real photo, `starlapse-stack align`), and a cluster pins the shift
+    /// while leaving the rotation free: 8–14° solved for a 0.3° roll.
+    @Test("A blown highlight is not a cluster of stars, and does not turn the stack")
+    func blownHighlightDoesNotTurnTheStack() throws {
+        let width = 320, height = 240
+        let stars = StackingTests.starField(count: 10, width: width, height: height, seed: 5)
+        func render(shiftX: Double, shiftY: Double) -> [Float] {
+            let moved = stars.map {
+                StackingTests.SyntheticStar(x: $0.x + shiftX, y: $0.y + shiftY, brightness: $0.brightness)
+            }
+            var pixels = StackingTests.renderField(stars: moved, width: width, height: height)
+            // A lamp or a sunlit window: bright, wide, clipped in the middle, with a falloff.
+            for y in 0..<height {
+                for x in 0..<width {
+                    let distance = hypot(Double(x) - 250 - shiftX, Double(y) - 60 - shiftY)
+                    let glow = Float(max(0, min(1, 1.6 * (1 - distance / 16))))
+                    pixels[y * width + x] = min(1, pixels[y * width + x] + glow)
+                }
+            }
+            return pixels
+        }
+        let detector = StarDetector()
+        let reference = detector.detect(in: render(shiftX: 0, shiftY: 0), width: width, height: height)
+        let inPatch = reference.filter { hypot($0.x - 250, $0.y - 60) < 16 }
+        #expect(inPatch.count <= 1)
+
+        let moving = detector.detect(in: render(shiftX: 9, shiftY: -6), width: width, height: height)
+        let step = try #require(StarAligner().align(moving: moving, reference: reference))
+        #expect(abs(step.transform.rotation) * 180 / .pi < 0.2)
+        #expect(abs(step.transform.translationX + 9) < 1)
+        #expect(abs(step.transform.translationY - 6) < 1)
+    }
 }

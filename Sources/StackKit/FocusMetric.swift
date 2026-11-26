@@ -38,7 +38,7 @@ public struct FocusEvaluator: Sendable {
     /// Box half-width around each star, in pixels. Wide enough to contain a defocused disc.
     private let window: Int
 
-    public init(detector: StarDetector = StarDetector(maxStars: 25), window: Int = 9) {
+    public init(detector: StarDetector = StarDetector(maxStars: 25, rejectsExtended: false), window: Int = 9) {
         self.detector = detector
         self.window = window
     }

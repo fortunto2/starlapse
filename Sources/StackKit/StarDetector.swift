@@ -39,11 +39,18 @@ public struct StarDetector: Sendable {
     /// Minimum fraction of a peak's brightness that must appear in its neighbours.
     /// A hot pixel scores near zero here; a focused star scores well above 0.3.
     public var minimumSpread: Double
+    /// Drop lights wider than a star (`isExtended`). On for alignment, where a blown patch
+    /// pins the shift and frees the rotation; off for focus, whose stars are wide on purpose
+    /// halfway through a sweep.
+    public var rejectsExtended: Bool
 
-    public init(threshold: Double = 5.0, maxStars: Int = 60, minimumSpread: Double = 0.25) {
+    public init(
+        threshold: Double = 5.0, maxStars: Int = 60, minimumSpread: Double = 0.25, rejectsExtended: Bool = true
+    ) {
         self.threshold = threshold
         self.maxStars = maxStars
         self.minimumSpread = minimumSpread
+        self.rejectsExtended = rejectsExtended
     }
 
     public func detect(in buffer: [Float], width: Int, height: Int) -> [StarPoint] {
@@ -58,7 +65,10 @@ public struct StarDetector: Sendable {
             for x in 2..<(width - 2) {
                 let value = Double(buffer[y * width + x])
                 guard value > cutoff else { continue }
-                guard Self.isLocalMaximum(buffer, x: x, y: y, width: width, value: value) else { continue }
+                guard Self.isLocalMaximum(buffer, x: x, y: y, width: width, value: value),
+                      !(rejectsExtended
+                        && Self.isExtended(buffer, x: x, y: y, width: width, peak: value - background))
+                else { continue }
 
                 let peak = value - background
                 let neighbourhood = Self.neighbourhoodFlux(
@@ -107,10 +117,30 @@ public struct StarDetector: Sendable {
         return (median, noise)
     }
 
+    /// A peak, and on a plateau only its first pixel in reading order. A blown highlight is
+    /// a flat run of equal values, and "nothing brighter around" made every pixel of it a
+    /// star: 60 of 60 in one 15 px patch of a daytime frame, from which no rotation can be
+    /// read (`starlapse-stack align`).
     static func isLocalMaximum(_ buffer: [Float], x: Int, y: Int, width: Int, value: Double) -> Bool {
         for dy in -1...1 {
             for dx in -1...1 where dx != 0 || dy != 0 {
-                if Double(buffer[(y + dy) * width + (x + dx)]) > value { return false }
+                let neighbour = Double(buffer[(y + dy) * width + (x + dx)])
+                let earlier = dy < 0 || (dy == 0 && dx < 0)
+                if neighbour > value || (earlier && neighbour == value) { return false }
+            }
+        }
+        return true
+    }
+
+    /// A light wider than a star: every pixel on the edge of the 5×5 box still holds most of
+    /// the peak. The Moon, a lamp, a sunlit window. Their centroids do not repeat frame to
+    /// frame, and a cluster of them pins the shift while leaving the rotation free.
+    static func isExtended(_ buffer: [Float], x: Int, y: Int, width: Int, peak: Double) -> Bool {
+        guard peak > 0 else { return false }
+        let floor = Double(buffer[y * width + x]) - 0.4 * peak
+        for dy in -2...2 {
+            for dx in -2...2 where abs(dx) == 2 || abs(dy) == 2 {
+                if Double(buffer[(y + dy) * width + (x + dx)]) < floor { return false }
             }
         }
         return true

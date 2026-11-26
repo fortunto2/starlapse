@@ -59,6 +59,21 @@ if command == "screen" {
     exit(failed == 0 ? 0 : 1)
 }
 
+if command == "align" {
+    // A daytime photo shaken like a hand, aligned like a stack: is the solved roll the true one?
+    guard let path = arguments.dropFirst().first(where: { !$0.hasPrefix("--") }),
+          let luma = PhotoLuma.load(path, maxSide: Int(value("--side", in: arguments) ?? "") ?? 1008) else {
+        print("usage: starlapse-stack align <photo> [--frames N] [--shake PX] [--roll DEG] [--side PX] [-v]"); exit(2)
+    }
+    let outcome = AlignProbe.run(
+        luma, frames: Int(value("--frames", in: arguments) ?? "") ?? 40,
+        shake: Double(value("--shake", in: arguments) ?? "") ?? 25,
+        roll: Double(value("--roll", in: arguments) ?? "") ?? 0.3,
+        verbose: arguments.contains("-v")
+    )
+    exit(outcome.worstCornerError < 2 ? 0 : 1)
+}
+
 if command == "detect" {
     // Stars and background of real photos, e.g. dataset contributions: is this a night sky?
     for path in arguments.dropFirst() {
