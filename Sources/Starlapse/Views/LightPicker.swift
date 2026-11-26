@@ -42,7 +42,9 @@ struct LightPicker: View {
 
     private var caption: String {
         if model.isDayPhoto {
-            return String(localized: "Auto: daylight, so one photo")
+            return model.autoLight
+                ? String(localized: "Auto: daylight, so one photo")
+                : String(localized: "Daylight, so one photo")
         }
         let total = LightPreset.spoken(model.settings.totalLightSeconds)
         return preset == .auto

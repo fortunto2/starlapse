@@ -20,10 +20,12 @@ extension CaptureViewModel {
         .seconds(max(0.3, 3 * activeSettings.frameExposure))
     }
 
-    /// Auto on the Exposure mode in daylight: one frame at the metered exposure, developed
-    /// like a photograph rather than stacked for minutes.
+    /// Daylight on the Exposure mode: one frame at the metered exposure, developed like a
+    /// photograph rather than stacked for minutes. Whatever the light row says: a manual
+    /// minute in daylight stacked and searched the scene for stars, and a blown window read
+    /// as sixty of them turned the stack (26 Nov 2026). There is nothing to collect by day.
     var isDayPhoto: Bool {
-        guard isDaylight, autoLight, !isMoonMode, case .still = mode else { return false }
+        guard isDaylight, !isMoonMode, case .still = mode else { return false }
         return true
     }
 

@@ -3597,6 +3597,64 @@
         }
       }
     },
+    "Daylight, so one photo": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النهار، لذا صورة واحدة"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tageslicht, also ein Foto"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es de día, así que una foto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il fait jour, donc une photo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दिन की रोशनी, इसलिए एक फ़ोटो"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È giorno, quindi una foto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昼間なので写真1枚"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gündüz, tek fotoğraf"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "白天，拍一张照片"
+          }
+        }
+      }
+    },
     "Delete": {
       "localizations": {
         "ar": {
