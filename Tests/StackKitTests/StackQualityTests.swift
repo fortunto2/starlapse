@@ -122,3 +122,15 @@ struct StackQualityTests {
         #expect(abs(ten.faintStarSNR - eight.faintStarSNR) / eight.faintStarSNR < 0.02)
     }
 }
+
+@Suite("Camera silence")
+struct CameraSilenceTests {
+    @Test("A frame with one level everywhere is flat; a noisy dark frame is not")
+    func flatOnlyWhenNoSensorMadeIt() {
+        #expect(CameraSilence.isFlat([Float](repeating: 16.0 / 255, count: 1000)))
+        var noise = [Float](repeating: 0.01, count: 1000)
+        noise[500] = 0.0102
+        #expect(!CameraSilence.isFlat(noise))
+        #expect(!CameraSilence.isFlat([]))
+    }
+}

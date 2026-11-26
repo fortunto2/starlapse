@@ -26,6 +26,11 @@ struct StatusPanels: View {
 
     var conditionsPanel: some View {
         VStack(alignment: .leading, spacing: 6) {
+            if model.cameraSilent {
+                Text("THE CAMERA IS SENDING EMPTY FRAMES · RESTART THE iPHONE")
+                    .font(NightTheme.mono(11, weight: .bold))
+                    .foregroundStyle(NightTheme.accent)
+            }
             if let plan = model.plan {
                 Text(plan.conditions.summary.uppercased())
                     .font(NightTheme.mono(11, weight: .bold))

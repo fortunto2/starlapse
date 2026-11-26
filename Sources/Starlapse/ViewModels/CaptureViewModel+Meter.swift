@@ -27,6 +27,13 @@ extension CaptureViewModel {
         return true
     }
 
+    /// The camera is sending frames no sensor made, at a gain where that cannot be a dark
+    /// scene: the phone needs a restart, and the screen should say so rather than look broken.
+    var cameraSilent: Bool {
+        state == .aiming && progress.framesFlat >= CameraSilence.framesBeforeWarning
+            && activeSettings.iso >= CameraSilence.minimumISO
+    }
+
     /// The settings a day photo is shot with: the framing meter's exposure, one frame.
     var dayPhotoSettings: CaptureSettings {
         var day = settings

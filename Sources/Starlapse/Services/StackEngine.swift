@@ -175,9 +175,9 @@ final class StackEngine: @unchecked Sendable {
             height: CVPixelBufferGetHeight(frame.pixelBuffer)
         )
 
-        // Framing frames are what the focus sweep measures — a session should never be
-        // interrupted to answer one.
+        // Framing frames feed the focus sweep: a session is never interrupted to answer one.
         if plan.isFraming, let luminance = accumulator.readLuminance(from: frame.pixelBuffer) {
+            progress.framesFlat = CameraSilence.isFlat(luminance) ? progress.framesFlat + 1 : 0
             reportFocusIfRequested(luminance)
             // And for the overlay's sky lock, which solves a framing frame every few seconds.
             latestLuminance = LumaImage(pixels: luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)

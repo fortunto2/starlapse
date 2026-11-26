@@ -10,6 +10,8 @@ struct StackProgress: Sendable, Equatable {
     /// Moon mode: frames in a row with no disc in them. Nothing else says why the count
     /// stands at zero while the session runs.
     var framesWithoutMoon: Int = 0
+    /// Framing frames in a row with every pixel at one level: see `CameraSilence`.
+    var framesFlat: Int = 0
     var starsTracked: Int = 0
     var alignmentResidual: Double = 0
     /// Output frames written, in time-lapse mode.
