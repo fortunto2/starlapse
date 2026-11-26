@@ -290,6 +290,10 @@ The domain is separated from the platform precisely so it can be tested without 
 - **Alignment** is tested against synthetic star fields rotated by a known angle, because
   a subtly misaligned stack just looks like a slightly soft photo and you find out in a
   field at 2am.
+- **Align every frame to the reference, never to the previous frame.** Chained steps
+  compound their error into a rotation of the whole stack ("the layers rotate in the hand",
+  26 Nov 2026), and a hand wobbles tens of pixels, past the 12 px match radius, so
+  `StarAligner` votes a shift first. `HandheldAlignmentTests` goes red without the vote.
 - Never write a raw `timeIntervalSince1970` constant in a test. Use `Self.utc(y, m, d, h)`.
   The first draft had four such constants and three pointed at the wrong day.
 

@@ -64,10 +64,8 @@ final class StackEngine: @unchecked Sendable {
 
     /// Stars from the frame everything else is registered onto.
     private var referenceStars: [StarPoint] = []
-    /// Stars from the previous frame — the aligner steps frame to frame, because between
-    /// two consecutive frames the sky has barely moved and matching is trivial.
-    private var previousStars: [StarPoint] = []
-    /// Transform from the current frame back to the reference frame.
+    /// Transform from the last aligned frame back to the reference frame: the next frame's
+    /// starting guess.
     private var accumulatedTransform = SimilarityTransform.identity
     /// Moon mode's registration: the reference disc and the judge of steady frames.
     private var moonTracker = MoonTracker()
@@ -171,7 +169,6 @@ final class StackEngine: @unchecked Sendable {
     /// so a new piece of tracking state only has to be cleared in one place.
     private func resetAlignment() {
         referenceStars = []
-        previousStars = []
         accumulatedTransform = .identity
         moonTracker = MoonTracker()
     }
@@ -328,7 +325,6 @@ final class StackEngine: @unchecked Sendable {
         case .reference:
             // First frame with stars defines the reference frame; nothing to solve.
             referenceStars = stars
-            previousStars = stars
             accumulatedTransform = .identity
             progress.alignmentResidual = 0
             return matrix_identity_float3x3
@@ -336,16 +332,18 @@ final class StackEngine: @unchecked Sendable {
             break
         }
 
+        // Straight onto the reference, from where the last frame landed. Chaining frame to
+        // frame let each step's error compound: on an emulated handheld sky the corners of a
+        // 60-frame stack drifted 4–9 px (quarter-res), the edges of the stack visibly rotated.
         guard let step = aligner.align(
             moving: stars,
-            reference: previousStars,
-            initialGuess: .identity
+            reference: referenceStars,
+            initialGuess: accumulatedTransform
         ), step.isTrustworthy else {
             return nil
         }
 
-        accumulatedTransform = step.transform.concatenated(with: accumulatedTransform)
-        previousStars = stars
+        accumulatedTransform = step.transform
         progress.alignmentResidual = step.residual
 
         // Star coordinates come from the downsampled luma buffer; the shader samples the

@@ -73,11 +73,12 @@ public struct SimilarityTransform: Sendable, Hashable {
 
 /// Registers one frame's stars onto another's.
 ///
-/// Deliberately an ICP-style loop rather than triangle-pattern matching. Between
-/// consecutive frames the sky moves by a hair — it turns 15 arcseconds per second, which
-/// over a one-second frame is a couple of pixels — so nearest-neighbour matching from a
-/// good starting guess converges immediately and never needs to solve the hard global
-/// problem. The accumulated transform carries the guess forward across the whole session.
+/// ICP-style: nearest-neighbour pairs from a starting guess, solved in closed form, with a
+/// radius that shrinks each round. On a tripod the sky moves a couple of pixels a second and
+/// the guess alone converges. In the hand it does not: a wobble of tens of pixels puts the
+/// wrong star nearest, so a vote over star-to-star offsets supplies the guess first.
+/// Callers align every frame to one reference frame, never to the previous one — chained
+/// steps compound their error into a rotation of the whole stack.
 public struct StarAligner: Sendable {
 
     /// How far apart two stars may be and still be considered the same star, in pixels.
@@ -85,25 +86,37 @@ public struct StarAligner: Sendable {
     /// Fewest matched pairs that can produce a transform worth trusting.
     public var minimumMatches: Int
     public var iterations: Int
+    /// The radius a pair is judged at once the solution has converged.
+    public var inlierRadius: Double
 
-    public init(matchRadius: Double = 12.0, minimumMatches: Int = 6, iterations: Int = 3) {
+    public init(matchRadius: Double = 12.0, minimumMatches: Int = 6, iterations: Int = 4, inlierRadius: Double = 3.0) {
         self.matchRadius = matchRadius
         self.minimumMatches = minimumMatches
         self.iterations = iterations
+        self.inlierRadius = inlierRadius
     }
 
     public struct Result: Sendable {
         public let transform: SimilarityTransform
         public let matchCount: Int
-        /// Root-mean-square residual in pixels. Above a pixel or two the frame is probably
-        /// trailed by wind or a bumped tripod and is better dropped than stacked.
+        /// Root-mean-square residual in pixels over the pairs matched at the tightest radius.
+        /// Above a pixel or two the frame is probably trailed by wind or a bumped tripod.
         public let residual: Double
+        /// Matched pairs as a share of the smaller star list. Random coincidences inside a
+        /// 3-pixel radius stay a few per cent even in a dense field; a real lock is most of it.
+        public let inlierShare: Double
 
-        public var isTrustworthy: Bool { matchCount >= 6 && residual < 3.0 }
+        public var isTrustworthy: Bool { matchCount >= 6 && residual < 3.0 && inlierShare >= 0.25 }
     }
 
     /// Solve for the transform carrying `moving` onto `reference`.
-    /// `initialGuess` should be the previous frame's answer; the sky's motion is smooth.
+    ///
+    /// `initialGuess` is where the frame was last seen. A hand does not drift smoothly, it
+    /// wobbles by tens of pixels between frames, so when the guess leaves too few stars inside
+    /// the match radius, a vote over star-to-star offsets finds the shift first. The radius
+    /// then halves each iteration down to `inlierRadius`: a wide radius to converge from, a
+    /// tight one to judge with, so a stray noise "star" near a real one neither pulls the
+    /// solution nor inflates the residual.
     public func align(
         moving: [StarPoint],
         reference: [StarPoint],
@@ -112,28 +125,75 @@ public struct StarAligner: Sendable {
         guard moving.count >= minimumMatches, reference.count >= minimumMatches else { return nil }
 
         var transform = initialGuess
+        let needed = max(minimumMatches, min(moving.count, reference.count) / 3)
+        let locked = correspondences(moving: moving, reference: reference, transform: transform, radius: inlierRadius)
+        if locked.count < needed,
+           let voted = Self.votedShift(moving: moving, reference: reference, guess: transform) {
+            transform = voted
+        }
+
         var lastPairs: [(StarPoint, StarPoint)] = []
-
+        var radius = matchRadius
         for _ in 0..<iterations {
-            let pairs = correspondences(moving: moving, reference: reference, transform: transform)
-            guard pairs.count >= minimumMatches else { break }
-
-            guard let solved = Self.solve(pairs: pairs) else { break }
+            let pairs = correspondences(moving: moving, reference: reference, transform: transform, radius: radius)
+            guard pairs.count >= minimumMatches, let solved = Self.solve(pairs: pairs) else { break }
             transform = solved
             lastPairs = pairs
+            radius = max(inlierRadius, radius / 2)
         }
+        // Judge at the tight radius whatever the iteration count left the radius at.
+        let judged = correspondences(moving: moving, reference: reference, transform: transform, radius: inlierRadius)
+        if judged.count >= minimumMatches { lastPairs = judged }
 
         guard lastPairs.count >= minimumMatches else { return nil }
 
         let residual = Self.residual(pairs: lastPairs, transform: transform)
-        return Result(transform: transform, matchCount: lastPairs.count, residual: residual)
+        let share = Double(lastPairs.count) / Double(min(moving.count, reference.count))
+        return Result(transform: transform, matchCount: lastPairs.count, residual: residual, inlierShare: share)
+    }
+
+    /// The translation most star pairs agree on, on top of `guess`. Brightest stars only:
+    /// they are the ones both frames detect, and the vote is quadratic in the count.
+    static func votedShift(
+        moving: [StarPoint],
+        reference: [StarPoint],
+        guess: SimilarityTransform,
+        brightest: Int = 40,
+        bin: Double = 2
+    ) -> SimilarityTransform? {
+        let movers = moving.sorted { $0.flux > $1.flux }.prefix(brightest).map { guess.apply(to: $0) }
+        let targets = reference.sorted { $0.flux > $1.flux }.prefix(brightest)
+        var votes: [SIMD2<Int32>: Int] = [:]
+        for mover in movers {
+            for target in targets {
+                let key = SIMD2(
+                    Int32(((target.x - mover.x) / bin).rounded()),
+                    Int32(((target.y - mover.y) / bin).rounded())
+                )
+                votes[key, default: 0] += 1
+            }
+        }
+        // A bin and its neighbours: a shift landing on a bin edge splits its votes.
+        func support(_ key: SIMD2<Int32>) -> Int {
+            var total = 0
+            for dx in -1...1 { for dy in -1...1 { total += votes[key &+ SIMD2(Int32(dx), Int32(dy))] ?? 0 } }
+            return total
+        }
+        guard let best = votes.keys.max(by: { support($0) < support($1) }),
+              support(best) >= 4 else { return nil }
+        return SimilarityTransform(
+            rotation: guess.rotation,
+            translationX: guess.translationX + Double(best.x) * bin,
+            translationY: guess.translationY + Double(best.y) * bin
+        )
     }
 
     /// Pair each moved star with the nearest reference star inside the match radius.
     private func correspondences(
         moving: [StarPoint],
         reference: [StarPoint],
-        transform: SimilarityTransform
+        transform: SimilarityTransform,
+        radius: Double
     ) -> [(StarPoint, StarPoint)] {
         var pairs: [(StarPoint, StarPoint)] = []
         pairs.reserveCapacity(moving.count)
@@ -141,7 +201,7 @@ public struct StarAligner: Sendable {
         for star in moving {
             let projected = transform.apply(to: star)
             var best: StarPoint?
-            var bestDistance = matchRadius
+            var bestDistance = radius
 
             for candidate in reference {
                 let distance = projected.distance(to: candidate)
