@@ -53,6 +53,7 @@ extension CaptureViewModel {
             frameExposure: settings.frameExposure, tone: tone
         )
         mode = .still
+        aimChoice = nil
         settings.stackMode = .moon
         // The narrowest field makes the biggest disc: the telephoto where there is one.
         if let longest = capabilities.lenses.min(by: { $0.fieldOfView < $1.fieldOfView }) {
@@ -69,6 +70,7 @@ extension CaptureViewModel {
     func leaveMoonMode() {
         guard isMoonMode else { return }
         moonDisc = nil
+        aimChoice = nil
         if let saved = moonReturn {
             settings.stackMode = saved.stackMode
             settings.lens = saved.lens

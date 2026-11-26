@@ -369,7 +369,7 @@ extension CaptureView {
                         model.choose(nil)
                     } label: {
                         Label(
-                            String(format: String(localized: "Auto · %@"), plan.aim.subject),
+                            String(format: String(localized: "Auto · %@"), model.autoAimSubject ?? plan.aim.subject),
                             systemImage: model.aimChoice == nil ? "checkmark" : "sparkles"
                         )
                     }

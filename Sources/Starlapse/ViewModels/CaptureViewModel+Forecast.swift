@@ -79,16 +79,23 @@ extension CaptureViewModel {
     /// The plan's pick, unless the person chose otherwise and that choice is still up.
     var aimPoint: SkyDirector.AimPoint? { chosenCandidate?.aim ?? plan?.aim }
 
-    /// In Moon mode the arrow leads to the Moon, whatever was picked for the night.
+    /// The person's pick if they made one; otherwise the Moon in Moon mode, the plan's pick
+    /// at night. The pick is cleared on entering and leaving Moon mode, so a night target
+    /// chosen earlier does not quietly steer the Moon arrow to Polaris.
     var chosenCandidate: AimCandidate? {
         guard let plan else { return nil }
-        if isMoonMode, let moon = plan.aimCandidates.first(where: { $0.kind == .moon }) {
-            return moon
-        }
         if let aimChoice, let chosen = plan.aimCandidates.first(where: { $0.kind == aimChoice }) {
             return chosen
         }
+        if isMoonMode, let moon = plan.aimCandidates.first(where: { $0.kind == .moon }) {
+            return moon
+        }
         return plan.aimCandidates.first { $0.aim == plan.aim }
+    }
+
+    /// What "Auto" in the target menu means right now.
+    var autoAimSubject: String? {
+        isMoonMode ? "Moon" : plan?.aim.subject
     }
 
     /// Point the arrow somewhere else; nil hands the choice back to the plan. A shower is
