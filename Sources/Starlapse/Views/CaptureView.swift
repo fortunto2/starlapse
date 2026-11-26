@@ -20,28 +20,14 @@ struct CaptureView: View {
         ZStack {
             NightTheme.background.ignoresSafeArea()
 
-            MetalPreviewView(frame: model.previewFrame)
-                .ignoresSafeArea()
+            // Their own views: the preview changes every frame and the aim 30 times a second,
+            // and read here they rebuilt the whole screen with them (83% of the app's CPU
+            // while framing, measured 26 Nov 2026).
+            LivePreview(model: model)
 
             // In daylight there is no star or Milky Way to mark, and the layer dims the view.
             if showsOverlay && !model.state.isReviewing {
-                let pointing = model.overlayPointing
-                SkyOverlayView(
-                    plan: model.plan,
-                    aim: pointing.aim,
-                    target: model.aimPoint?.direction,
-                    hasFix: model.attitude.hasFullFix,
-                    showsEvents: model.showsEvents,
-                    showsAim: model.showsAim,
-                    fieldOfView: Double(model.settings.lens.fieldOfView),
-                    imageRoll: pointing.roll,
-                    buffer: model.previewFrame.map {
-                        CGSize(width: $0.texture.width, height: $0.texture.height)
-                    } ?? CGSize(width: 3, height: 4),
-                    fieldScale: pointing.fieldScale,
-                    isLocked: pointing.isLocked
-                )
-                .ignoresSafeArea()
+                LiveOverlay(model: model)
             }
 
             if model.isFocusing {
@@ -63,9 +49,8 @@ struct CaptureView: View {
                     if showsOverlay, model.plan != nil, !model.state.isCapturing {
                         targetRow
                     }
-                    if model.moonInFrame, !model.state.isCapturing {
-                        MoonInFrameChip { model.enterMoonMode() }
-                            .padding(.top, 6)
+                    if !model.state.isCapturing {
+                        MoonInFrameSlot(model: model)
                     }
                     Spacer()
                     if model.state.isCapturing || showsOverlay {
@@ -406,9 +391,7 @@ extension CaptureView {
 
             Spacer(minLength: 6)
 
-            if let guidance = model.aimGuidance {
-                turnInstruction(guidance)
-            }
+            TurnInstruction(model: model)
         }
         .padding(.top, 8)
     }
@@ -423,25 +406,6 @@ extension CaptureView {
         }
     }
 
-    private func turnInstruction(_ guidance: AimGuidance) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: guidance.isOnTarget ? "checkmark" : "arrow.up")
-                .font(.system(size: 16, weight: .bold))
-                .rotationEffect(guidance.isOnTarget ? .zero : guidance.arrowAngle)
-                .foregroundStyle(NightTheme.accent)
-            VStack(alignment: .trailing, spacing: 1) {
-                Text(String(format: String(localized: "%.0f° to target"), guidance.separation))
-                    .font(NightTheme.mono(11, weight: .semibold))
-                    .foregroundStyle(NightTheme.accent)
-                Text(guidance.instruction)
-                    .font(NightTheme.mono(9))
-                    .foregroundStyle(NightTheme.dim)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(NightTheme.background.opacity(0.75), in: Capsule())
-    }
 }
 
 // MARK: - Mode

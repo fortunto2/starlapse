@@ -54,18 +54,18 @@ final class CaptureViewModel {
     private(set) var progress = StackProgress()
     private(set) var previewFrame: PreviewFrame? {
         didSet {
-            // Hand the displaced frame back. SwiftUI may coalesce two updates into one
-            // render pass, in which case the first never reaches the view — and a pool
-            // texture that is never returned is a slot lost for good. Three of those and
-            // the preview stops for the rest of the session.
-            //
-            // Releasing twice is harmless: the pool ignores a slot that is already free,
-            // and the view releases from its completion handler only for frames it drew.
+            // Hand the displaced frame back: SwiftUI may coalesce two updates, and a pool slot
+            // never returned is lost (three and the preview stops). Releasing twice is
+            // harmless; the view releases only frames it drew.
             if oldValue?.texture !== previewFrame?.texture {
                 oldValue?.release()
             }
+            // Only on a change: the overlay reads the size, and a same-size frame must not redraw it.
+            if let size = previewFrame.map({ CGSize(width: $0.texture.width, height: $0.texture.height) }),
+               size != previewSize { previewSize = size }
         }
     }
+    private(set) var previewSize = CGSize(width: 3, height: 4)
     private(set) var capabilities: CameraCapabilities
     private(set) var plan: SkyDirector.Plan?
     /// The season's meteor showers for this place, best night first. Computed off the main
