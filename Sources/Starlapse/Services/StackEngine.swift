@@ -118,7 +118,13 @@ final class StackEngine: @unchecked Sendable {
     /// — the app crashed on the stop button.
     func cancel() {
         queue.run { [weak self] in
-            guard let self, let plan, plan.isStoppable else { return }
+            guard let self else { return }
+            guard let plan = self.plan, plan.isStoppable else {
+                // Nothing to stop here, yet the screen is capturing: end it anyway. A Stop
+                // that does nothing leaves the person with no way out but killing the app.
+                self.onFinished?()
+                return
+            }
             self.finish(cancelled: true, alreadyResolved: nil)
         }
     }
@@ -457,9 +463,7 @@ final class StackEngine: @unchecked Sendable {
     }
 
     /// Leave review and go back to composing the next shot.
-    func resumeFraming() {
-        begin(.framing)
-    }
+    func resumeFraming() { begin(.framing) }
 
     /// Hand a rendered texture to the screen. Ownership goes with it: whoever displays
     /// the frame calls `release()` when the GPU has finished reading it.

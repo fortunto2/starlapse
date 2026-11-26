@@ -150,6 +150,9 @@ final class CaptureViewModel {
     /// Last lens actually handed to the hardware, so a lens change can be told apart
     /// from an exposure change — the former needs a full session reconfigure.
     private var appliedLens: LensOption?
+    /// A lens switch in flight. A session must not start under one: its end put the engine
+    /// back on framing over the session (0 / 0 frames, and Stop did nothing).
+    private var lensSwitch: Task<Void, Never>?
     let logger = Logger(subsystem: "co.superduperai.starlapse", category: "session")
 
     init() {
@@ -254,9 +257,15 @@ final class CaptureViewModel {
     func settingsChanged() async {
         guard let captureEngine, state == .aiming || state.isCapturing else { return }
 
-        if settings.lens != appliedLens {
+        if settings.lens != appliedLens, !state.isCapturing {
             appliedLens = settings.lens
-            try? await captureEngine.prepare(lens: settings.lens)
+            let lens = settings.lens
+            let switching = Task { _ = try? await captureEngine.prepare(lens: lens) }
+            lensSwitch = switching
+            await switching.value
+            if lensSwitch == switching { lensSwitch = nil }
+            // Pressed during the switch: the session owns the engine now.
+            guard !state.isCapturing else { return }
             stackEngine?.begin(.framing)
         }
         try? await captureEngine.apply(activeSettings)
@@ -328,6 +337,8 @@ final class CaptureViewModel {
         // before the transition asked for framing settings and got them — the detector ran
         // at the still-mode exposure instead of its own, and this line said `settings`
         // directly, which sidestepped the derivation entirely.
+        // Moon mode switches to the telephoto; a press inside that second waits for it.
+        await lensSwitch?.value
         sessionIsDayPhoto = isDayPhoto
         sessionHoldRate = attitude.shakeLog.recentRate()
         sessionTone = sessionIsDayPhoto ? .day : tone
