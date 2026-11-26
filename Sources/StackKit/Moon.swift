@@ -135,13 +135,18 @@ public struct MoonDisc: Sendable, Equatable {
 public struct MoonTracker: Sendable {
     private var reference: MoonDisc?
     private var lucky = LuckySelector()
+    /// Whether the last frame had a disc in it at all, so "no Moon in the frame" can be told
+    /// apart from "a softer frame, skipped". Both drop the frame.
+    public private(set) var sawDisc = false
 
     public init() {}
 
     /// Frame-to-reference transform in luminance-buffer pixels, or nil to drop the frame:
     /// no disc in it, or softer than the median of the frames so far.
     public mutating func register(_ buffer: [Float], width: Int, height: Int) -> SimilarityTransform? {
-        guard let disc = MoonDisc.locate(in: buffer, width: width, height: height),
+        let disc = MoonDisc.locate(in: buffer, width: width, height: height)
+        sawDisc = disc != nil
+        guard let disc,
               lucky.accepts(disc.sharpness(in: buffer, width: width, height: height))
         else { return nil }
         guard let reference else {

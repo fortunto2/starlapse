@@ -204,6 +204,11 @@ struct StatusPanels: View {
             if model.progress.framesRejected > 0 {
                 ReadoutRow(label: "Dropped", value: "\(model.progress.framesRejected)")
             }
+            if model.isMoonMode, model.progress.framesWithoutMoon >= 15 {
+                Text("NO MOON IN THE FRAME · AIM AT IT")
+                    .font(NightTheme.mono(10, weight: .bold))
+                    .foregroundStyle(NightTheme.accent)
+            }
 
             if model.activeSettings.frameExposure < model.settings.frameExposure {
                 ReadoutRow(

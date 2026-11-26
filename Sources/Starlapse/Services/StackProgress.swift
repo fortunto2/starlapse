@@ -7,6 +7,9 @@ struct StackProgress: Sendable, Equatable {
     var framesRejected: Int = 0
     /// Of those, dropped because the phone turned during the exposure.
     var framesMoved: Int = 0
+    /// Moon mode: frames in a row with no disc in them. Nothing else says why the count
+    /// stands at zero while the session runs.
+    var framesWithoutMoon: Int = 0
     var starsTracked: Int = 0
     var alignmentResidual: Double = 0
     /// Output frames written, in time-lapse mode.

@@ -68,6 +68,10 @@ Swift 6 strict mode is on, so this is not optional reading.
   texture — and it crashed at the end of every session. Now `StackEngine` pushes
   `PreviewFrame` as each render completes, and the accumulator alternates between **two**
   display textures so the one handed over is never the one being written.
+- **Control work must not queue behind frames.** Frames arrive on the capture queue with
+  late frames kept; when processing is slower than arrival (Moon mode), GCD never reached a
+  block behind them, so Stop did nothing and `start()` hung in `apply` ("0 / 0", 26 Nov
+  2026). `CaptureQueue.run`/`perform` go through a mailbox that every frame drains first.
 - **Never send a bare `MTLTexture` or `CVPixelBuffer` across an isolation boundary.**
   `PreviewFrame` is `@unchecked Sendable` under the double-buffering guarantee documented
   on the type; `onSegmentReady` must consume its texture synchronously; `onFinished`

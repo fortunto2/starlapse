@@ -49,6 +49,8 @@ final class StackEngine: @unchecked Sendable {
     /// Show one live frame in this many, while watching. Four frames a second is for the
     /// detector's benefit, not the viewer's.
     static let watchPreviewInterval = 4
+    /// A Moon session that drops this many times its frame count ends with what it kept.
+    static let moonAttempts = 10
     private var previewCountdown = 0
     private var watcher: SkyWatcher?
 
@@ -194,8 +196,11 @@ final class StackEngine: @unchecked Sendable {
         var transform: simd_float3x3?
         if plan.stackMode == .moon {
             guard let alignment = trackMoon(frame) else {
-                // No disc, or a frame shake left softer than the median so far.
+                // No disc, or softer than the median. Without the cap, no disc ran forever.
                 progress.framesRejected += 1
+                if progress.framesRejected >= plan.framesPerSegment * Self.moonAttempts {
+                    finish(cancelled: false, alreadyResolved: nil)
+                }
                 report()
                 return
             }
@@ -283,15 +288,6 @@ final class StackEngine: @unchecked Sendable {
             onEventRecorded?(url, event, LumaImage.Size(width: accumulator.lumaWidth, height: accumulator.lumaHeight))
         }
         report()
-    }
-
-    /// Register a Moon frame onto the reference disc, or nil to drop it — see `MoonTracker`.
-    private func trackMoon(_ frame: SensorFrame) -> simd_float3x3? {
-        guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer),
-              let shift = moonTracker.register(luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
-        else { return nil }
-        // Luma pixels to frame pixels; the shader wants accumulator → frame, the inverse.
-        return shift.translationScaled(by: lumaToFrame).inverted.matrix
     }
 
     /// Star and disc positions are in the quarter-size luma buffer; the shader samples the frame.
@@ -486,5 +482,19 @@ final class StackEngine: @unchecked Sendable {
 
     private func report() {
         onProgress?(progress)
+    }
+}
+
+extension StackEngine {
+    /// Register a Moon frame onto the reference disc, or nil to drop it — see `MoonTracker`.
+    private func trackMoon(_ frame: SensorFrame) -> simd_float3x3? {
+        guard let luminance = accumulator.readLuminance(from: frame.pixelBuffer),
+              let shift = moonTracker.register(luminance, width: accumulator.lumaWidth, height: accumulator.lumaHeight)
+        else {
+            progress.framesWithoutMoon = moonTracker.sawDisc ? 0 : progress.framesWithoutMoon + 1
+            return nil
+        }
+        progress.framesWithoutMoon = 0  // shader wants accumulator → frame: the inverse
+        return shift.translationScaled(by: lumaToFrame).inverted.matrix
     }
 }

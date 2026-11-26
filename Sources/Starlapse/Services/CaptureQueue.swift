@@ -13,19 +13,40 @@ import Foundation
 final class CaptureQueue: @unchecked Sendable {
     let dispatch: DispatchQueue
 
+    /// Control work waiting for the queue, run in order by whichever comes first: its own
+    /// dispatch, or the next frame (`drain()`).
+    ///
+    /// Without this, Stop did nothing in Moon mode (26 Nov 2026, measured on an iPhone 14
+    /// Pro). Frames arrive on this queue from AVFoundation with late frames kept, and a Moon
+    /// frame takes longer to process than the next one takes to arrive, so the delivery
+    /// never ran dry and GCD never got round to the block behind it: "cancel requested" in
+    /// the log, never "cancel reached the queue". The same starvation left `start()` stuck
+    /// in `apply`, which is the "0 / 0" session that would not stop.
+    private var mailbox: [@Sendable () -> Void] = []
+    private let lock = NSLock()
+
     init(label: String = "co.superduperai.starlapse.capture") {
         dispatch = DispatchQueue(label: label)
     }
 
     /// Schedule work on the pipeline.
     func run(_ work: @escaping @Sendable () -> Void) {
-        dispatch.async(execute: work)
+        lock.withLock { mailbox.append(work) }
+        dispatch.async { [self] in drain() }
+    }
+
+    /// Run everything waiting, in order. Call only on the queue: frames call it first, so
+    /// control work never waits behind more than the frame in hand.
+    func drain() {
+        while let work = lock.withLock({ mailbox.isEmpty ? nil : mailbox.removeFirst() }) {
+            work()
+        }
     }
 
     /// Schedule work and wait for it, bridging an async caller onto the pipeline.
     func perform<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
         try await withCheckedThrowingContinuation { continuation in
-            dispatch.async {
+            run {
                 do {
                     continuation.resume(returning: try work())
                 } catch {
@@ -39,7 +60,7 @@ final class CaptureQueue: @unchecked Sendable {
     /// fire-and-wait too.
     func perform<T: Sendable>(_ work: @escaping @Sendable () -> T) async -> T {
         await withCheckedContinuation { continuation in
-            dispatch.async {
+            run {
                 continuation.resume(returning: work())
             }
         }

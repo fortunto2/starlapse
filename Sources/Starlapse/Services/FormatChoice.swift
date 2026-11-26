@@ -153,6 +153,23 @@ enum FormatChoice {
         else { return nil }
         return shortest...longest
     }
+
+    /// The frame duration to hand the device: the format's own `CMTime` at either end of its
+    /// range, microseconds in between. 1/30 s in microseconds is 33 333, which is 30.0003 fps,
+    /// and a format whose range ends at 30 refuses it: every Moon session ran without its
+    /// frame window ("Unsupported frame duration", 26 Nov 2026).
+    static func frameDuration(_ seconds: Double, in ranges: [AVFrameRateRange]) -> CMTime {
+        let tolerance = 1e-6
+        if let shortest = ranges.map(\.minFrameDuration).min(by: { $0.seconds < $1.seconds }),
+           seconds <= shortest.seconds + tolerance {
+            return shortest
+        }
+        if let longest = ranges.map(\.maxFrameDuration).max(by: { $0.seconds < $1.seconds }),
+           seconds >= longest.seconds - tolerance {
+            return longest
+        }
+        return CMTime(seconds: seconds, preferredTimescale: 1_000_000)
+    }
 }
 
 extension FormatFacts {

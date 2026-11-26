@@ -334,7 +334,7 @@ struct CaptureView: View {
                 }
             }
         }
-        .disabled(model.state == .preparing)
+        .disabled(model.state == .preparing).accessibilityLabel(model.state.isCapturing ? "Stop" : "Shutter")
     }
 
     private func failureOverlay(_ message: String) -> some View {

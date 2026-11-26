@@ -59,6 +59,17 @@ struct MoonTests {
         #expect(MoonDisc.locate(in: sky, width: Self.width, height: Self.height) == nil)
     }
 
+    @Test("The tracker tells a frame without the Moon from a softer one")
+    func trackerSaysWhenTheDiscIsMissing() {
+        var tracker = MoonTracker()
+        let empty = tracker.register(Self.frame(brightness: 0), width: Self.width, height: Self.height)
+        #expect(empty == nil)
+        #expect(!tracker.sawDisc)
+        let moon = tracker.register(Self.frame(centerX: 70.5, centerY: 52), width: Self.width, height: Self.height)
+        #expect(moon != nil)
+        #expect(tracker.sawDisc)
+    }
+
     @Test("A blown-out disc says so")
     func clipping() throws {
         let sky = Self.frame(brightness: 1.5)

@@ -96,6 +96,7 @@ struct ReviewView: View {
 
     private var headline: String {
         if model.mode.isDetector { return String(localized: "WATCH ENDED") }
+        if model.isMoonMode, model.progress.framesStacked == 0 { return String(localized: "NO MOON FOUND") }
         return model.reviewVideoURL == nil
             ? String(localized: "STACK COMPLETE")
             : String(localized: "TIME-LAPSE COMPLETE")

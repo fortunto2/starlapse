@@ -165,7 +165,11 @@ final class CaptureEngine: @unchecked Sendable {
             logger.error("Camera offers none of the pixel formats this build decodes; using its native one")
         }
 
-        let receiver = FrameReceiver(onFrame: onFrame)
+        // Stop and settings first, then the frame: see `CaptureQueue.mailbox`.
+        let receiver = FrameReceiver { [captureQueue, onFrame] frame in
+            captureQueue.drain()
+            onFrame(frame)
+        }
         self.receiver = receiver
         output.setSampleBufferDelegate(receiver, queue: queue)
 
@@ -308,7 +312,7 @@ final class CaptureEngine: @unchecked Sendable {
         let windowSeconds = FormatChoice.frameWindow(
             for: exposure, bounds: FormatChoice.frameDurationBounds(format.videoSupportedFrameRateRanges)
         )
-        let frame = CMTime(seconds: windowSeconds, preferredTimescale: 1_000_000)
+        let frame = FormatChoice.frameDuration(windowSeconds, in: format.videoSupportedFrameRateRanges)
 
         try device.lockForConfiguration()
         defer { device.unlockForConfiguration() }
